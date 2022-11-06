@@ -1,0 +1,6 @@
+{
+    "version": "1.0.0",
+    "dependencies": {
+        "@jeli/core": "0.0.1"
+    }
+}

@@ -1,0 +1,24 @@
+<form {:formControl}="regoForm">
+  <div class="mb-3">
+    <label class="form-label">Email:</label>
+    <input type="email" id="email" class="form-control" placeholder="Email address" :formField="email" {class}="{'is-invalid': isInvalidField('email')}" />
+    <div class="alert alert-danger mt-2" {class}="{'d-none': !isInvalidField('email')}">
+      You have entered an invalid email or email address already exists.
+    </div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Password:</label>
+    <input type="password" placeholder="Password" autocomplete="off" class="form-control" :formField="password" {class}="{'is-invalid': isInvalidField('password')}">
+    <div class="alert alert-info mt-2" {class}="{'d-none': !isInvalidField('password')}">
+      Password must contain at least 1 lowercase alphabetical character
+      <br>1 uppercase alphabetical character
+      <br> 1 numeric character
+      <br> at least one special character
+      <br> Password must be eight characters or longer
+    </div>
+  </div>
+  <j-place></j-place>
+  <div class="d-grid gap-2">
+    <button type="submit" class="btn btn-primary" @click="registerAccount()" {disabled}="regoForm.invalid || isProcessing"> ${:buttonText || 'Register'} </button>
+  </div>
+</form>

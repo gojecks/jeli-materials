@@ -1,0 +1,9 @@
+<j-place selector="[header]"></j-place>
+<ul class="nav nav-pills flex-column fo-tree" @click-delegate:li="onBranchSelected(row)">
+  <li *for="row in tree_rows | filter:{visible:true}; trackBy as trackByFn" {:jClass}="'level-'+row.level  + ' '+ row.classes.join(' ')" class="fo-tree-row nav-item">
+    <a class="nav-link" {:jClass}="row.selected ? ' active' :''">
+      <i {:jClass}="row.treeIcon" class="indented tree-icon"> </i><span class="indented tree-label"> ${row.name}</span>
+    </a>
+  </li>
+</ul>
+<j-place selector="[footer]"></j-place>

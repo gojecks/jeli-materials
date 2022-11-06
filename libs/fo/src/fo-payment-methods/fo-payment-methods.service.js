@@ -1,0 +1,6 @@
+
+
+Service()
+export function FoPaymentMethodsService() {
+
+}

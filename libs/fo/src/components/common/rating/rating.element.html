@@ -1,0 +1,24 @@
+<div class="star-container" @click-delegate:span.star="submitRatings(star)">
+  <span class="star me-1 bi-star-fill" attr-class="'fs-'+size" *for="star of stars" {:jClass}="percentage >= star ? 'checked':''"></span>
+  <p class="mt-2 clearfix" *if="totalRatings">${:percentage} average based on ${:totalRatings} reviews.
+    <span class="float-end text-muted" *if="showProgress" @click="expandDetail=!expandDetail"><small>Details</small></span>
+  </p>
+</div>
+<div class="collapse" {:jClass}="(expandDetail ? 'show':'')" *if="showProgress && totalRatings">
+  <hr/>
+  <div class="row">
+    <div *for="star of [5,4,3,2,1]">
+      <div class="side">
+        <div>${:star} star</div>
+      </div>
+      <div class="middle">
+        <div class="bar-container">
+          <div class="bar" attr-style.width="((ratings[star] ? (totalRatings / ratings[star]) : 0) * 100) + '%'" attr-class="'bg-'+bgClass[star]"></div>
+        </div>
+      </div>
+      <div class="side right">
+        <div>${ratings[star]}</div>
+      </div>
+    </div>
+  </div>
+</div>

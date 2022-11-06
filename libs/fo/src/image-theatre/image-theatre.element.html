@@ -1,0 +1,28 @@
+<div class="modal" style="display:block" *if="openTheatre">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-body  row m-0 p-0">
+        <div class="col-md-${:openTheatre.comments ? '9':'12'} previewArea">
+          <div class='clearfix top-action-container'>
+            <button class='btn-close' @click="openTheatre=null"><i class="bi-x-lg"></i></button>
+            <div class="float-end zoom-btn" @click-delegate:button='scale(idx)'>
+              <button class="btn-close" *for="t in ['out', 'in']; idx=index"><i attr-class="'bi-zoom-'+t"></i></button>
+            </div>
+          </div>
+          <div class="clearfix nav-container" @click-delegate:button='prevNext(idx)'>
+            <button class="float-${:idx ?'end':'start'} carousel-control-${:t}" *for="t in ['prev','next']; idx=index"><i attr-class="'carousel-control-'+t+'-icon'"></i></button>
+          </div>
+          <img {src}="openTheatre.fileUrl + openTheatre.files[openTheatre.entry].name" {style}="{width:zoomScale+'%'}" />
+        </div>
+        <div class="col-md-3 p-0 bg-white" *if="openTheatre.comments">
+          <!-- <a class="d-block p-2 clearfix border-bottom text-decoration-none text-black" href="/#/main/profile/${:openTheatre.userInfo.uid}">
+            <img attr-src="openTheatre.userInfo.profilePhoto.fileUrl + openTheatre.userInfo.profilePhoto.files.fileName+'&s=50x50'" class="float-start me-3 rounded-2 border-0">
+            <div class="pt-1">
+              <h6 class="h6 mb-1">${:openTheatre.userInfo.name | capitalize}</h6>
+            </div>
+          </a> -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

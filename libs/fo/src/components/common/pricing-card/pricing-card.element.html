@@ -1,0 +1,19 @@
+<div class="row">
+  <div class="col" *for="package in packages" @click-delegate:button="onPackageSelected.emit(package)">
+    <j-fragment template="cardView"></j-fragment>
+  </div>
+</div>
+<j-template #cardView>
+  <div class="card mb-4 rounded-3 shadow-sm">
+    <div class="card-header py-3 ${:package.headerClass || ''}">
+      <h4 class="my-0 fw-normal">${:package.name}</h4>
+    </div>
+    <div class="card-body">
+      <h1 class="card-title pricing-card-title">${:package.amount}<small class="text-muted fw-light">/${:package.frequency}</small></h1>
+      <ul class="list-unstyled mt-3 mb-4">
+        <li *for="coverage in package.coverages">${:coverage}</li>
+      </ul>
+      <button type="button" class="w-100 btn btn-lg btn-outline-primary">${:package.buttonText}</button>
+    </div>
+  </div>
+</j-template>

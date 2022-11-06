@@ -1,0 +1,9 @@
+<div class="list-group">
+  <div class="list-group-item p-0 rounded-0">
+    <input type="text" class="form-control border-0" placeholder="Search for place or address" id="_gpAutoComplete">
+  </div>
+  <a href="javascript:void(0)" class="list-group-item list-group-item-action clearfix" *for="loc in homeLocations">
+    <div class="float-start p-2"><i class="fa fa-map-marked-alt fa-lg"></i></div>
+    <div class="d-inline">${:loc.formatted_address}</div>
+  </a>
+</div>

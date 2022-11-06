@@ -1,0 +1,25 @@
+<form {:formControl}="paymentFormData" name="paymentForm" @submit="validateCardDetails()">
+  <div class="mb-3 mbm">
+    <input type="text" :formField="name" class="form-control" placeholder="Name on card" />
+  </div>
+  <div class="input-group mbm mb-3">
+    <input type="text" :formField="number" class="form-control" placeholder="Card Number" maxlength="16" />
+    <span class="input-group-addon input-group-text"><i class="fa" {:jClass}="getCardType()"></i></span>
+  </div>
+  <div class="input-group mbm mb-3">
+    <select :formField="expiration_month" class="form-select">
+      <option *for="month in monthRange" value="${:month}">${:month}</option>
+    </select>
+    <select :formField="expiration_year" class="form-select">
+      <option *for="year in yearRange" value="${:year}">${:year}</option>
+    </select>
+    <input type="password" :formField="security_code" maxlength="3" class="form-control" placeholder="CVV:" />
+  </div>
+
+  <div class="mb-3 mbm d-grid gap-2">
+    <button class="btn btn-primary" type="submit" {disabled}="paymentFormData.invalid || !canMakePayment || validationInProgress">
+            <i class="fa fa-spinner fa-spin" *if="validationInProgress"></i> Pay now 
+        </button>
+  </div>
+  <div class="alert alert-danger" *if="errMsg" {innerHTML}="errMsg" trust-html></div>
+</form>

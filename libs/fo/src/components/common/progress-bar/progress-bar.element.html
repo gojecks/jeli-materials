@@ -1,0 +1,5 @@
+<div class="progress">
+  <div class="progress-bar" {:jClass}="progressStyle" role="progressbar" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="${max}" aria-valuetext="${percent}%" {style}="{width:percent +'%'}">
+    <span *if="showLabel">${percent}%</span>
+  </div>
+</div>

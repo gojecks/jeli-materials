@@ -1,0 +1,6 @@
+<div class="alert alert-${:type} fade show ${:dismissable ? 'alert-dismissible':''}" role="alert">
+  <j-place></j-place>
+  <i class="bi flex-shrink-0 me-2" attr-class="iconClass" *if="iconClass"></i>
+  <div attr-innerHTML="text"></div>
+  <button *if="dismissable" type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" @click="closeAlert()"></button>
+</div>

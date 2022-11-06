@@ -1,0 +1,7 @@
+<fo-modal *if="showAlert && _isActive" modalStyle="modal-dialog-centered" hideHeader="true">
+  <div class="modal-body" #modalBody {:switch}="alertType">
+    <j-place *switchCase="'isTimeOutWarn'" selector="#isTimeOutWarn"></j-place>
+    <j-place selector="#isTimedOut" *switchCase="'isTimedOut'"></j-place>
+    <j-place *switchCase="'isIdle'" selector="#isIdle"></j-place>
+  </div>
+</fo-modal>

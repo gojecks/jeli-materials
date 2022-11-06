@@ -1,0 +1,12 @@
+<j-fragment {:switch}="type">
+  <div class="form-check" attr-class="cbClass" *switchCase="'native'">
+    <input class="form-check-input" type="checkbox" {:fieldControl}="_control" attr-id="editorsId">
+    <label class="form-check-label" attr-for="editorsId"><j-place></j-place></label>
+  </div>
+  <j-fragment *switchDefault>
+    <input type="checkbox" class="btn-check" attr-id="editorsId" {:fieldControl}="_control" autocomplete="off">
+    <label class="btn " {:jClass}="(_control.value?'btn-':'btn-outline-')+(cbClass || 'primary')" attr-for="editorsId">
+        <j-place></j-place>
+      </label>
+  </j-fragment>
+</j-fragment>

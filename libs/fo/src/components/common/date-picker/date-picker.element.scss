@@ -1,0 +1,22 @@
+.dateContainer {
+    padding: 1px;
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    /* Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+    input {
+        border: 0 !important;
+        border-radius: 0!important;
+        text-align: center;
+    }
+    input:focus {
+        box-shadow: none !important;
+        outline: 0;
+    }
+}

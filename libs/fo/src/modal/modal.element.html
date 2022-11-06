@@ -1,0 +1,13 @@
+<div class="modal" attr-style="{'display':displayType}">
+  <div class="modal-dialog" attr-class="modalStyle">
+    <div class="modal-content">
+      <div class="modal-header" *if="!hideHeader">
+        <j-place selector="#modalHeader"></j-place>
+        <button type="button" class="btn-close" @click="closeModal(false)"></button>
+      </div>
+      <j-place selector="#modalBody"></j-place>
+      <j-place selector="#modalFooter"></j-place>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop show in" *if="backDrop" @click="closeModal(true)"></div>

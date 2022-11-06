@@ -1,0 +1,8 @@
+<div class="row me-0 mb-3" @click-delegate:img="openTheatre(idx)">
+  <div class="pe-0 position-relative mb-2 clearfix" attr-class="size" *for="img of photos.files; idx=index">
+    <img {src}="photos.fileUrl + img.name" class="img-fluid" {alt}="img.name">
+    <button class="btn-close close-btn" aria-label="Remove image" *if="canDelete" @click="removeImage(idx)"></button>
+  </div>
+</div>
+
+<fo-image-theatre *if="allowPreview"></fo-image-theatre>

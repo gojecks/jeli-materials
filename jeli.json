@@ -1,0 +1,40 @@
+{
+    "cli": {
+        "packageManager": "npm"
+    },
+    "projects": {
+        "fo-materials": {
+            "sourceRoot": "libs/fo",
+            "root": "libs/fo",
+            "prefix": "fo",
+            "output": {
+                "generateMeta": true,
+                "patterns": [
+                    "UMD",
+                    "MODULE"
+                ],
+                "folder": "dist/fo/",
+                "files": {
+                    "@jeli/materials": "index.js"
+                },
+                "doc": {
+                    "source": "libs/fo/src",
+                    "destination": "docs/fo",
+                    "plugins": [{
+                        "name": "esdoc-standard-plugin"
+                    }]
+                }
+            },
+            "resolve": {},
+            "type": "library",
+            "styling": "scss"
+        }
+    },
+    "resolve": {
+        "alias": {
+            "@jeli/*": "../jeli-js/dist/",
+            "@jeli/common/datetime": "../jeli-js/dist/common/datetime"
+        }
+    },
+    "default": "fo-materials"
+}

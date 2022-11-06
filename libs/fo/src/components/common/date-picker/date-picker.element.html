@@ -1,0 +1,19 @@
+<j-fragment template="defaultTemplate"></j-fragment>
+<j-template #defaultTemplate>
+  <label class="d-block form-label">${:label}</label>
+  <div class="input-group" {:formControl}="_control">
+    <input type="number" class="form-control" placeholder="DD" :formField="day" />
+    <input type="number" class="form-control" placeholder="MM" :formField="month" />
+    <input type="number" class="form-control col-sm-4" placeholder="YYYY" :formField="year" />
+    <j-fragment *if="isDT">
+      <input type="number" class="form-control" placeholder="Hour" :formField="hour" />
+      <input type="number" class="form-control" placeholder="Min" :formField="min" />
+    </j-fragment>
+  </div>
+  <div class="clearfix" *if='hintLabel'>
+    <small class="text-muted float-end">${:hintLabel}</small>
+  </div>
+  <p class="mt-2 alert alert-danger" *if="_control.touched && _control.invalid">
+    You have entered an invalid date please try again.
+  </p>
+</j-template>

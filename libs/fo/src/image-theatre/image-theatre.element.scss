@@ -1,0 +1,43 @@
+.modal-content {
+    background-color: #000 !important;
+    .previewArea {
+        position: relative;
+        padding: 0px;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+        .top-action-container {
+            position: fixed;
+            top: 0px;
+            width: 100%;
+            padding: .5em;
+            .zoom-btn button {
+                font-size: 1.2em;
+            }
+        }
+        button {
+            color: #fff !important;
+            background: none;
+            outline: 0;
+        }
+        .nav-container {
+            position: fixed;
+            padding: 0 1em;
+            top: 45%;
+            width: 100%;
+            button {
+                font-size: 1.5em;
+            }
+        }
+        img {
+            width: 60%;
+            transition: width 500ms ease-in-out;
+        }
+    }
+    .col-md-9 {
+        .nav-container,
+        .top-action-container {
+            width: 75%;
+        }
+    }
+}

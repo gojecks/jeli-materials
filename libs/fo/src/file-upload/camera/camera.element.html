@@ -1,0 +1,22 @@
+<div class="cameraView">
+  <div class="cameraContainer" {style}="_settings">
+    <div {class}="{'d-none':isCaptured}">
+      <div class="closeContainer">
+        <a class="btn-close float-end" arial-label="close" @click="onCameraAction.emit(null)"></a>
+      </div>
+      <video #videoPlayer @canplay="listenToPlay($event);cameraEnabled=true"></video>
+      <div class="takePhoto" *if="cameraEnabled">
+        <button type="button" @click="takePicture()" class="captureButton "></button>
+      </div>
+    </div>
+    <div {class}="{ 'd-none':!isCaptured} ">
+      <div class="closeContainer ">
+        <a class="btn-close float-end " arial-label="close " @click="isCaptured=false "></a>
+      </div>
+      <canvas #canvasContainer></canvas>
+      <div class="takePhoto ">
+        <button type="button " class="btn btn-secondary " @click="usePhoto() ">Ok</button>
+      </div>
+    </div>
+  </div>
+</div>

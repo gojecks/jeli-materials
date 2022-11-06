@@ -1,0 +1,67 @@
+.checkin-container {
+    position: relative;
+    overflow: hidden;
+    .controls {
+        margin-top: 10px;
+        border: 1px solid transparent;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        height: 32px;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    input[autocomplete] {
+        background-color: #fff;
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 300px;
+    }
+    .pac-container {
+        z-index: 2147483647;
+    }
+    .rightPanel {
+        font-family: Arial, Helvetica, sans-serif;
+        overflow-y: scroll;
+        select,
+        input {
+            font-size: 15px;
+        }
+        select {
+            width: 100%;
+        }
+        h2 {
+            margin: 0;
+            background-color: #f8f9fa;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            height: 90%;
+            position: absolute;
+            width: 100%;
+            overflow-y: scroll;
+            li {
+                background-color: #ced4da;
+                padding: 0.5rem 1rem;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+                cursor: pointer;
+            }
+            li:nth-child(odd) {
+                background-color: #f8f9fa;
+            }
+            li:focus {}
+        }
+        button {
+            width: 100%;
+            margin: 5px 0 0 0;
+        }
+    }
+}

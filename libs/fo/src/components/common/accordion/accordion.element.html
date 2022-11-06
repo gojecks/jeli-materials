@@ -1,0 +1,10 @@
+<div class="accordion" attr-class="flush ? 'accordion-flush':''" id="accordionPanels" @click-delegate:button.accordion-button="currentSelectedAccord=idx">
+  <div class="accordion-item" *for="item of items; idx=index">
+    <h2 class="accordion-header" attr-id="'panels-heading-'+idx">
+      <button class="accordion-button" type="button" {:jClass}="idx==currentSelectedAccord ? '':'collapsed'">${:item.title}</button>
+    </h2>
+    <div attr-id="'panel-body-'+idx" class="accordion-collapse collapse" {:jClass}="idx==currentSelectedAccord ? 'show':''">
+      <div class="accordion-body" attr-innerHTML="item.content"></div>
+    </div>
+  </div>
+</div>

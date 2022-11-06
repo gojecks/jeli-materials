@@ -1,0 +1,63 @@
+<form class="uploadContainer">
+  <j-fragment *if="_settings.multiple; else as singleFileTemplate">
+    <div class="box has-advanced-upload js mb-3" {:jClass}="dragClass">
+      <div class="box__input" *if="!selectedFiles.length">
+        <input class="box__file" type="file" @input="onSelectImage($event)" name="files[]" id="file" multiple />
+        <label for="file">${:label || 'Choose or drag photos here.'}</label>
+      </div>
+      <div class="clearfix" @click-delegate:a="removeImage(idx)">
+        <j-fragment template="listPreview" *if="!_settings.imageListPreview; else as imageListPreview"></j-fragment>
+      </div>
+    </div>
+  </j-fragment>
+  <div class="alert alert-danger mb-3" role="alert" *if="uploadError">
+    <p class="mb-1">There was an error uploading images. Please try again!</p>
+    <p *for="msg in errorMessages" class="mb-1">${:msg}</p>
+  </div>
+  <div class="alert alert-danger mb-3" role="alert" *if="selectedFileErrors.length">
+    <h6>Invalid file format or too large image</h6>
+    <p *for="file in selectedFileErrors" class="mb-1">${:file.name} - ${:file.size}bytes</p>
+    accepted formats are ${:_settings.accepts}
+  </div>
+  <fo-camera *if="showCamera" @onCameraAction="listenCameraAction($event)" {settings}="_settings.camera"></fo-camera>
+  <fo-image-preview {photos}="value" *if="value" canDelete="true" {formData}="_settings.formData"></fo-image-preview>
+  <div class="clearfix" *if="_settings.showUploadBtn && !_settings.autoUpload">
+    <button type="button" class="btn btn-primary float-end" @click="uploadImage()" {disabled}="!_uploadFiles.length">
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" *if="uploadInProgress"></span>
+      <i class="fa fa-upload"></i> ${:buttonText || 'Upload'} </button>
+  </div>
+</form>
+
+<j-template #singleFileTemplate>
+  <input type="file" @input="onSelectImage($event)" name="files[]" id="file" />
+  <label for="file"><j-place selector="[fileInput]"></j-place></label>
+  <label *if="_settings.useCamera" @click="showCamera=!showCamera"><j-place selector="[camera]"></j-place></label>
+  <div class="clearfix mt-2 mb-2" *if="_settings.allowSinglePreview" @click-delegate:button="removeImage(idx)">
+    <j-fragment template="listPreview" *if="!_settings.imageListPreview; else as imageListPreview"></j-fragment>
+  </div>
+</j-template>
+
+<j-template #listPreview>
+  <ul class="list-group">
+    <li class="list-group-item list-group-item-action clearfix" *for="file in selectedFiles; idx=index">
+      <button class="btn-close btn-sm float-end"></button>
+      <h6>
+        <i class="fa me-2" {:jClass}="uploadProgress >= 100 ? 'text-success fa-check':'text-info fa-circle-notch'"></i>${file.name}</h6>
+    </li>
+  </ul>
+</j-template>
+
+<j-template #imageListPreview>
+  <div class="_duCon" attr-style="_settings.previewPane" *for="file in selectedFiles; idx=index">
+    <div class="_imC">
+      <img {src}="file.blobURL" attr-height="_settings.previewPane.width">
+    </div>
+    <div class="_lnd"></div>
+    <div class="_pCN" {style.width}="(_settings.previewPane.width - 5)">
+      <div class="progress">
+        <div class="progress-bar bg-${uploadError ?'danger':'success'}" role="progressbar" aria-label="upload progress" {style.width}="(uploadProgress) + '%'" aria-valuenow="uploadProgress" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+    </div>
+    <a class="btn-close"></a>
+  </div>
+</j-template>

@@ -1,0 +1,18 @@
+<form @submit="login()">
+  <div class="form-validation mb-3" {:formControl}="loginForm">
+    <div class="alert alert-danger text-center" *if="errorLogin"> ${errMsg || "Invalid User name or Password"}</div>
+    <div class="list-group mb-3">
+      <div class="list-group-item">
+        <input type="email" placeholder="Email" class="form-control" :formField="email">
+      </div>
+      <div class="list-group-item">
+        <input type="password" placeholder="Password" class="form-control" :formField="password" autocomplete="off">
+      </div>
+    </div>
+    <div class="d-grid gap-2">
+      <button type="submit" class="btn btn-primary btn-block" {disabled}="loginForm.invalid || isProcessing">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" *if="isProcessing"></span>
+         Log in </button>
+    </div>
+  </div>
+</form>
