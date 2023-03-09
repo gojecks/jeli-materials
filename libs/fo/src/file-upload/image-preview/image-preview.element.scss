@@ -1,12 +1,18 @@
-.close-btn {
-    position: absolute;
-    right: 0px;
-}
-
-img {
-    cursor: pointer;
-}
-
-img:hover {
-    opacity: 0.8;
+.fo-imgp-item {
+    overflow: hidden;
+    border-right: 3px solid #fff;
+    border-bottom: 3px solid #fff;
+    .close-btn {
+        position: absolute;
+        right: 0px;
+    }
+    
+    img {
+        cursor: pointer;
+        transition: all ease-in-out 0.4s;
+    }
+    
+    img:hover {
+        opacity: 0.8;
+    }
 }

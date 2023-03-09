@@ -16,6 +16,6 @@ FoAceEditorDirective.prototype.didInit = function() {
         this.editor = ace.edit(this.elementRef.nativeElement);
         this.editor.setTheme("ace/theme/monokai");
         this.editor.session.setMode("ace/mode/" + this.mode);
-        this.editorLoaded.emit(true);
+        this.editorLoaded.emit(this.editor);
     }, 'js');
 }

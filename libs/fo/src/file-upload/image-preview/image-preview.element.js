@@ -5,15 +5,16 @@ Element({
     selector: 'fo-image-preview',
     templateUrl: './image-preview.element.html',
     styleUrl: './image-preview.element.scss',
-    props: ['photos', 'formData', 'canDelete', 'allowPreview', 'size'],
+    props: ['photos', 'formData', 'canDelete', 'allowPreview', 'size', 'gridClass', 'imgClass'],
     DI: [UploadService, ImageTheatreService]
 })
 export function ImagePreviewElement(uploadService, imageTheatreService) {
     this.uploadService = uploadService;
     this.allowPreview = false;
+    this.gridClass  = null;
     this.formData = null;
     this.canDelete = false;
-    this.size = 'col'
+    this.size = 'col';
     this.imageTheatreService = imageTheatreService;
 }
 ImagePreviewElement.prototype.removeImage = function(idx) {

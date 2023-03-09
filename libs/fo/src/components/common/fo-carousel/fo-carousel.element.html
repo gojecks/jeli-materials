@@ -1,7 +1,6 @@
 <div attr-id="id" class="carousel slide" {:jClass}="{'carousel-dark': darkVariant, 'carousel-fade': crossFade}">
   <j-fragment *if="indicator" template="indicatorControl"></j-fragment>
   <div class="carousel-inner">
-    <j-place selector="[carousel-item]"></j-place>
     <div class="carousel-item" attr-id="id +'-item-'+idx" {:jClass}="currentIndex === idx ? 'active':''" *for="item of carouselItems; idx=index">
       <img attr-src="item.imgPath" class="d-block w-100" attr-alt="item.alt || item.imgPath">
       <div class="carousel-caption d-none d-md-block" attr-innerHTML="item.caption"></div>

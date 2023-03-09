@@ -9,7 +9,6 @@ Element({
     props: ['isActive']
 })
 export function SessionManagementElement(sessionConfig, foTokenService, changeDetector) {
-    var _this = this;
     this.sessionService = new SessionManagementService(sessionConfig);
     this.changeDetector = changeDetector;
     this.foTokenService = foTokenService;
@@ -29,22 +28,21 @@ export function SessionManagementElement(sessionConfig, foTokenService, changeDe
     /**
      * subscribe to token update
      */
-    foTokenService.onTokenUpdate.subscribe(function(updated) {
+    foTokenService.onTokenUpdate.subscribe((updated) => {
         if (updated) {
-            _this.sessionService.startWatch(foTokenService.getAccessToken());
+            this.sessionService.startWatch(foTokenService.getAccessToken());
         }
     });
 }
 
 SessionManagementElement.prototype.didInit = function() {
-    var _this = this;
-    this.sessionService.emitter.subscribe(function(event) {
-        if (_this.sessionService.eventsName.indexOf(event.type) > 1) {
-            _this.showAlert = true;
-            _this.alertType = event.type
+    this.sessionService.emitter.subscribe(event => {
+        if (this.sessionService.eventsName.indexOf(event.type) > 1) {
+            this.showAlert = true;
+            this.alertType = event.type
         } else {
-            _this.showAlert = false;
+            this.showAlert = false;
         }
-        _this.changeDetector.detectChanges();
+        this.changeDetector.onlySelf();
     });
 }

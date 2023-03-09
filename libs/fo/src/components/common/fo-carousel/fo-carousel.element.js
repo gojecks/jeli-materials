@@ -31,7 +31,7 @@ FoCarouselElement.prototype.viewDidLoad = function() {
 }
 
 FoCarouselElement.prototype.startTimer = function() {
-    if (!this.ride || this.carouselItems.length === 1) return;
+    if (!this.ride || this.carouselItems.length < 2) return;
     clearTimeout(this._currentTimer);
     var current = this.carouselItems[this.currentIndex];
     this._currentTimer = setTimeout(() => {

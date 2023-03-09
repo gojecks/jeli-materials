@@ -47,15 +47,14 @@ SessionManagementService.prototype.startWatch = function(watchObj) {
 };
 
 SessionManagementService.prototype._attachEvents = function() {
-    var _this = this;
-    this._unsubscribeListener = attachEventListener(this.session.events, function() {
-        _this.countDown = 0;
-        if (_this.isLastTriggered('isIdle')) {
-            _this._trigger('isIdleEnd');
+    this._unsubscribeListener = attachEventListener(this.session.events, ()=> {
+        this.countDown = 0;
+        if (this.isLastTriggered('isIdle')) {
+            this._trigger('isIdleEnd');
         }
         //keep alive
-        _this.keepAlive = true;
-        _this._trigger('isAlive');
+        this.keepAlive = true;
+        this._trigger('isAlive');
     });
 }
 

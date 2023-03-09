@@ -1,7 +1,9 @@
-<div class="row me-0 mb-3" @click-delegate:img="openTheatre(idx)">
-  <div class="pe-0 position-relative mb-2 clearfix" attr-class="size" *for="img of photos.files; idx=index">
-    <img {src}="photos.fileUrl + img.name" class="img-fluid" {alt}="img.name">
-    <button class="btn-close close-btn" aria-label="Remove image" *if="canDelete" @click="removeImage(idx)"></button>
+<div class="container-fluid">
+  <div class="fo-imgp-container row" attr-class="gridClass||'me-0 mb-3 g-0'" @click-delegate:img="openTheatre(idx)">
+    <div class="pe-0 position-relative clearfix fo-imgp-item" attr-class="size" *for="img of photos.files; idx=index; imgClass=imgClass">
+      <img {src}="photos.fileUrl + (img.name || img)" class="img-fluid" attr-class="imgClass" {alt}="img.name||img">
+      <button class="btn-close close-btn" aria-label="Remove image" *if="canDelete" @click="removeImage(idx)"></button>
+    </div>
   </div>
 </div>
 

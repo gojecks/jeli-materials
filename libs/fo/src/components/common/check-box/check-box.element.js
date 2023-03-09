@@ -58,11 +58,10 @@ export function CheckBoxElement(parentControl) {
 }
 
 CheckBoxElement.prototype.viewDidLoad = function() {
-    var _this = this;
     if (this._control) {
-        this._control.valueChanges.subscribe(function(value) {
-            if (!_this.options && !_this._controlPassed) {
-                _this.onOptionSelected.emit(value);
+        this._control.valueChanges.subscribe(value => {
+            if (!this._controlPassed) {
+                this.onOptionSelected.emit(value);
             }
         });
     }
@@ -74,15 +73,18 @@ CheckBoxElement.prototype.viewDidLoad = function() {
  */
 Element({
     selector: 'fo-multiple-check-box',
-    template: '<div @click-delegate:span="badgeSelected(opt.value || opt)">\
-    <span class="badge me-1" {:jClass}="value.includes(opt.value || opt) ? \'bg-primary\': \'bg-secondary\'" *for="opt in options">${:opt.label || opt}</span>\
+    template: '<div @click-delegate:button="badgeSelected(opt.value || opt)">\
+    <button class="btn" type="button" attr-class="\'btn-\'+size +\' \'+btnClass" {:jClass}="(value.includes(opt.value || opt) ? \'btn-\': \'btn-outline-\')+btnColor" *for="opt in options">${:opt.label || opt}</button>\
   </div>',
-    props: ['id', 'control', 'name', 'options', 'value'],
+    props: ['id', 'control', 'name', 'options', 'value', 'size', 'btnClass', 'btnColor'],
     events: ['onOptionSelected:emitter'],
     DI: ['ParentRef?=formControl']
 })
 export function MultipleCheckBox(parentControl) {
     CheckBoxElement.call(this, parentControl);
+    this.size = 'sm';
+    this.btnClass = 'me-1 mb-1';
+    this.btnColor = 'primary';
 }
 MultipleCheckBox.prototype = Object.create(CheckBoxElement.prototype);
 MultipleCheckBox.constructor = CheckBoxElement;
@@ -101,6 +103,10 @@ MultipleCheckBox.prototype.badgeSelected = function(opt) {
         this.value.push(opt);
     }
 
+    this.pushValue();
+}
+
+MultipleCheckBox.prototype.pushValue = function(){
     if (this._control) {
         this._control.patchValue(this.value);
     } else {

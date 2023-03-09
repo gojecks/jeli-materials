@@ -11,13 +11,12 @@ export function CkeditorUploadAdapterService(uploadService) {
 }
 
 CkeditorUploadAdapterService.prototype.upload = function() {
-    var _this = this;
     return this.loader.file
-        .then(function(file) {
-            return new Promise(function(resolve, reject) {
+        .then((file) => {
+            return new Promise((resolve, reject) => {
                 readFile(file, /^image/)
-                    .then(function(base64Image) {
-                        _this.uploadService.upload({
+                    .then(base64Image => {
+                        this.uploadService.upload({
                                 file: base64Image,
                                 fileName: file.name,
                                 path: 'photos/'

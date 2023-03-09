@@ -11,12 +11,14 @@ Service({
  * @param {*} storageProvider 
  */
 export function AuthSessionManager(storageProvider) {
-    var _this = this;
+    this.ignoreKeysOnReload = [];
     this._sessionData = {};
     this.storageProvider = storageProvider;
     this._stack = {
-        'auth-reload': function() {
-            return _this._sessionData;
+        'auth-reload': () => {
+            // remove keys from state before saving
+            this.ignoreKeysOnReload.forEach(key => delete this._sessionData[key]);
+            return this._sessionData;
         }
     };
     // get the storageData
@@ -30,8 +32,8 @@ export function AuthSessionManager(storageProvider) {
      * register eventListener
      */
     if ("onbeforeunload" in window) {
-        window.addEventListener('beforeunload', function() {
-            _this.saveSessionStack();
+        window.addEventListener('beforeunload', () => {
+            this.saveSessionStack();
         }, false);
     }
 }
@@ -39,15 +41,18 @@ export function AuthSessionManager(storageProvider) {
 AuthSessionManager.prototype.saveSessionStack = function() {
     if (this.storageProvider.storage && this.storageProvider.storageType in window) {
         for (var stack in this._stack) {
+            var value = this._stack[stack]();
             //store the ref data to be retrieve
-            window[this.storageProvider.storageType].setItem(stack, JSON.stringify(this._stack[stack]()));
+            if (value){
+                window[this.storageProvider.storageType].setItem(stack, JSON.stringify(value));
+            }
         }
     }
 };
 
 AuthSessionManager.prototype.addToStack = function(name, fn) {
     if (this._stack && !this._stack.hasOwnProperty(name) && typeof fn === 'function') {
-        _stack[name] = fn;
+    this._stack[name] = fn;
     }
 };
 
@@ -61,14 +66,40 @@ AuthSessionManager.prototype.destroy = function() {
     this._sessionData = {};
 };
 
-AuthSessionManager.prototype.getData = function(name) {
-    return this._sessionData[name];
+AuthSessionManager.prototype.getData = function(key) {
+    key = key.startsWith('@') ? key.split('@')[1] : key;
+    return key.split('.').reduce((accum, key) => { if (key && accum) { accum = accum[key] } return accum }, this._sessionData);
 };
 
-AuthSessionManager.prototype.storeData = function(name, value) {
-    this._sessionData[name] = value;
+AuthSessionManager.prototype.storeData = function(key, value, preserve) {
+    if (!key) return;
+    var state = this._sessionData;
+    var isDeleteState = (value === undefined);
+    if (key.includes('.')) {
+        var props = key.split('.');
+        if (!isDeleteState){
+            key = props.pop();
+            state = props.reduce((accum, key) => {
+                if (!accum.hasOwnProperty(key)) {
+                    accum[key] = {};
+                }
+                return (accum = accum[key], accum);
+            },state);
+        } else {
+            key = props.shift();
+        }
+    }
+
+    if (isDeleteState){
+        delete state[key];
+    } else {
+        state[key] = value;
+        if (preserve === false && !this.ignoreKeysOnReload.includes(key)){
+            this.ignoreKeysOnReload.push(key);
+        }
+    }
 };
 
-AuthSessionManager.prototype.removeData = function(name) {
-    delete this._sessionData[name];
-};
+AuthSessionManager.prototype.getFullState = function(){
+    return JSON.parse(JSON.stringify(this._sessionData));
+}
