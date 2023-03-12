@@ -1,3 +1,5 @@
+import { debounce } from "@jeli/core";
+
 export function base64ToFile(base64Image) {
     var split = base64Image.split(',');
     var type = split[0].replace('data:', '').replace(';base64', '');
@@ -191,7 +193,7 @@ export function createStyleSheet(cssRules, fragment){
  */
 export function parseText(text, data, ignoreFalseMatch) {
     var regex = /@(\w*)+\[(.*?)\]+(\{(.*?)\}|\((.*?)\))+/gi;
-    if (!text.match(regex)) return ignoreFalseMatch ? text : null;
+    if (!(text ||  '').match(regex)) return ignoreFalseMatch ? text : null;
     var parser = (content)  => {
         return content.replace(regex, function(){
             var args = arguments;
@@ -205,4 +207,81 @@ export function parseText(text, data, ignoreFalseMatch) {
     };
 
     return text.split(/\n/g).map(parser).join('');
+}
+
+/**
+ * 
+ * @param {*} name 
+ * @param {*} comp 
+ * @param {*} value 
+ * @param {*} auto 
+ * @param {*} isJson 
+ */
+export function setCompValue(name, comp, value, auto, isJson) {
+    var keys = name.split('.');
+    if (keys.length > 1) {
+        name = keys[0] ? keys.pop() : keys.splice(0,2).join('.');
+        comp = keys.reduce((accum, key) => {
+            if (!accum.hasOwnProperty(key) || !accum[key] || (typeof accum[key] !== 'object')) {
+                accum[key] = {};
+            }
+            return (accum = accum[key], accum);
+        }, comp);
+    }
+
+    comp[name] = auto ? !comp[name] : (isJson ? parseJson(value, isJson) : value);
+}
+
+/**
+ * 
+ * @param {*} context 
+ * @param {*} debounceTime 
+ * @returns 
+ */
+export var debouncer = function(context, debounceTime){
+    return debounce(function(ele, isBoolean, comp){
+        var elementName = ele.name;
+        if (elementName && typeof (comp || context) !== 'string') {
+            setCompValue(elementName, comp || context, ele.value, isBoolean, ele.getAttribute('vtype'));
+        }
+    }, debounceTime || 200);
+};
+
+/**
+ * 
+ * @param {*} value 
+ * @param {*} type 
+ * @returns 
+ */
+function parseJson(value, type) {
+    try {
+        switch (type) {
+            case ('json-e'):
+                return htmlAttrToJson(value);
+            case ('json-a'):
+                if (value.startsWith('{'))
+                    return JSON.parse(value)
+                else
+                    return htmlAttrToJson(value);
+            default:
+                return JSON.parse(value);
+        }
+    } catch (err) {
+        return null;
+    }
+}
+
+
+
+/**
+ * 
+ * @param {*} value 
+ * @returns Object
+ */
+function htmlAttrToJson(value) {
+    return value.match(/(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g).reduce((accum, key) => {
+        var spt = key.split('=');
+        accum[spt[0].trim()] = spt[1].trim().replace(/["']/g, '');
+        return accum;
+    }, {})
 }

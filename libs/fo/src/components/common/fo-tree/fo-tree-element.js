@@ -12,9 +12,9 @@ Element({
 export function FoTreeElement() {
     this.onSelect = new EventEmitter();
     this.icons = {
-        iconExpand: 'fa fa-folder',
-        iconCollapse: 'fa fa-folder-open',
-        iconLeaf: 'fa fa-file'
+        iconExpand: 'bi bi-folder',
+        iconCollapse: 'bi bi-folder2-open',
+        iconLeaf: 'bi bi-file-code'
     };
     this.expandLevel = 3;
     this.currentSelection = null;

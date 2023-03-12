@@ -1,0 +1,21 @@
+.fo-logo {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+    height: 50vh;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .hero-text {
+        min-width: 40%;
+        max-width: 95%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .fixed-background {
+        background-attachment: fixed;
+    }
+}

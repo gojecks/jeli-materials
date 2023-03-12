@@ -17,6 +17,7 @@ import { RadioButtonElement, RadioItemElement } from './radio-button/radio-butto
 import { TimeAgoElement } from './time-ago/time-ago.element';
 import { IconGridElement } from './icon-grid/icon-grid.element';
 import { RatingElement } from './rating/rating.element';
+import { HeaderElement } from './fo-header/header.element';
 
 
 jModule({
@@ -43,7 +44,8 @@ jModule({
         FoAccordionElement,
         OffCanvasElement,
         IconGridElement,
-        RatingElement
+        RatingElement,
+        HeaderElement
     ]
 })
 export function FoCommonModule() {}
