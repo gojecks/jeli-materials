@@ -6,7 +6,7 @@ Element({
     styleUrl: './header.element.scss',
     props: ['image','heroClass','heroTextClass','heading','subHeading']
 })
-export function HeaderElement() {
+export function FoHeaderElement() {
     this.parseText = parseText;
     this.image  = '';
     this.heroClass= '';
