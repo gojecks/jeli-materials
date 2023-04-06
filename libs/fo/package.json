@@ -1,8 +1,7 @@
 {
   "name": "@jeli/materials",
   "files": [
-    "../fo/bundles",
-    "../fo/metadata.json"
+    "../"
   ],
-  "version": "0.0.1"
+  "version": "0.0.2"
 }
