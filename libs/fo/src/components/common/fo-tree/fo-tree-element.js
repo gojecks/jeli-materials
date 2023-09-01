@@ -6,10 +6,11 @@ Element({
     events: [
         "onSelect:emitter"
     ],
+    DI: ['changeDetector?'],
     templateUrl: './fo-tree-element.html',
     styleUrl: './fo-tree-element.scss'
 })
-export function FoTreeElement() {
+export function FoTreeElement(changeDetector) {
     this.onSelect = new EventEmitter();
     this.icons = {
         iconExpand: 'bi bi-folder',
@@ -19,36 +20,36 @@ export function FoTreeElement() {
     this.expandLevel = 3;
     this.currentSelection = null;
 
-    this.onBranchSelected = function(branch) {
+    this.onBranchSelected = function (branch) {
         if (this.currentSelection !== branch || branch.isDir) {
-            this._branchSelected(branch)
+            this._branchSelected(branch);
+            changeDetector.onlySelf();
         }
     };
 
-    this.trackByFn = function(item) {
+    this.trackByFn = function (item) {
         return item.uid;
     }
 
-    this.didInit = function() {
-        var _this = this;
+    this.didInit = function () {
         if (this.initialSelection) {
-            this.forEach(function(branch) {
-                if (branch.name === _this.initialSelection) {
-                    return _this._branchSelected(branch);
+            this.forEach((branch) => {
+                if (branch.name === this.initialSelection) {
+                    return this._branchSelected(branch);
                 }
             });
         }
     };
 
     Object.defineProperty(this, 'treeData', {
-        set: function(value) {
+        set: function (value) {
             this._treeData = value;
             this._onTreeDataChanged();
         }
     })
 }
 
-FoTreeElement.prototype._branchSelected = function(branch) {
+FoTreeElement.prototype._branchSelected = function (branch) {
     if (!branch) {
         if (this.currentSelection != null) {
             this.currentSelection.selected = false;
@@ -67,13 +68,13 @@ FoTreeElement.prototype._branchSelected = function(branch) {
     this.onSelect.emit(branch);
 }
 
-FoTreeElement.prototype.expandParents = function(child) {
-    this.forAllAncestors(child, function(b) {
+FoTreeElement.prototype.expandParents = function (child) {
+    this.forAllAncestors(child, function (b) {
         return b.expanded = true;
     });
 }
 
-FoTreeElement.prototype.forAllAncestors = function(child, callback) {
+FoTreeElement.prototype.forAllAncestors = function (child, callback) {
     var parent = this.getParent(child);
     if (parent != null) {
         callback(parent);
@@ -81,18 +82,18 @@ FoTreeElement.prototype.forAllAncestors = function(child, callback) {
     }
 }
 
-FoTreeElement.prototype.getParent = function(child) {
+FoTreeElement.prototype.getParent = function (child) {
     return this.tree_rows[child.parentIndex];
 }
 
-FoTreeElement.prototype._forEachBranch = function(callback) {
+FoTreeElement.prototype._forEachBranch = function (callback) {
     for (var i = 0, len = this.tree_rows.length; i < len; i++) {
         callback(this.tree_rows[i]);
     }
 }
 
-FoTreeElement.prototype.forEach = function(callback) {
-    this._forEachBranch(function(branch) {
+FoTreeElement.prototype.forEach = function (callback) {
+    this._forEachBranch(function (branch) {
         performTask(branch, 1);
     });
 
@@ -107,12 +108,27 @@ FoTreeElement.prototype.forEach = function(callback) {
     }
 }
 
-FoTreeElement.prototype._onTreeDataChanged = function() {
+FoTreeElement.prototype._onTreeDataChanged = function () {
     this.tree_rows = [];
-    var _this = this;
-    for (var i = 0; i < this._treeData.length; i++) {
-        runTask(this._treeData[i], 1, true);
-    }
+    /**
+     * 
+     * @param {*} branch 
+     */
+    var addToList = (branch) => {
+        branch.expanded = branch.expanded;
+        branch.classes = branch.classes || [];
+        if (!branch.noLeaf && !branch.isDir) {
+            branch.treeIcon = this.icons.iconLeaf;
+            if (!branch.classes.includes('leaf')) {
+                branch.classes.push("leaf");
+            }
+        } else {
+            branch.treeIcon = this.icons[branch.expanded ? 'iconCollapse' : 'iconExpand'];
+        }
+
+        branch.treeIndex = this.tree_rows.length;
+        this.tree_rows.push(branch);
+    };
 
     /**
      * 
@@ -121,10 +137,10 @@ FoTreeElement.prototype._onTreeDataChanged = function() {
      * @param {*} visible 
      * @param {*} treeIndex 
      */
-    function runTask(branch, level, visible) {
+    var runTask = (branch, level, visible) => {
         branch.level = level;
         if (branch.expanded === undefined) {
-            branch.expanded = level < _this.expandLevel;
+            branch.expanded = level < this.expandLevel;
         }
 
         if (!branch.uid) {
@@ -139,7 +155,7 @@ FoTreeElement.prototype._onTreeDataChanged = function() {
          * run nested children;
          */
         runChildren(branch);
-    }
+    };
 
     function runChildren(branch) {
         if (Array.isArray(branch.children) && branch.children.length) {
@@ -159,23 +175,7 @@ FoTreeElement.prototype._onTreeDataChanged = function() {
         }
     }
 
-    /**
-     * 
-     * @param {*} branch 
-     */
-    function addToList(branch) {
-        branch.expanded = branch.expanded;
-        branch.classes = branch.classes || [];
-        if (!branch.noLeaf && !branch.isDir) {
-            branch.treeIcon = _this.icons.iconLeaf;
-            if (!branch.classes.includes('leaf')) {
-                branch.classes.push("leaf");
-            }
-        } else {
-            branch.treeIcon = _this.icons[branch.expanded ? 'iconCollapse' : 'iconExpand'];
-        }
-
-        branch.treeIndex = _this.tree_rows.length;
-        _this.tree_rows.push(branch);
+    for (var i = 0; i < this._treeData.length; i++) {
+        runTask(this._treeData[i], 1, true);
     }
 }

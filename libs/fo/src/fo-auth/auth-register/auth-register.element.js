@@ -14,7 +14,6 @@ Element({
     props: ["buttonText", "regoForm"]
 })
 export function AuthRegisterElement(loginService, foTokenService, changeDetector) {
-    var _this = this;
     /**
      * additional form to be rendered dynamically
      */
@@ -29,8 +28,8 @@ export function AuthRegisterElement(loginService, foTokenService, changeDetector
             eventType: 'blur',
             validators: {
                 emailValidation: true,
-                async: function(email) {
-                    return _this.handleValidation('email', email);
+                async: (email) => {
+                    return this.handleValidation('email', email);
                 }
             }
         },
@@ -49,20 +48,19 @@ export function AuthRegisterElement(loginService, foTokenService, changeDetector
  * @param {*} value 
  * @returns 
  */
-AuthRegisterElement.prototype.handleValidation = function(field, value) {
+AuthRegisterElement.prototype.handleValidation = function (field, value) {
     if (!value) {
         return Promise.resolve(true);
     }
 
-    var _this = this;
     return this.loginService.validateInput(field, value)
-        .then(function(res) {
-            _this.changeDetector.detectChanges();
+        .then(res => {
+            this.changeDetector.detectChanges();
             return !res.isExists;
         });
 }
 
-AuthRegisterElement.prototype.isInvalidField = function(field) {
+AuthRegisterElement.prototype.isInvalidField = function (field) {
     var fieldControl = this.regoForm.getField(field);
     return fieldControl && fieldControl.touched && fieldControl.invalid;
 };
@@ -72,29 +70,28 @@ AuthRegisterElement.prototype.isInvalidField = function(field) {
  * validate user email before registering user
  * email exists triggers error
  */
-AuthRegisterElement.prototype.registerAccount = function() {
-    var _this = this;
+AuthRegisterElement.prototype.registerAccount = function () {
     this.isProcessing = true;
-    this.loginService.userServices.add(this.regoForm.value)
-        .then(function(res) {
-            emit(true, res);
-        }, function(err) {
-            emit(false, err);
-        });
-
     /**
      * 
      * @param {*} state 
      * @param {*} res 
      */
-    function emit(state, res) {
-        _this.isProcessing = false;
+    var emit = (state, res) => {
+        this.isProcessing = false;
         if (state) {
             var postData = res.postData;
             delete postData._data.password;
-            _this.foTokenService.saveAuthentication(res);
+            this.foTokenService.saveAuthentication(res);
         }
-        _this.changeDetector.detectChanges();
-        _this.onAuthRegister.emit(state);
-    }
+        this.changeDetector.detectChanges();
+        this.onAuthRegister.emit(state);
+    };
+
+    this.loginService.userServices.add(this.regoForm.value)
+        .then(function (res) {
+            emit(true, res);
+        }, function (err) {
+            emit(false, err);
+        });
 };

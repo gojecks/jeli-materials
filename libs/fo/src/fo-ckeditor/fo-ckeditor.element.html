@@ -1,1 +1,1 @@
-<textarea class="form-control" rows="3" id="postBody" placeholder="${:placeHolder}"></textarea>
+<textarea class="form-control" @modelChange="onValueChanged.emit($event)" rows="3" attr-id="id" placeholder="${placeHolder}" {:model}="editorsContent"></textarea>

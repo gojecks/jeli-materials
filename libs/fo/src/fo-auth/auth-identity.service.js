@@ -22,11 +22,31 @@ AuthIdentityService.prototype.identify = function(force) {
         this.authenticated = false;
     }
 
-    var _this = this;
-    return new Promise(function(resolve, reject) {
-        var currentSession = _this.foTokenService.getAccessToken();
+    return new Promise((resolve, reject) => {
+        var currentSession = this.foTokenService.getAccessToken();
         var curTime = +new Date;
-        if (_this.authenticated) {
+        var reAuthorize = () => {
+            if (currentSession.refresh_token) {
+                this.reAuthorize().then(successAuth, failedAuth);
+            }
+        }
+    
+        var successAuth  = () => {
+            this.authenticated = true;
+            this.foTokenService.init();
+            resolve();
+        }
+    
+        var failedAuth = () => {
+            if (this.authenticated) {
+                this.authenticated = false;
+                this.foTokenService.destroy();
+            }
+    
+            resolve();
+        };
+        
+        if (this.authenticated) {
             resolve();
         } else if (currentSession) {
             if (curTime > currentSession.expires_at)
@@ -36,27 +56,6 @@ AuthIdentityService.prototype.identify = function(force) {
         } else
             failedAuth();
 
-        function reAuthorize() {
-            if (currentSession.refresh_token) {
-                _this.reAuthorize()
-                    .then(successAuth, failedAuth);
-            }
-        }
-
-        function successAuth() {
-            _this.authenticated = true;
-            _this.foTokenService.init();
-            resolve();
-        }
-
-        function failedAuth() {
-            if (_this.authenticated) {
-                _this.authenticated = false;
-                _this.foTokenService.destroy();
-            }
-
-            resolve();
-        }
     });
 };
 
@@ -67,40 +66,39 @@ AuthIdentityService.prototype.identify = function(force) {
  * @returns 
  */
 AuthIdentityService.prototype.Authority = function(force, afterLogin) {
-    var _this = this;
-    return this.identify(force).then(authAccount);
-
-    function authAccount() {
-        if (_this.authenticated && !afterLogin) {
-            var account = _this.foTokenService.getUserInfo();
+    var authAccount = () => {
+        if (this.authenticated && !afterLogin) {
+            var account = this.foTokenService.getUserInfo();
             if (account.forcePasswordReset) {
-                _this.webStateService.go(FO_AUTH_CONFIG.passwordResetPage, {
+                this.webStateService.go(FO_AUTH_CONFIG.passwordResetPage, {
                     state: 'password',
                     forceReset: true
                 });
             } else if (FO_AUTH_CONFIG.redirectOnPages.includes(stateConstants.toState.name)) {
-                _this.webStateService.go(FO_AUTH_CONFIG.pageAfterLogin);
+                this.webStateService.go(FO_AUTH_CONFIG.pageAfterLogin);
             }
         }
 
         if (stateConstants.toState && stateConstants.toState.data &&
-            !_this.foTokenService.hasAnyAuthority(stateConstants.toState.data.authorities)
+            !this.foTokenService.hasAnyAuthority(stateConstants.toState.data.authorities)
         ) {
 
-            if (!_this.authenticated) {
+            if (!this.authenticated) {
                 // user is not authenticated. stow the state they wanted before you
                 // send them to the login service, so you can return them when you're done
                 stateConstants.redirected = true;
                 stateConstants.previousStateName = stateConstants.toState;
                 stateConstants.previousStateNameParams = stateConstants.toStateParams;
                 // now, send them to the signin state so they can log in
-                _this.webStateService.go(FO_AUTH_CONFIG.loginPage);
+                this.webStateService.go(FO_AUTH_CONFIG.loginPage);
             } else {
                 //  redirect to page or default if not found
-                _this.webStateService.go(FO_AUTH_CONFIG.pageAfterLogin);
+                this.webStateService.go(FO_AUTH_CONFIG.pageAfterLogin);
             }
         }
-    }
+    };
+
+    return this.identify(force).then(authAccount);
 };
 
 /**

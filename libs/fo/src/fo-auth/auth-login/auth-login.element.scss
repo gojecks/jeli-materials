@@ -4,4 +4,11 @@
         box-shadow: none !important;
         border: none !important;
     }
+    .pwd-visible {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        cursor: pointer;
+        padding: 0.5rem!important
+    }
 }

@@ -5,7 +5,7 @@
         <input class="box__file" type="file" @input="onSelectImage($event)" name="files[]" id="file" multiple />
         <label for="file">${:label || 'Choose or drag photos here.'}</label>
       </div>
-      <div class="clearfix" @click-delegate:a="removeImage(idx)">
+      <div class="clearfix" @click-delegate:button="removeImage(idx)">
         <j-fragment template="listPreview" *if="!_settings.imageListPreview; else as imageListPreview"></j-fragment>
       </div>
     </div>
@@ -40,9 +40,10 @@
 <j-template #listPreview>
   <ul class="list-group">
     <li class="list-group-item list-group-item-action clearfix" *for="file in selectedFiles; idx=index">
-      <button class="btn-close btn-sm float-end"></button>
+      <button class="btn-close btn-sm float-end" type="button"></button>
       <h6>
-        <i class="fa me-2" {:jClass}="uploadProgress >= 100 ? 'text-success fa-check':'text-info fa-circle-notch'"></i>${file.name}</h6>
+        <i class="bi me-2" {:jClass}="uploadProgress >= 100 ? 'text-success bi-check2-all':'text-info bi-check2'"></i> ${file.name}
+      </h6>
     </li>
   </ul>
 </j-template>
@@ -55,9 +56,11 @@
     <div class="_lnd"></div>
     <div class="_pCN" {style.width}="(_settings.previewPane.width - 5)">
       <div class="progress">
-        <div class="progress-bar bg-${uploadError ?'danger':'success'}" role="progressbar" aria-label="upload progress" {style.width}="(uploadProgress) + '%'" aria-valuenow="uploadProgress" aria-valuemin="0" aria-valuemax="100"></div>
+        <div class="progress-bar bg-${uploadError ?'danger':'success'}" role="progressbar" aria-label="upload progress"
+          {style.width}="(uploadProgress) + '%'" aria-valuenow="uploadProgress" aria-valuemin="0" aria-valuemax="100">
+        </div>
       </div>
     </div>
-    <a class="btn-close"></a>
+    <button type="button" class="btn-close"></button>
   </div>
 </j-template>

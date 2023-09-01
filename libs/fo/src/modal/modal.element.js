@@ -12,6 +12,7 @@ Element({
 export function FoModalElement() {
     this.onModalClosed = new EventEmitter();
     this.backDrop = true;
+    this.modalStyle = "";
     this.backDropClose = true;
     this.hideHeader = false;
     this.displayType = 'flex';

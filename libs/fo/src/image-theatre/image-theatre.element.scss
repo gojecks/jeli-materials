@@ -41,3 +41,18 @@
         }
     }
 }
+
+.fo-imgp-item {
+    overflow: hidden;
+    border-right: 3px solid #fff;
+    border-bottom: 3px solid #fff;
+    
+    img {
+        cursor: pointer;
+        transition: all ease-in-out 0.4s;
+    }
+    
+    img:hover {
+        opacity: 0.8;
+    }
+}

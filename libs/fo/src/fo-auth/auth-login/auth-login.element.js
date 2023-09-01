@@ -17,9 +17,11 @@ export function AuthLoginElement(databaseService, foTokenService, loginService) 
     this.databaseService = databaseService;
     this.foTokenService = foTokenService;
     this.loginService = loginService;
+    this.isSupportCredentials = !!navigator.credentials;
     this.onLoginEvent = new EventEmitter();
     this.errorLogin = false;
     this.isProcessing = false;
+    this.isPasswordVisible  = false;
     this.loginForm = new FormControlService({
         email: {
             validators: {
@@ -37,29 +39,29 @@ export function AuthLoginElement(databaseService, foTokenService, loginService) 
 }
 
 AuthLoginElement.prototype.login = function() {
-    var _this = this;
     this.errorLogin = false;
     this.isProcessing = true;
-    this.loginService
-        .authorizeUser(this.loginForm.value)
-        .then(success, onLoginError);
+    var success = res  => {
+        this.isProcessing = false;
+        res = (res.result || res);
+        //set the authorities
+        this.foTokenService.saveAuthentication(res);
+        this.onLoginEvent.emit({
+            success: !res.disabled
+        });
+    };
 
-    function onLoginError(err) {
-        _this.errorLogin = true;
-        _this.errMsg = (err || {}).message;
-        _this.isProcessing = false;
-        _this.onLoginEvent.emit({
+    var onLoginError = err => {
+        this.errorLogin = true;
+        this.errMsg = (err || {}).message;
+        this.isProcessing = false;
+        this.onLoginEvent.emit({
             success: false,
             data: (err || {})
         });
-    }
+    };
 
-    function success(res) {
-        _this.isProcessing = false;
-        //set the authorities
-        _this.foTokenService.saveAuthentication((res.result || res));
-        _this.onLoginEvent.emit({
-            success: true
-        });
-    }
+    this.loginService
+        .authorizeUser(this.loginForm.value)
+        .then(success, onLoginError);
 };

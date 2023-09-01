@@ -18,6 +18,8 @@ import { TimeAgoElement } from './time-ago/time-ago.element';
 import { IconGridElement } from './icon-grid/icon-grid.element';
 import { RatingElement } from './rating/rating.element';
 import { FoHeaderElement } from './fo-header/header.element';
+import { SpinnerElement } from './spinner.element';
+import { FoTagListElement } from './tag-list/tag-list.element';
 
 
 jModule({
@@ -45,7 +47,9 @@ jModule({
         OffCanvasElement,
         IconGridElement,
         RatingElement,
-        FoHeaderElement
+        FoHeaderElement,
+        SpinnerElement,
+        FoTagListElement
     ]
 })
 export function FoCommonModule() {}

@@ -43,19 +43,15 @@ FoAuthService.prototype.checkAuthority = function(force) {
 };
 
 FoAuthService.prototype.disconnect = function() {
-    var _this = this;
     //log the user out from the server
-    return this.authIdentityService.destroy().then(function() {
-        _this.foTokenService.destroy();
-    });
+    return this.authIdentityService.destroy().then(() => this.foTokenService.destroy());
 };
 
 FoAuthService.prototype.getToken = function(data) {
-    var _this = this;
     return new Promise(function(resolve, reject) {
         this.authIdentityService.getToken(data)
-            .then(function(res) {
-                _this.foTokenService.saveAuthentication(res);
+            .then((res)  => {
+                this.foTokenService.saveAuthentication(res);
                 resolve();
             }, reject);
     });

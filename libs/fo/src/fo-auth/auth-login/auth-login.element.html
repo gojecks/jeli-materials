@@ -6,7 +6,8 @@
         <input type="email" placeholder="Email" class="form-control" :formField="email">
       </div>
       <div class="list-group-item">
-        <input type="password" placeholder="Password" class="form-control" :formField="password" autocomplete="off">
+        <input type="password" {type}="isPasswordVisible ? 'text':'password'" placeholder="Password" class="form-control" :formField="password" autocomplete="off">
+        <span class="pwd-visible" @click="isPasswordVisible=!isPasswordVisible"><i {:jClass}="isPasswordVisible ? 'bi-eye':'bi-eye-slash'"></i></span>
       </div>
     </div>
     <div class="d-grid gap-2">

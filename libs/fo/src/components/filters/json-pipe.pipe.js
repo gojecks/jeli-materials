@@ -1,40 +1,51 @@
+import { conditionParser$ } from "../../utils";
 
 Service({
     name: 'JsonPipe'
 })
 export function JsonXPipe() {
-    this.compile = function(value, type){
-        if(value){
-            if (Array.isArray(value)){
-                if (type === 'c'){
+    this.compile = function (value, type) {
+        if (value) {
+            if (Array.isArray(value)) {
+                if (type === 'c')
                     value = value.toString();
-                } else if(type === 's'){
+                else if (type === 's')
                     value = value.join(' ')
-                }
-            } else if (typeof value === 'object'){
-                switch(type){
-                    case('e'):
-                        value = this.stripToEqual(value);
-                    break;
-                 /**
-                 * Any type pattern = | {}
-                 *  if (value.style) return as json string
-                 */
-                    case('a'):
-                    if (value.style)
-                        value = JSON.stringify(value, null, 2)
-                    else
-                        value =  this.stripToEqual(value);
-                    break;
-                }
+                else if (type == 'cs')
+                    value = conditionParser$.toString(value);
+                else if (type === 'akvpnl')
+                    value = value.map(kv => this.stripToEqual(kv)).join('\n')
+            } else if (typeof value === 'object') {
+                if (type.startsWith('e'))
+                    value = this.stripToEqual(value, type.includes('lb'), type == 'elbc');
+                /**
+                * Any type pattern = | {}
+                *  if (value.style) return as json string
+                */
+                else if (value.style)
+                    value = JSON.stringify(value, null, 2)
+                else
+                    value = this.stripToEqual(value);
             }
         }
         return value;
     }
 }
 
-JsonXPipe.prototype.stripToEqual = function(value){
-    return Object.keys(value)
-        .map(key => key +'='+value[key])
-        .join(' ');
+JsonXPipe.prototype.stripToEqual = function (value, nls, hc) {
+    var res = [];
+    var write = (key, cvalue) => {
+        if (typeof cvalue === 'object' && cvalue !== null) {
+            if (key && hc && (key.startsWith('ids.') || key.endsWith('.conditions') || key.endsWith('.where'))){
+                res.push(key + '=' + conditionParser$.idsToString(cvalue, key.startsWith('ids.')));
+            }  else {
+                Object.keys(cvalue).forEach(ckey => write(((key ? key + '.' : '') + ckey), cvalue[ckey]));
+            }
+        } else {
+            res.push(key + '=' + cvalue);
+        }
+    };
+
+    write(null, value);
+    return res.join(nls ? '\n' : ' ');
 }

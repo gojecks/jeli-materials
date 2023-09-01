@@ -53,7 +53,6 @@ export function FoResetPasswordElement(loginService, foTokenService, changeDetec
 
 FoResetPasswordElement.prototype.submit = function() {
     if (this.resetControl.getField('email').invalid) return;
-    var _this = this;
     this.reset();
     this.loginService.validateAndSendEmail({
             query: {
@@ -61,15 +60,15 @@ FoResetPasswordElement.prototype.submit = function() {
             },
             fields: this.queryField
         })
-        .then(function(res) {
-            _this.identifier = res.result.identifier;
-            _this.success = true;
-            _this.processCheck();
-            _this.updateLastReset();
-        }, function(res) {
-            _this.errMsg = (res.data || {}).reason;
-            _this.error = true;
-            _this.processCheck();
+        .then(res => {
+            this.identifier = res.result.identifier;
+            this.success = true;
+            this.processCheck();
+            this.updateLastReset();
+        }, res => {
+            this.errMsg = (res.data || {}).reason;
+            this.error = true;
+            this.processCheck();
         });
 };
 
@@ -78,30 +77,28 @@ FoResetPasswordElement.prototype.resendCode = function() {
         return;
     }
 
-    var _this = this;
     this.processCheck();
     this.loginService.resendCode(this.identifier)
-        .then(function() {
-            _this.processCheck();
-            _this.updateLastReset();
-        }, function(err) {
-            _this.errorHandler(err);
+        .then(() => {
+            this.processCheck();
+            this.updateLastReset();
+        }, (err) => {
+            this.errorHandler(err);
         });
 };
 
 FoResetPasswordElement.prototype.validateCode = function() {
-    var _this = this;
     this.processCheck();
     this.loginService.validateCode({
             validationCode: this.resetControl.value.code,
             identifier: this.identifier,
             loginAfterValidation: true
         })
-        .then(function(res) {
-            _this.foTokenService.saveAuthentication(res);
-            _this.onLoginEvent.emit({ reset: true });
-        }, function(err) {
-            _this.errorHandler(err);
+        .then(res => {
+            this.foTokenService.saveAuthentication(res);
+            this.onLoginEvent.emit({ reset: true });
+        }, err => {
+            this.errorHandler(err);
         });
 };
 

@@ -9,17 +9,20 @@ Service({
     DI: [CkeditorUploadAdapterService, CKEDITOR_URL]
 })
 export function UtilsService(ckeditorUploadAdapterService, ckeditorUrl) {
-    this.openEditor = function(cb, err) {
-        LazyLoader.staticLoader(ckeditorUrl, function() {
-            // Depending on the wysiwygare plugin availability initialize classic or inline editor.
-            // templates,section removed from extraPlugins
-            ClassicEditor
-                .create(document.querySelector('#postBody'), {
-                    extraPlugins: [CustomUploadPlugin],
-                })
-                .then(cb)
-                .catch(err || function(error) {});
-        }, 'js');
+    this.openEditor = function(elementId, uploadConfig){
+        return new Promise((resolve, reject) => {
+            LazyLoader.staticLoader(ckeditorUrl, function() {
+                // Depending on the wysiwygare plugin availability initialize classic or inline editor.
+                // templates,section removed from extraPlugins
+                var element = document.getElementById(elementId || 'postBody');
+                ClassicEditor
+                    .create(element || {}, {
+                        extraPlugins: [CustomUploadPlugin],
+                    })
+                    .then(resolve, reject)
+                    .catch(reject);
+            }, 'js');
+        })
     }
 
     /**

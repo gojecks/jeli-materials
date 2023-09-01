@@ -1,0 +1,18 @@
+<div class="searchWrapper">
+  <j-fragment *if="!hideTextBox">
+    <input type="search" attr-placeholder="placeholder||'Enter Value'" class="form-control rounded-0" {:model}="searchValue" @modelChange="onAutoCompleteValueChange.next($event)">
+    <div class="list-group searchResultsContainer" @click-delegate:a="onSelectOption(result)">
+      <a *for="result in autoCompleteResult" class="list-group-item list-group-item-action">
+        <img *if="result.image" attr-src="result.image" class="thumbnail rounded-circle me-3">
+        <span>${:(result.name || result) | capitalize}</span>
+      </a>
+    </div>
+  </j-fragment>
+  <div class="clearfix tags" @click-delegate:span="removeTag(idx)">
+    <div class="float-start mt-2 me-2 border p-1 px-2 rounded text-bg-light" *for="tag in _selectedTags; idx=index">
+      ${:(tag.name || tag)} <span class="ms-2 d-inline bi bi-x-lg"></span>
+    </div>
+    <div class="col-sm-12 text-center" *if="!_selectedTags.length && noMatchFound">No match found.</div>
+  </div>
+  <j-place></j-place>
+</div>

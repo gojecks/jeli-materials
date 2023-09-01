@@ -1,0 +1,27 @@
+.searchWrapper {
+    position: relative;
+    input:focus {
+        box-shadow: none !important;
+    }
+    .searchResultsContainer {
+        position: absolute;
+        width: 100%;
+        left: 0;
+        border: none;
+        border-radius: 0;
+        z-index: 1;
+        .list-group-item {
+            font-weight: 500!important;
+            img.thumbnail {
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+            }
+        }
+    }
+    .tags {
+        span {
+            cursor: pointer;
+        }
+    }
+}

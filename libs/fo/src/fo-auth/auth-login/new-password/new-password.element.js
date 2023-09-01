@@ -9,7 +9,6 @@ Element({
     events: ["onPasswordUpdate:emitter"]
 })
 export function FoNewPassword(loginService, changeDetector) {
-    var _this = this;
     this.success = false;
     this.error = false;
     this.isProcessing = false;
@@ -21,8 +20,8 @@ export function FoNewPassword(loginService, changeDetector) {
             validators: {
                 minLength: 8,
                 mediumPasswordStrength: true,
-                isSameAsOld: function(val) {
-                    return val !== _this.postData.value.current;
+                isSameAsOld: val => {
+                    return val !== this.postData.value.current;
                 }
             }
         },
@@ -30,8 +29,8 @@ export function FoNewPassword(loginService, changeDetector) {
             validators: {
                 minLength: 8,
                 mediumPasswordStrength: true,
-                isSamePass: function(val) {
-                    return val === _this.postData.value.newPasswd;
+                isSamePass: val => {
+                    return val === this.postData.value.newPasswd;
                 }
             }
         }
@@ -39,22 +38,17 @@ export function FoNewPassword(loginService, changeDetector) {
 }
 
 FoNewPassword.prototype.didInit = function() {
-    var _this = this;
     if (!this.hardReset) {
         this.postData.addField('current', {
             eventType: 'blur',
             validators: {
                 minLength: 8,
-                async: function(pass) {
-                    if (_this.hardReset || !pass) {
+                async: pass => {
+                    if (this.hardReset || !pass) {
                         return Promise.resolve({ result: { isValid: true } });
                     }
-                    return _this.loginService.validatePassword({ password: pass })
-                        .then(function(res) {
-                            return res.result.isValid;
-                        }, function() {
-                            return !!_this.hardReset;
-                        });
+                    return this.loginService.validatePassword({ password: pass })
+                        .then(res => res.result.isValid, () => !!this.hardReset);
                 }
             }
         });
@@ -63,7 +57,6 @@ FoNewPassword.prototype.didInit = function() {
 
 FoNewPassword.prototype.process = function() {
     if (this.postData.invalid) return;
-    var _this = this;
     this.isProcessing = true;
     this.error = this.success = false;
     this.loginService.
@@ -71,13 +64,13 @@ FoNewPassword.prototype.process = function() {
             _ref: this.userId,
             _data: { password: this.postData.value.newPasswd }
         })
-        .then(function() {
-            _this.success = true;
-            _this.isProcessing = false;
-            _this.onPasswordUpdate.emit({ success: true })
-        }, function(err) {
-            _this.error = true;
-            _this.isProcessing = false;
-            _this.onPasswordUpdate.emit({ success: false });
+        .then(() => {
+            this.success = true;
+            this.isProcessing = false;
+            this.onPasswordUpdate.emit({ success: true })
+        }, (err)=> {
+            this.error = true;
+            this.isProcessing = false;
+            this.onPasswordUpdate.emit({ success: false });
         });
 };

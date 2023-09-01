@@ -37,12 +37,12 @@ OpenIdElement.prototype.onMessageListener = function(event) {
     } else {
         // retrieve the token and log user in
         this.authService.getToken(event.data)
-            .then(function() {
-                _this.onOpenIdLogin.emit({
+            .then(() => {
+                this.onOpenIdLogin.emit({
                     success: true
                 });
-            }, function(err) {
-                _this.onOpenIdLogin.emit({
+            }, (err) => {
+                this.onOpenIdLogin.emit({
                     success: false,
                     data: err
                 });

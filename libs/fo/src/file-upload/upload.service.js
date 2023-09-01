@@ -14,16 +14,16 @@ export function UploadService(databaseService) {
  * @param {*} sizes 
  * @returns 
  */
-UploadService.prototype.upload = function(requestBody) {
-    return this.databaseService.core.api({ path: '/attachment', data: requestBody, method: "PUT" });
+UploadService.prototype.upload = function(data) {
+    return this.databaseService.core.api({ path: '/attachment', data, method: "PUT" });
 };
 
 UploadService.prototype.getPath = function() {
     return Array.from(arguments).filter(function(item) { return !!item; }).join('/');
 }
 
-UploadService.prototype.removeImage = function(formData) {
-    return this.databaseService.core.api({ path: '/attachment', data: formData, method: "DELETE" })
+UploadService.prototype.removeImage = function(data) {
+    return this.databaseService.core.api({ path: '/attachment', data, method: "DELETE" })
 }
 
 /**

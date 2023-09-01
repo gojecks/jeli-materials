@@ -16,19 +16,28 @@ export function ImagePreviewElement(uploadService, imageTheatreService) {
     this.canDelete = false;
     this.size = 'col';
     this.imageTheatreService = imageTheatreService;
+    this.loadedImages = 0;
 }
 ImagePreviewElement.prototype.removeImage = function(idx) {
     if (this.canDelete) {
         var file = this.photos.files[idx];
         this.photos.files.splice(idx, 1);
-        this.uploadService.removeImage({
-            file: file,
-            path: this.formData.path
-        });
+        if (!file.isLinked) {
+            // remove image from server
+            this.uploadService.removeImage({
+                file: file,
+                path: this.formData.path
+            });
+        }
     }
 }
 
 ImagePreviewElement.prototype.openTheatre = function(idx) {
     var theatreObject = Object.assign({ entry: idx }, this.photos);
     this.imageTheatreService.startTheatreEvent.emit(theatreObject);
+}
+
+ImagePreviewElement.prototype.viewDidDestroy = function(){
+    this.photos = null;
+    this.imageTheatreService.startTheatreEvent.emit(null);
 }

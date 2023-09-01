@@ -1,34 +1,35 @@
 import { AUTH_DATABASE_SERIVCE, FO_AUTH_CONFIG } from "../tokens";
 
+
 Service({
     DI: [AUTH_DATABASE_SERIVCE]
 })
 export function LoginService(databaseService) {
-    this.userServices = databaseService.core._users();
+    this.databaseService = databaseService;
 }
 
 LoginService.prototype.validateAndSendEmail = function(requestBody) {
-    return this.userServices.password.forgot(requestBody);
+    return this.databaseService.userServices.password.forgot(requestBody);
 }
 
 LoginService.prototype.resendCode = function(identifier) {
-    return this.userServices.password.resendCode(identifier);
+    return this.databaseService.userServices.password.resendCode(identifier);
 }
 
 LoginService.prototype.validateCode = function(requestBody) {
-    return this.userServices.password.validateCode(requestBody);
+    return this.databaseService.userServices.password.validateCode(requestBody);
 }
 
 LoginService.prototype.authorizeUser = function(requestBody) {
-    return this.userServices.authorize(requestBody)
+    return this.databaseService.userServices.authorize(requestBody)
 }
 
 LoginService.prototype.resetPassword = function(requestBody) {
-    return this.userServices.update(requestBody)
+    return this.databaseService.userServices.update(requestBody)
 };
 
 LoginService.prototype.validatePassword = function(requestBody) {
-    return this.userServices.password.validate(requestBody)
+    return this.databaseService.userServices.password.validate(requestBody)
 }
 
 LoginService.prototype.update = function(requestBody, refId) {
@@ -38,7 +39,7 @@ LoginService.prototype.update = function(requestBody, refId) {
         delete requestBody.userId;
     }
 
-    return this.userServices.update({
+    return this.databaseService.userServices.update({
         _ref: refId,
         _data: requestBody
     });
@@ -51,7 +52,7 @@ LoginService.prototype.validateInput = function(field, value) {
         value: value
     };
 
-    return this.userServices.isExists(request);
+    return this.databaseService.userServices.isExists(request);
 }
 
 /**

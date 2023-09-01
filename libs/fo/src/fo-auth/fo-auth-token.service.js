@@ -32,8 +32,8 @@ FoTokenService.prototype.saveAuthentication = function(response) {
     var tokens = response.getTokens();
     if (tokens) {
         this.setAccessToken(tokens);
-        this.authManager.storeData(USER_ACTIVE, true);
-        this.authManager.storeData(USER_ID, response.getUserId());
+        this.authManager.storeData(USER_ACTIVE, true, true);
+        this.authManager.storeData(USER_ID, response.getUserId(), true);
         this.putUserInfo(response.getUserInfo());
     }
 
@@ -43,7 +43,7 @@ FoTokenService.prototype.saveAuthentication = function(response) {
 FoTokenService.prototype.putUserInfo = function(userInfo) {
     if (userInfo) {
         var currentUserInfo = this.authManager.getData(USER_INFO) || {};
-        this.authManager.storeData(USER_INFO, Object.assign(currentUserInfo, userInfo));
+        this.authManager.storeData(USER_INFO, Object.assign(currentUserInfo, userInfo), true);
     }
 }
 
@@ -58,11 +58,11 @@ FoTokenService.prototype.setSessionData = function(name, value) {
 }
 
 FoTokenService.prototype.getSessionData = function(name) {
-    return this.authManager.getData(name);
+    return this.authManager.getData(name, true);
 }
 
 FoTokenService.prototype.setAccessToken = function(value) {
-    this.authManager.storeData(ACCESS_TOKEN, value);
+    this.authManager.storeData(ACCESS_TOKEN, value, true);
     this.onTokenUpdate.emit(true);
 }
 
