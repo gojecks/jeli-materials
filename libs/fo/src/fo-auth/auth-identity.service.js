@@ -22,20 +22,22 @@ AuthIdentityService.prototype.identify = function(force) {
         this.authenticated = false;
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         var currentSession = this.foTokenService.getAccessToken();
         var curTime = +new Date;
         var reAuthorize = () => {
-            if (currentSession.refresh_token) {
+            if (currentSession && curTime >= currentSession.expires_at &&  currentSession.refresh_token) {
                 this.reAuthorize().then(successAuth, failedAuth);
+            } else {
+                successAuth()
             }
-        }
+        };
     
         var successAuth  = () => {
             this.authenticated = true;
             this.foTokenService.init();
             resolve();
-        }
+        };
     
         var failedAuth = () => {
             if (this.authenticated) {
@@ -47,15 +49,12 @@ AuthIdentityService.prototype.identify = function(force) {
         };
         
         if (this.authenticated) {
-            resolve();
+            return resolve();
         } else if (currentSession) {
-            if (curTime > currentSession.expires_at)
-                reAuthorize();
-            else
-                successAuth();
-        } else
-            failedAuth();
-
+            return reAuthorize();
+        }
+        
+        return failedAuth();
     });
 };
 
@@ -125,17 +124,14 @@ AuthIdentityService.prototype.destroy = function() {
  * @returns 
  */
 AuthIdentityService.prototype.reAuthorize = function() {
-    var _this = this;
-    var accessToken = _this.foTokenService.getAccessToken();
+    var accessToken = this.foTokenService.getAccessToken();
     return this.databaseService.core.api({
             path: '/user/reauthorize',
             data: {
                 'refresh_token': accessToken.refresh_token
             }
         })
-        .then(function(ret) {
-            _this.foTokenService.setAccessToken(ret.result.tokens);
-        });
+        .then(ret => this.foTokenService.setAccessToken(ret.result.tokens));
 }
 
 /***

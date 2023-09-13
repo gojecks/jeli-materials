@@ -1,0 +1,9 @@
+<div class="input-group input-group-sm p-2">
+    <span class="input-group-text">${:title}</span>
+    <input class="form-control" list="datalistOptions" attr-placeholder="placeHolder"
+        @input="getPlacesNearBy($event.target.value)">
+    <datalist id="datalistOptions">
+        <option attr-value="type" *for="type of types">
+    </datalist>
+</div>
+<ul id="_resultPanel" class="position-absolute"></ul>

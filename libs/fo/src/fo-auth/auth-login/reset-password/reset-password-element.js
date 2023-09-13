@@ -6,8 +6,9 @@ import { FoTokenService } from "../../fo-auth-token.service";
 Element({
     selector: 'fo-reset-password',
     DI: [LoginService, FoTokenService, 'changeDetector?'],
-    props: ["queryField", "waitingTime"],
+    props: ["queryField", "waitingTime", 'resetCodeInputAmount'],
     templateUrl: './reset-password.html',
+    styleUrl: './reset-password-element.scss',
     events: ['onLoginEvent:emitter']
 });
 
@@ -29,6 +30,8 @@ export function FoResetPasswordElement(loginService, foTokenService, changeDetec
     this.identifier = "";
     this.onLoginEvent = new EventEmitter();
     this._waitingTime = 15;
+    this._resetCodeInputAmount = 6;
+    this.capturedCode = {};
     this.resetControl = new FormControlService({
         email: {
             validators: {
@@ -39,27 +42,40 @@ export function FoResetPasswordElement(loginService, foTokenService, changeDetec
         code: {
             validators: {
                 required: true,
-                minLength: 8
+                minLength: 6
             }
         }
     });
 
-    Object.defineProperty(this, 'waitingTime', {
-        set: function(value) {
-            this._waitingTime = value || 15
+    Object.defineProperties(this, {
+        waitingTime: {
+            set: function (value) {
+                this._waitingTime = value || 15
+            },
+            get: () => this._waitingTime
+        },
+        resetCodeInputAmount: {
+            set: function (value) {
+                this._resetCodeInputAmount = value || 6;
+            },
+            get: () => this._resetCodeInputAmount
         }
     });
 }
 
-FoResetPasswordElement.prototype.submit = function() {
+FoResetPasswordElement.prototype.didInit = function () {
+
+}
+
+FoResetPasswordElement.prototype.submit = function () {
     if (this.resetControl.getField('email').invalid) return;
     this.reset();
     this.loginService.validateAndSendEmail({
-            query: {
-                email: this.resetControl.value.email
-            },
-            fields: this.queryField
-        })
+        query: {
+            email: this.resetControl.value.email
+        },
+        fields: this.queryField
+    })
         .then(res => {
             this.identifier = res.result.identifier;
             this.success = true;
@@ -72,7 +88,7 @@ FoResetPasswordElement.prototype.submit = function() {
         });
 };
 
-FoResetPasswordElement.prototype.resendCode = function() {
+FoResetPasswordElement.prototype.resendCode = function () {
     if (this.lastResetTime > +new Date) {
         return;
     }
@@ -82,45 +98,64 @@ FoResetPasswordElement.prototype.resendCode = function() {
         .then(() => {
             this.processCheck();
             this.updateLastReset();
-        }, (err) => {
-            this.errorHandler(err);
-        });
+        }, (err) => this.errorHandler(err));
 };
 
-FoResetPasswordElement.prototype.validateCode = function() {
+FoResetPasswordElement.prototype.validateCode = function () {
     this.processCheck();
     this.loginService.validateCode({
-            validationCode: this.resetControl.value.code,
-            identifier: this.identifier,
-            loginAfterValidation: true
-        })
+        validationCode: this.resetControl.value.code,
+        identifier: this.identifier,
+        loginAfterValidation: true
+    })
         .then(res => {
             this.foTokenService.saveAuthentication(res);
             this.onLoginEvent.emit({ reset: true });
-        }, err => {
-            this.errorHandler(err);
-        });
+        }, err => this.errorHandler(err));
 };
 
-FoResetPasswordElement.prototype.reset = function() {
+FoResetPasswordElement.prototype.reset = function () {
     this.error = false;
     this.success = false;
     this.errMsg = "";
     this.isProcessing = true;
 };
 
-FoResetPasswordElement.prototype.processCheck = function(isError) {
+FoResetPasswordElement.prototype.processCheck = function (isError) {
     this.isProcessing = !this.isProcessing;
     this.error = isError;
     this.changeDetector.detectChanges();
 };
 
-FoResetPasswordElement.prototype.updateLastReset = function() {
+FoResetPasswordElement.prototype.updateLastReset = function () {
     this.lastResetTime = +new Date(new Date().setMinutes(new Date().getMinutes() + this._waitingTime)).getTime();
 };
 
-FoResetPasswordElement.prototype.errorHandler = function(err) {
+FoResetPasswordElement.prototype.errorHandler = function (err) {
     this.processCheck(true);
-    this.errMsg = (err.data || {}).message;
+    err = err || { message: 'Unable to process request' };
+    this.errMsg = (err.data || err).message;
     this.error = true;
 };
+
+FoResetPasswordElement.prototype.handleDigitGroup = function (event) {
+    var code = (event.code || '').toLowerCase();
+    // set the value
+    this.capturedCode[event.target.id] = event.target.value;
+    if (['arrowleft', 'backspace'].includes(code)) {
+        var previous = event.target.previousSibling;
+        if (previous && previous.localName == 'input') {
+            previous.select();
+        }
+    } else if ('arrowright' == code || code.startsWith('key') || code.startsWith('digit')) {
+        // store code
+        var next = event.target.nextSibling;
+        if (next && next.localName == 'input') {
+            next.select();
+        }
+    }
+
+    this.resetControl.patchValue({
+        code: Object.values(this.capturedCode).join('')
+    });
+}

@@ -41,3 +41,15 @@ ImagePreviewElement.prototype.viewDidDestroy = function(){
     this.photos = null;
     this.imageTheatreService.startTheatreEvent.emit(null);
 }
+
+ImagePreviewElement.prototype.dragChanged  = function(event){
+    console.log(event);
+}
+
+ImagePreviewElement.prototype.onDragStart = function(event){
+    console.log(event);
+}
+
+ImagePreviewElement.prototype.onDrop = function(event){
+    console.log(event);
+}

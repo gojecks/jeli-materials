@@ -25,8 +25,10 @@ export function SessionManagementService(sessionConfig) {
     this.started = false;
     this._lastTriggered = null;
     this.eventsName = ['isAlive', 'isIdleEnd', 'isIdle', 'isTimedOut', 'isTimeOutWarn'];
+    this.timeoutWarnPercent = 0
     this.timeOutWarnInitialized = false;
     this.emitter = new EventEmitter();
+    this.hasEvent = eventName => this.eventsName.includes(eventName);
 }
 
 /**
@@ -34,31 +36,23 @@ export function SessionManagementService(sessionConfig) {
  * @param {*} watchObj 
  * @returns 
  */
-SessionManagementService.prototype.startWatch = function(watchObj) {
+SessionManagementService.prototype.startWatch = function (watchObj) {
     if (!this.started && !Object.is(watchObj, this.watchObj)) {
         this.watchObj = watchObj || this.watchObj;
         //set started variable
         this.started = true;
-        this._attachEvents();
         this._trigger('isAlive');
+        this.timeoutWarnPercent = ((this.watchObj.expires_in / 100) * (this.session.timeOutWarn || 0));
         this.watchInterval = setInterval(this._watchManInterval.bind(this), this.session.interval || 1000);
         return;
     }
 };
 
-SessionManagementService.prototype._attachEvents = function() {
-    this._unsubscribeListener = attachEventListener(this.session.events, ()=> {
-        this.countDown = 0;
-        if (this.isLastTriggered('isIdle')) {
-            this._trigger('isIdleEnd');
-        }
-        //keep alive
-        this.keepAlive = true;
-        this._trigger('isAlive');
-    });
+SessionManagementService.prototype._attachEvents = function () {
+    this._unsubscribeListener = attachEventListener(this.session.events, () => this.reset());
 }
 
-SessionManagementService.prototype.destroy = function(removeAlert) {
+SessionManagementService.prototype.destroy = function (removeAlert) {
     if (this.started) {
         //clear our interval
         //unbind events bound to document
@@ -73,14 +67,22 @@ SessionManagementService.prototype.destroy = function(removeAlert) {
 };
 
 //reset timer
-SessionManagementService.prototype.reset = function() {
+SessionManagementService.prototype.reset = function () {
+    this.countDown = 0;
+    if (this.isLastTriggered('isIdle')) {
+        this._trigger('isIdleEnd');
+    }
+    //keep alive
+    this.keepAlive = true;
+    this._trigger('isAlive');
     //set the timeoutWarn
     //if it has been removed
     this.timeOutWarnInitialized = false;
+    this._unsubscribeListener();
 };
 
 
-SessionManagementService.prototype._watchManInterval = function() {
+SessionManagementService.prototype._watchManInterval = function () {
     if (Date.now() >= this.watchObj.expires_at) {
         this.keepAlive = false;
         this._trigger('isTimedOut');
@@ -88,22 +90,27 @@ SessionManagementService.prototype._watchManInterval = function() {
         return;
     }
 
-    //when to set user idle
-    //current time is set to 60 seconds
-    if (this.countDown >= this.session.idleTime) {
+    // when to set user idle
+    // current time is set to 300 seconds
+    if (this.countDown >= this.session.idleTime && this.keepAlive) {
         this.keepAlive = false;
+        this._attachEvents();
         this._trigger('isIdle');
     }
 
     if (this.keepAlive) {
-        this._trigger('isAlive');
         if (this.session.timeOutWarn) {
-            var tWarning = ((this.watchObj.expires_at - Date.now()) <= (this.session.timeOutWarn * 1000));
+            var tWarning = this.getTimeOutWarning();
             if (tWarning && !this.timeOutWarnInitialized) {
+                this._attachEvents();
                 this._trigger('isTimeOutWarn');
+                this.keepAlive = false;
                 this.timeOutWarnInitialized = true;
+                return;
             }
         }
+
+        this._trigger('isAlive');
     }
 
     //set countdown
@@ -111,8 +118,8 @@ SessionManagementService.prototype._watchManInterval = function() {
     this._currentTimer++;
 }
 
-SessionManagementService.prototype._trigger = function(eventName) {
-    if (this.eventsName.includes(eventName) && !this.isLastTriggered(eventName)) {
+SessionManagementService.prototype._trigger = function (eventName) {
+    if (this.hasEvent(eventName) && !this.isLastTriggered(eventName)) {
         var event = new SessionEvent(eventName,
             this.watchObj.expires_at,
             this.watchObj.expires_in,
@@ -126,6 +133,10 @@ SessionManagementService.prototype._trigger = function(eventName) {
     }
 };
 
-SessionManagementService.prototype.isLastTriggered = function(eventName) {
+SessionManagementService.prototype.isLastTriggered = function (eventName) {
     return this._lastTriggered === eventName;
+}
+
+SessionManagementService.prototype.getTimeOutWarning = function () {
+    return (this.timeoutWarnPercent && ((Date.now() - this.watchObj.expires_at) >= this.timeoutWarnPercent));
 }

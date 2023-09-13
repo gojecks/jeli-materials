@@ -2,11 +2,11 @@
   <div class="modal-dialog" attr-class="modalStyle">
     <div class="modal-content">
       <div class="modal-header" *if="!hideHeader">
-        <j-place selector="#modalHeader"></j-place>
+        <j-place #modalHeader></j-place>
         <button type="button" class="btn-close" @click="closeModal(false)"></button>
       </div>
-      <j-place selector="#modalBody"></j-place>
-      <j-place selector="#modalFooter"></j-place>
+      <j-place #modalBody></j-place>
+      <j-place #modalFooter></j-place>
     </div>
   </div>
 </div>

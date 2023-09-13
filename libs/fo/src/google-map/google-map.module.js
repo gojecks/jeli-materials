@@ -2,6 +2,7 @@ import { CommonModule } from '@jeli/common';
 import { GoogleMapService } from './geo-service';
 import { GoogleMapElement, staticMapDirective } from './google-map/google-map.element';
 import { FoPlaceElasticSearchDirective, PlaceElasticSearchElement } from './place-elastic-search/place-elastic-search.element';
+import { NearbyPlacesElement } from './nearby-places/nearby-places.element';
 
 
 jModule({
@@ -12,7 +13,8 @@ jModule({
         GoogleMapElement,
         PlaceElasticSearchElement,
         FoPlaceElasticSearchDirective,
-        staticMapDirective
+        staticMapDirective,
+        NearbyPlacesElement
     ],
     services: [
         GoogleMapService

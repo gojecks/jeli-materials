@@ -49,11 +49,12 @@ export function GoogleMapService() {
     this.infoWindow = null;
 }
 
-GoogleMapService.prototype.startGeoPlaces = function(startAddress) {
+GoogleMapService.prototype.startGeoPlaces = function (startAddress) {
     var container = this.element.get(this.configuration.ids.mapCanvas);
-    if (!container) { throw new Error('unable to locate map canvas'); }
+    if (!container) {  return console.error('unable to locate map canvas'); }
     var mapConfig = Object.assign({ center: (startAddress || this.coordinates).location }, this.configuration.mapConfig);
-    if (!google) { throw new Error('Google maps not available'); }
+    if (!window.google) { return console.error('Google maps not available'); }
+
     this.geocoder = new google.maps.Geocoder;
     this.map = new google.maps.Map(container, mapConfig);
     //set infoWindow
@@ -81,7 +82,7 @@ GoogleMapService.prototype.startGeoPlaces = function(startAddress) {
     return this;
 };
 
-GoogleMapService.prototype.draggableMarker = function(callback) {
+GoogleMapService.prototype.draggableMarker = function (callback) {
     if (this.configuration.marker.draggable) {
         this.marker.addListener('dragend', (e) => {
             this._updateCoordinates(e.latLng);
@@ -92,7 +93,7 @@ GoogleMapService.prototype.draggableMarker = function(callback) {
     return this;
 }
 
-GoogleMapService.prototype.setConfiguration = function(config) {
+GoogleMapService.prototype.setConfiguration = function (config) {
     for (var prop in config) {
         if (!this.configuration[prop]) {
             this.configuration[prop] = config[prop];
@@ -109,7 +110,7 @@ GoogleMapService.prototype.setConfiguration = function(config) {
     return this;
 };
 
-GoogleMapService.prototype.setCoordinates = function(pos) {
+GoogleMapService.prototype.setCoordinates = function (pos) {
     this.coordinates = {
         pos: pos,
         location: ({
@@ -134,7 +135,7 @@ GoogleMapService.prototype.setCoordinates = function(pos) {
  * @param {*} element 
  * @returns 
  */
-GoogleMapService.prototype.buildAutoComplete = function(callback, input) {
+GoogleMapService.prototype.buildAutoComplete = function (callback, input) {
     if (this.configuration.searchBox) {
         input = input || this.element.get(this.configuration.ids.autoComplete);
         if (input) {
@@ -148,7 +149,7 @@ GoogleMapService.prototype.buildAutoComplete = function(callback, input) {
 
             if (callback) {
                 var self = this;
-                this.autocomplete.addListener('place_changed', function(e) {
+                this.autocomplete.addListener('place_changed', function (e) {
                     var place = self.autocomplete.getPlace();
                     callback.call(self, place);
                     place = null;
@@ -160,7 +161,7 @@ GoogleMapService.prototype.buildAutoComplete = function(callback, input) {
     return this;
 };
 
-GoogleMapService.prototype.buildControls = function() {
+GoogleMapService.prototype.buildControls = function () {
     var controlContainer = this.element.get(this.configuration.ids.controls);
     if (controlContainer) {
         this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlContainer);
@@ -177,7 +178,7 @@ GoogleMapService.prototype.buildControls = function() {
  * @param {*} success 
  * @returns 
  */
-GoogleMapService.prototype.getPlacesNearBy = function(query) {
+GoogleMapService.prototype.getPlacesNearBy = function (query) {
     var service = new google.maps.places.PlacesService(this.map);
     return new Promise((resolve, reject) => {
         service.nearbySearch({
@@ -194,7 +195,7 @@ GoogleMapService.prototype.getPlacesNearBy = function(query) {
     });
 };
 
-GoogleMapService.prototype.bindResultPanel = function(callback) {
+GoogleMapService.prototype.bindResultPanel = function (callback) {
     var resultPanel = this.element.get(this.configuration.ids.resultPanel);
     if (resultPanel) {
         this.events.listener(resultPanel, 'click', callback);
@@ -212,12 +213,12 @@ GoogleMapService.prototype.bindResultPanel = function(callback) {
 }
 
 GoogleMapService.prototype.element = {
-    get: function(id) {
+    get: function (id) {
         return document.getElementById(id);
     },
-    buildButtons: function(resource) {
+    buildButtons: function (resource) {
         if (resource.configuration.buttons) {
-            resource.configuration.buttons.forEach(function(obj) {
+            resource.configuration.buttons.forEach(function (obj) {
                 var btn = document.createElement('button');
                 AttributeAppender(btn, obj.attr);
                 btn.innerHTML = obj.text;
@@ -228,17 +229,17 @@ GoogleMapService.prototype.element = {
     }
 };
 
-GoogleMapService.prototype.getPlaceInfo = function(id) {
+GoogleMapService.prototype.getPlaceInfo = function (id) {
     return this.placesServiceData[id];
 };
 
-GoogleMapService.prototype._updateCoordinates = function(location) {
+GoogleMapService.prototype._updateCoordinates = function (location) {
     this.coordinates.location.lat = location.lat();
     this.coordinates.location.lng = location.lng();
     this.coordinates.static = Object.values(this.coordinates.location).join(',');
 };
 
-GoogleMapService.prototype.selectedPlace = function(place) {
+GoogleMapService.prototype.selectedPlace = function (place) {
     this._updateCoordinates(place.geometry.location);
     if (this.element.AutoComplete) {
         this.element.AutoComplete.value = place.name || place.formatted_address;
@@ -246,12 +247,12 @@ GoogleMapService.prototype.selectedPlace = function(place) {
 };
 
 GoogleMapService.prototype.events = {
-    listener: function(ele, type, fn) {
+    listener: function (ele, type, fn) {
         ele.addEventListener(type, fn);
     }
 };
 
-GoogleMapService.prototype.addMarkerToMap = function(place) {
+GoogleMapService.prototype.addMarkerToMap = function (place) {
     var image = {
         url: place.icon || '',
         size: new google.maps.Size(71, 71),
@@ -274,7 +275,7 @@ GoogleMapService.prototype.addMarkerToMap = function(place) {
  * @param {*} pagination 
  * @returns 
  */
-GoogleMapService.prototype.updateResultPanel = function(places, pagination, addMarkers) {
+GoogleMapService.prototype.updateResultPanel = function (places, pagination, addMarkers) {
     var bounds = new google.maps.LatLngBounds();
     var placesList = this.element.get(this.configuration.ids.resultPanel);
     // add pagination to placeList object
@@ -310,7 +311,7 @@ GoogleMapService.prototype.updateResultPanel = function(places, pagination, addM
 };
 
 //Build Info Box
-GoogleMapService.prototype.updateMarker = function(place) {
+GoogleMapService.prototype.updateMarker = function (place) {
     this.infoWindow.close();
     this.marker.setVisible(false);
     var place = place;
@@ -328,7 +329,7 @@ GoogleMapService.prototype.updateMarker = function(place) {
 
     /** @type {google.maps.Icon} */
     this.marker.setIcon({
-        url: place.icon,
+        url: place.icon || '',
         size: new google.maps.Size(71, 71),
         origin: new google.maps.Point(0, 0),
         anchor: new google.maps.Point(17, 34),
@@ -346,7 +347,7 @@ GoogleMapService.prototype.updateMarker = function(place) {
  * @param {*} replacer 
  * @param {*} setMarker 
  */
-GoogleMapService.prototype.setMapInfoWindowContent = function(place, replacer, setMarker) {
+GoogleMapService.prototype.setMapInfoWindowContent = function (place, replacer, setMarker) {
     if (this.configuration.showInfoWindow) {
         var address = '';
         if (place.address_components) {
@@ -368,7 +369,7 @@ GoogleMapService.prototype.setMapInfoWindowContent = function(place, replacer, s
 };
 
 
-GoogleMapService.prototype.templateCompiler = function(template, obj) {
+GoogleMapService.prototype.templateCompiler = function (template, obj) {
     for (var i in obj) {
         template = template.replace(i, obj[i]);
     }
@@ -376,7 +377,7 @@ GoogleMapService.prototype.templateCompiler = function(template, obj) {
     return template;
 }
 
-GoogleMapService.prototype.geocodeLocation = function(param, callback, type) {
+GoogleMapService.prototype.geocodeLocation = function (param, callback, type) {
     if (this.geocoder) {
         this.geocoder.geocode(param, (results, status) => {
             if (status == google.maps.GeocoderStatus.OK) {
@@ -392,7 +393,7 @@ GoogleMapService.prototype.geocodeLocation = function(param, callback, type) {
     return this;
 };
 
-GoogleMapService.prototype.setPosition = function(callback, type) {
+GoogleMapService.prototype.setPosition = function (callback, type) {
     this.geocodeLocation({ 'location': this.coordinates.location }, callback, type);
     this.map.setZoom(17);
     this.map.setCenter(this.coordinates.location);
@@ -400,7 +401,7 @@ GoogleMapService.prototype.setPosition = function(callback, type) {
     return this;
 };
 
-GoogleMapService.prototype.startGoogleMap = function(container) {
+GoogleMapService.prototype.startGoogleMap = function (container) {
     this.map = new GMap2(container);
     this.map.setCenter(new GLatLng(34, 0), 1);
     this.geocoder = new GClientGeocoder();
@@ -408,9 +409,9 @@ GoogleMapService.prototype.startGoogleMap = function(container) {
     return this;
 };
 
-GoogleMapService.prototype.reDrawLocation = function(onSuccess, onError) {
+GoogleMapService.prototype.reDrawLocation = function (onSuccess, onError) {
     var self = this;
-    self.geocoder.getLocations(self.coordinates.location, function(options) {
+    self.geocoder.getLocations(self.coordinates.location, function (options) {
         self.map.clearOverlays();
         if (!options || options.Status.code != 200) {
             onError("We are unable to geocode the location");
@@ -426,11 +427,11 @@ GoogleMapService.prototype.reDrawLocation = function(onSuccess, onError) {
     });
 };
 
-GoogleMapService.prototype.init = function(address) {
+GoogleMapService.prototype.init = function (address) {
     return GoogleMapService.getCurrentPosition(address);
 };
 
-GoogleMapService.prototype.destroy = function() {
+GoogleMapService.prototype.destroy = function () {
     this.placesServiceData = null;
     this.geocoder = null;
     this.map = null;
@@ -438,16 +439,16 @@ GoogleMapService.prototype.destroy = function() {
     this.infoWindow = null;
 };
 
-GoogleMapService.setKey = function(key) {
+GoogleMapService.setKey = function (key, ignoreLibrary) {
     _mapKey = key;
-    if (_mapKey) {
-        LazyLoader.staticLoader(["https://maps.googleapis.com/maps/api/js?key=" + _mapKey + "&libraries=places"], function() {
+    if (_mapKey && !ignoreLibrary) {
+        LazyLoader.staticLoader(["https://maps.googleapis.com/maps/api/js?key=" + _mapKey + "&libraries=places"], function () {
             console.log("Script loaded");
         }, 'js');
     }
 };
 
-GoogleMapService.getStaticImgUrl = function(address, size, zoom, setMarker) {
+GoogleMapService.getStaticImgUrl = function (address, size, zoom, setMarker) {
     var staticUrl = 'https://maps.googleapis.com/maps/api/staticmap?scale=2&center=' + encodeURI(address);
     staticUrl += '&zoom=' + (zoom || 17);
     staticUrl += '&size=' + (size || '500x250');
@@ -460,11 +461,21 @@ GoogleMapService.getStaticImgUrl = function(address, size, zoom, setMarker) {
 }
 
 
-GoogleMapService.getCurrentPosition = function(address) {
-    return new Promise(function(resolve, reject) {
-        function success(pos) {
-            GoogleMapService.cachedLocations = pos;
-            resolve(GoogleMapService.cachedLocations);
+GoogleMapService.getCurrentPosition = function (address, geoCode) {
+    return new Promise(function (resolve, reject) {
+        function success(latlng) {
+            GoogleMapService.cachedLocations = latlng;
+            if (geoCode){
+                GoogleMapService.geoCodeLocation(latlng)
+                .then(results => {
+                    resolve({
+                        latlng,
+                        results
+                    });
+                }, reject);
+            } else {
+                resolve(GoogleMapService.cachedLocations);
+            }
         }
 
         if (address && address.location) {
@@ -491,5 +502,20 @@ GoogleMapService.getCurrentPosition = function(address) {
         navigator.geolocation.getCurrentPosition(success, reject, options);
     });
 };
+
+GoogleMapService.geoCodeLocation = function (pos) {
+    var latlng = pos.coords.latitude + ',' + pos.coords.longitude;
+    return fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latlng + '&sensor=true&key=' + _mapKey)
+        .then(res => res.json());
+}
+
+GoogleMapService.watchPosition = function(options, success, error) {
+    options = options || {};
+    options.timeout = options.timeout || 3000;
+    var watchID = navigator.geolocation.watchPosition(success, error, options);
+    return function() {
+        navigator.geolocation.clearWatch(watchID);
+    };
+}
 
 GoogleMapService.cachedLocations = null;

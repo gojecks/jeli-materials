@@ -20,7 +20,7 @@ export function SessionEvent(eventName, expiresAt, expiresIn, keepAlive, countDo
         }
 
         return false;
-    }
+    };
 }
 
 /**

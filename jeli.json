@@ -33,7 +33,8 @@
     "resolve": {
         "alias": {
             "@jeli/*": "../jeli-js/dist/",
-            "@jeli/common/datetime": "../jeli-js/dist/common/datetime"
+            "@jeli/common/datetime": "../jeli-js/dist/common/datetime",
+            "@jeli/helpers": "../js-helpers"
         }
     },
     "default": "fo-materials"

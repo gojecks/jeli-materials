@@ -13,6 +13,7 @@ import { FoModalModule } from '../modal/modal.module.js';
 import { AuthSessionManager } from './auth.session.manager.js';
 import { AuthRouterInterceptorService } from './auth-router-interceptor.service';
 import { AuthRegisterElement } from './auth-register/auth-register.element.js';
+import { NetworkService } from './network-service.js';
 
 
 jModule({
@@ -33,6 +34,7 @@ jModule({
         FoAuthService,
         FoTokenService,
         AuthSessionManager,
+        NetworkService,
         {
             name: ROUTE_INTERCEPTOR,
             useClass: AuthRouterInterceptorService

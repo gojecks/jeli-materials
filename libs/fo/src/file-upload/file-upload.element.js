@@ -1,6 +1,7 @@
 import { EventEmitter } from '@jeli/core';
 import { blobURL, readFileMultiple } from '../utils';
 import { UploadService } from './upload.service';
+
 Element({
     selector: 'fo-file-upload',
     templateUrl: './file-upload.element.html',
@@ -167,10 +168,7 @@ FileUploadElement.prototype.onSelectImage = function($event) {
 };
 
 FileUploadElement.prototype.removeImage = function(idx) {
-    if (this._settings.autoUpload) {
-        return;
-    }
-
+    if (this._settings.autoUpload) return;
     this.selectedFiles.splice(idx, 1);
     this._uploadFiles.splice(idx, 1);
     if (!this.selectedFiles.length && this.errorMessages.length) {

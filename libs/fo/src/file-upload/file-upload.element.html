@@ -10,6 +10,7 @@
       </div>
     </div>
   </j-fragment>
+  <!-- <div class="text-muted">Maximum File Size (${:_settings.maximumFileSize|sizeToUnit})</div> -->
   <div class="alert alert-danger mb-3" role="alert" *if="uploadError">
     <p class="mb-1">There was an error uploading images. Please try again!</p>
     <p *for="msg in errorMessages" class="mb-1">${:msg}</p>
@@ -41,7 +42,7 @@
   <ul class="list-group">
     <li class="list-group-item list-group-item-action clearfix" *for="file in selectedFiles; idx=index">
       <button class="btn-close btn-sm float-end" type="button"></button>
-      <h6>
+      <h6 class="col-10 text-truncate">
         <i class="bi me-2" {:jClass}="uploadProgress >= 100 ? 'text-success bi-check2-all':'text-info bi-check2'"></i> ${file.name}
       </h6>
     </li>

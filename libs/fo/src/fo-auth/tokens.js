@@ -3,8 +3,8 @@ import { ProviderToken } from "@jeli/core";
 export var AUTH_DATABASE_SERIVCE = new ProviderToken('databaseService');
 export var AUTH_SESSION_PROVIDER = new ProviderToken('sessionProvider', false, {
     value: {
-        idleTime: 300,
-        timeOutWarn: 15,
+        idleTime: 300, // time in seconds before trigerring user idle
+        timeOutWarn: 15, // percentage of total accessTime
         interval: 1000,
         autoReconnect: true,
         events: ['mousedown', 'keydown', 'touchstart']

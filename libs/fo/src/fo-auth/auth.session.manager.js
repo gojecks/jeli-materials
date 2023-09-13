@@ -23,6 +23,7 @@ export function AuthSessionManager(storageProvider) {
             return this._sessionData;
         }
     };
+    
     // get the storageData
     if (storageProvider.storage) {
         this._sessionData = JSON.parse(window[storageProvider.storageType].getItem('auth-reload') || '{}');
