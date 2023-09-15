@@ -4,6 +4,7 @@ import { CameraElement } from './camera/camera.element';
 import { FoDraggableModule } from '../draggable/draggable.module';
 import { ImagePreviewElement } from './image-preview/image-preview.element';
 import { ImageTheatreModule } from '../image-theatre/image-theatre.module';
+import { FileUploadDragDirective } from './file-upload-drag.directive';
 
 
 jModule({
@@ -15,7 +16,8 @@ jModule({
     selectors: [
         FileUploadElement,
         CameraElement,
-        ImagePreviewElement
+        ImagePreviewElement,
+        FileUploadDragDirective
     ]
 })
 export function FileUploadModule() {}

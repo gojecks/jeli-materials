@@ -1,10 +1,11 @@
 <div class="container-fluid">
   <div class="fo-imgp-container row" attr-class="gridClass||'me-0 mb-3 g-0'" @click-delegate:img="openTheatre(idx)" @click-delegate:button="removeImage(idx)">
-    <div class="pe-0 position-relative clearfix fo-imgp-item" attr-class="size" *for="img of photos.files; idx=index; imgClass=imgClass">
-      <img {src}="photos.fileUrl + (img.name || img)" class="img-fluid" attr-class="imgClass" {alt}="img.name||img">
+    <div draggable="true" class="pe-0 position-relative clearfix fo-imgp-item" @dragstart="onImageDrag($event, idx)" @dragover="onImageDrag($event, idx)" @drop="onImageDrag($event, idx)" attr-class="size" *for="img of photos.files; idx=index;">
+      <img {src}="photos.fileUrl + (img.name || img)" class="img-fluid" attr-class="imgClass" {alt}="img.name||img" draggable="false">
       <button type="button" class="btn-close close-btn" aria-label="Remove image" *if="canDelete"></button>
     </div>
   </div>
+  <p class="text-muted">Drag and Drop to reorder image</p>
 </div>
 
 <fo-image-theatre *if="allowPreview"></fo-image-theatre>

@@ -1,5 +1,6 @@
 import { ImageTheatreService } from "../../image-theatre/image-theatre.service";
-import { UploadService } from "../upload.service"
+import { UploadService } from "../upload.service";
+import { moveItemInArray } from '@jeli/helpers';
 
 Element({
     selector: 'fo-image-preview',
@@ -42,14 +43,13 @@ ImagePreviewElement.prototype.viewDidDestroy = function(){
     this.imageTheatreService.startTheatreEvent.emit(null);
 }
 
-ImagePreviewElement.prototype.dragChanged  = function(event){
-    console.log(event);
-}
-
-ImagePreviewElement.prototype.onDragStart = function(event){
-    console.log(event);
-}
-
-ImagePreviewElement.prototype.onDrop = function(event){
-    console.log(event);
+ImagePreviewElement.prototype.onImageDrag = function(event, idx){
+    if (['drop','dragover'].includes(event.type)) {
+        event.preventDefault();
+        if (event.type  == 'drop'){
+            moveItemInArray(this.photos.files, this.selectedDragIdx, idx);
+        }
+    } else {
+        this.selectedDragIdx  = idx;
+    }
 }

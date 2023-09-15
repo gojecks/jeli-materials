@@ -77,9 +77,10 @@ input[type="file"] {
 }
 
 .box.is-dragover {
-    outline-offset: -20px;
+    // outline-offset: -20px;
     outline-color: #c8dadf;
     background-color: #fff;
+    outline-width: 5px;
 }
 
 .box__dragndrop,

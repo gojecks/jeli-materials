@@ -50,36 +50,37 @@ export function GoogleMapService() {
 }
 
 GoogleMapService.prototype.startGeoPlaces = function (startAddress) {
-    var container = this.element.get(this.configuration.ids.mapCanvas);
-    if (!container) {  return console.error('unable to locate map canvas'); }
-    var mapConfig = Object.assign({ center: (startAddress || this.coordinates).location }, this.configuration.mapConfig);
-    if (!window.google) { return console.error('Google maps not available'); }
+    return new Promise((resolve, reject) => {
+        var container = this.element.get(this.configuration.ids.mapCanvas);
+        if (!container || !window.google) { return reject('Google maps not available or unable to locate map canvas'); }
+        var mapConfig = Object.assign({ center: (startAddress || this.coordinates).location }, this.configuration.mapConfig);
 
-    this.geocoder = new google.maps.Geocoder;
-    this.map = new google.maps.Map(container, mapConfig);
-    //set infoWindow
-    this.infoWindow = new google.maps.InfoWindow();
-    //set Marker
-    this.marker = new google.maps.Marker({
-        map: this.map,
-        anchor: new google.maps.Point(0, -29),
-        position: mapConfig.center,
-        draggable: this.configuration.marker.draggable,
-        animation: this.configuration.marker.bounce
-    });
-
-    // attach listener
-    if (this.configuration.marker.bounce) {
-        this.marker.addListener('click', () => {
-            if (this.marker.getAnimation() !== null) {
-                this.marker.setAnimation(null);
-            } else {
-                this.marker.setAnimation(google.maps.Animation.BOUNCE);
-            }
+        this.geocoder = new google.maps.Geocoder;
+        this.map = new google.maps.Map(container, mapConfig);
+        //set infoWindow
+        this.infoWindow = new google.maps.InfoWindow();
+        //set Marker
+        this.marker = new google.maps.Marker({
+            map: this.map,
+            anchor: new google.maps.Point(0, -29),
+            position: mapConfig.center,
+            draggable: this.configuration.marker.draggable,
+            animation: this.configuration.marker.bounce
         });
-    }
 
-    return this;
+        // attach listener
+        if (this.configuration.marker.bounce) {
+            this.marker.addListener('click', () => {
+                if (this.marker.getAnimation() !== null) {
+                    this.marker.setAnimation(null);
+                } else {
+                    this.marker.setAnimation(google.maps.Animation.BOUNCE);
+                }
+            });
+        }
+
+        resolve(true);
+    });
 };
 
 GoogleMapService.prototype.draggableMarker = function (callback) {
@@ -465,14 +466,14 @@ GoogleMapService.getCurrentPosition = function (address, geoCode) {
     return new Promise(function (resolve, reject) {
         function success(latlng) {
             GoogleMapService.cachedLocations = latlng;
-            if (geoCode){
+            if (geoCode) {
                 GoogleMapService.geoCodeLocation(latlng)
-                .then(results => {
-                    resolve({
-                        latlng,
-                        results
-                    });
-                }, reject);
+                    .then(results => {
+                        resolve({
+                            latlng,
+                            results
+                        });
+                    }, reject);
             } else {
                 resolve(GoogleMapService.cachedLocations);
             }
@@ -509,11 +510,11 @@ GoogleMapService.geoCodeLocation = function (pos) {
         .then(res => res.json());
 }
 
-GoogleMapService.watchPosition = function(options, success, error) {
+GoogleMapService.watchPosition = function (options, success, error) {
     options = options || {};
     options.timeout = options.timeout || 3000;
     var watchID = navigator.geolocation.watchPosition(success, error, options);
-    return function() {
+    return function () {
         navigator.geolocation.clearWatch(watchID);
     };
 }

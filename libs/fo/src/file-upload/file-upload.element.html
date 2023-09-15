@@ -1,6 +1,6 @@
 <form class="uploadContainer">
   <j-fragment *if="_settings.multiple; else as singleFileTemplate">
-    <div class="box has-advanced-upload js mb-3" {:jClass}="dragClass">
+    <div class="box has-advanced-upload js mb-3" {:jClass}="dragClass" @:fileUploadDrag="fileDragDropEvent($event)">
       <div class="box__input" *if="!selectedFiles.length">
         <input class="box__file" type="file" @input="onSelectImage($event)" name="files[]" id="file" multiple />
         <label for="file">${:label || 'Choose or drag photos here.'}</label>
@@ -41,9 +41,9 @@
 <j-template #listPreview>
   <ul class="list-group">
     <li class="list-group-item list-group-item-action clearfix" *for="file in selectedFiles; idx=index">
-      <button class="btn-close btn-sm float-end" type="button"></button>
-      <h6 class="col-10 text-truncate">
-        <i class="bi me-2" {:jClass}="uploadProgress >= 100 ? 'text-success bi-check2-all':'text-info bi-check2'"></i> ${file.name}
+      <button class="btn btn-light btn-sm float-end" type="button"><i class="bi bi-x-lg"></i></button>
+      <h6 class="col-10 mb-0 text-truncate">
+        <i class="bi me-2 fs-4" {:jClass}="uploadProgress >= 100 ? 'text-success bi-check2-all':'text-secondary bi-check2'"></i> ${file.name}
       </h6>
     </li>
   </ul>

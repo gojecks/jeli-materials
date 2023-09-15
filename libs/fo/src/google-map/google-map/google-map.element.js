@@ -11,9 +11,12 @@ Element({
 export function GoogleMapElement() {
     this.geoService = new GoogleMapService();
     this.onPlaceSelected = new EventEmitter();
+    this.actions  = ['map','places'];
+    this.selectedAction = '';
     this.address = null;
     this.readOnly = false;
     this.showResult = false;
+    this.error = false;
     this._config = {
         showInfoWindow: false,
         searchBox: {
@@ -31,51 +34,58 @@ export function GoogleMapElement() {
     };
 
     Object.defineProperty(this, 'config', {
-        set: function(value) {
+        set: function (value) {
             Object.assign(this._config, value);
             this.geoService.setConfiguration(this._config);
         }
     });
 }
 
-GoogleMapElement.prototype.viewDidLoad = function() {
+GoogleMapElement.prototype.viewDidLoad = function () {
     this.geoService.startGeoPlaces(this.address)
-        .buildAutoComplete((place) => this._onPlaceSelected(place, true))
-        .buildControls()
-        .bindResultPanel((e) => {
-            var id = e.target.getAttribute('id');
-            var place = this.geoService.getPlaceInfo(id);
-            this._onPlaceSelected(place, true);
-        })
-        .draggableMarker(place => {
-            this._onPlaceSelected(place, true);
-        })
-        .init(this.address)
-        .then((pos) => {
-            if (pos.coords.accuracy) {
-                this.geoService.setCoordinates(pos)
-                    .setPosition(place => {
-                        if (place && !this.address) {
-                            this._onPlaceSelected(place, false);
+        .then(() => {
+            this.geoService
+                .buildAutoComplete((place) => this._onPlaceSelected(place, true))
+                .buildControls()
+                .bindResultPanel((e) => {
+                    var id = e.target.getAttribute('id');
+                    var place = this.geoService.getPlaceInfo(id);
+                    this._onPlaceSelected(place, true);
+                })
+                .draggableMarker(place => {
+                    this._onPlaceSelected(place, true);
+                })
+                .init(this.address)
+                .then((pos) => {
+                    if (pos.coords.accuracy) {
+                        this.geoService.setCoordinates(pos)
+                            .setPosition(place => {
+                                if (place && !this.address) {
+                                    this._onPlaceSelected(place, false);
+                                }
+                            });
+                        // load nearbyPlaces
+                        if (this._config.nearbyPlaces) {
+                            this.getPlacesNearBy(this._config.nearbyPlaces.options[0]);
                         }
-                    });
-                // load nearbyPlaces
-                if (this._config.nearbyPlaces) {
-                    this.getPlacesNearBy(this._config.nearbyPlaces.options[0]);
-                }
-            }
-        })
-        .catch(() => {
-            if (this.geoService.infoWindow) {
-                this.geoService.infoWindow.setPosition(this.geoService.coordinates.location);
-                this.geoService.infoWindow.setContent(this.geoService.browserHasGeolocation ?
-                    'Error: The Geolocation service failed.' :
-                    'Error: Your browser doesn\'t support geolocation.');
-            }
+                    }
+                })
+                .catch(() => {
+                    if (this.geoService.infoWindow) {
+                        this.geoService.infoWindow.setPosition(this.geoService.coordinates.location);
+                        this.geoService.infoWindow.setContent(this.geoService.browserHasGeolocation ?
+                            'Error: The Geolocation service failed.' :
+                            'Error: Your browser doesn\'t support geolocation.');
+                    }
+                });
+        }, (err) => {
+            console.error(err);
+            this.error = true;
         });
+
 };
 
-GoogleMapElement.prototype._onPlaceSelected = function(place, emitEvent) {
+GoogleMapElement.prototype._onPlaceSelected = function (place, emitEvent) {
     this.geoService
         .updateMarker(place)
         .setMapInfoWindowContent(place, null, true)
@@ -85,12 +95,12 @@ GoogleMapElement.prototype._onPlaceSelected = function(place, emitEvent) {
     }
 }
 
-GoogleMapElement.prototype.getPlacesNearBy = function(value) {
+GoogleMapElement.prototype.getPlacesNearBy = function (value) {
     this.geoService.getPlacesNearBy(value)
         .then(response => this.geoService.updateResultPanel(response.results, response.pagination));
 }
 
-GoogleMapElement.prototype.viewDidDestroy = function() {
+GoogleMapElement.prototype.viewDidDestroy = function () {
     this.geoService.destroy();
 }
 
@@ -103,14 +113,14 @@ export function staticMapDirective(elementRef) {
     this.size = null;
     this._url = null;
     Object.defineProperty(this, 'url', {
-        set: function(value) {
+        set: function (value) {
             if (value) {
                 var mapUrl = GoogleMapService.getStaticImgUrl(value, this.size, 18, true);
                 AttributeAppender.setProp(elementRef.nativeElement, 'src', mapUrl);
                 this._url = value;
             }
         },
-        get: function() {
+        get: function () {
             return this._url;
         }
     });

@@ -1,17 +1,25 @@
-<div class="row checkin-container border m-0" attr-style="_config.styles">
-  <div class="col p-0">
-    <input attr-value="address.formatted" type="search" attr-style="_config.searchBox.styles" class="controls ${:_config.searchBox ?'':'d-none'}" autocomplete="true" attr-placeholder="_config.searchBox.placeHolder" id="_gpAutoComplete">
-    <div id="_gpControls" class="controls"></div>
-    <div id="_mapCanvas" style="height:100%"></div>
-  </div>
-  <div class="col-3 p-0 rightPanel border-start position-relative" *if="!!_config.nearbyPlaces">
-    <div class="input-group input-group-sm p-2">
-      <span class="input-group-text">${:_config.nearbyPlaces.title}</span>
-      <input class="form-control" list="datalistOptions" placeholder="Type to search..." @input="getPlacesNearBy($event.target.value)">
-      <datalist id="datalistOptions">
-          <option attr-value="opt" *for="opt of _config.nearbyPlaces.options">
-        </datalist>
+<div {class}="error ? 'd-none':'d-block'">
+  <div class="d-lg-block d-none clearfix mb-2" *if="_config.nearbyPlaces">
+    <div class="float-end btn-group btn-group-sm" @click-delegate:button="selectedAction=action">
+      <button class="btn" *for="action of actions" {:jClass}="(!selectedAction || selectedAction == action) ? 'btn-secondary':'btn-outline-secondary'">${:action|capitalize}</button>
     </div>
-    <ul id="_resultPanel" class="position-absolute"></ul>
+  </div>
+  <div class="row checkin-container border m-0" attr-style="_config.styles">
+    <div class="col p-0" {attr-style.display}="(!selectedAction || selectedAction =='map') ? 'block':'none'">
+      <input attr-value="address.formatted" type="search" attr-style="_config.searchBox.styles" class="controls ${:_config.searchBox ?'':'d-none'}" autocomplete="true" attr-placeholder="_config.searchBox.placeHolder" id="_gpAutoComplete">
+      <div id="_gpControls" class="controls"></div>
+      <div id="_mapCanvas"></div>
+    </div>
+    <div class="col-md-3 col-sm-12 p-0 rightPanel border-start position-relative" *if="_config.nearbyPlaces" {attr-style.display}="(!selectedAction || selectedAction =='places') ? 'block':'none'">
+      <div class="input-group input-group-sm p-2">
+        <span class="input-group-text">${:_config.nearbyPlaces.title}</span>
+        <input class="form-control" list="datalistOptions" placeholder="Type to search..." @input="getPlacesNearBy($event.target.value)">
+        <datalist id="datalistOptions">
+            <option attr-value="opt" *for="opt of _config.nearbyPlaces.options">
+          </datalist>
+      </div>
+      <ul id="_resultPanel" class="position-absolute"></ul>
+    </div>
   </div>
 </div>
+<div class="alert alert-danger" *if="error">There was an error loading map, please try again later</div>

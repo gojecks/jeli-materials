@@ -1,6 +1,9 @@
 .checkin-container {
     position: relative;
     overflow: hidden;
+    #_mapCanvas {
+        height: 100%;
+    }
     .controls {
         margin-top: 10px;
         border: 1px solid transparent;

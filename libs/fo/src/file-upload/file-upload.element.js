@@ -7,10 +7,6 @@ Element({
     templateUrl: './file-upload.element.html',
     styleUrl: './file-upload.element.scss',
     events: [
-        'drag dragstart dragend dragover dragenter dragleave drop:event=dragStart($event)',
-        "dragover dragenter:event=dragEnter()",
-        'dragleave dragend drop:event=dragLeave()',
-        'drop:event=dragDrop($event)',
         'onImageSelected:emitter'
     ],
     props: ['label', 'settings', 'buttonText', 'value'],
@@ -85,24 +81,6 @@ export function FileUploadElement(changeDetector, uploadService) {
     };
 
 
-    this.dragStart = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    };
-
-    this.dragEnter = function(e) {
-        this.dragClass = 'is-dragover';
-    }
-
-    this.dragLeave = function(e) {
-        this.dragClass = '';
-    }
-
-    this.dragDrop = function(e) {
-        var files = (e.originalEvent || e).dataTransfer.files;
-        this.onSelectImage(files);
-    };
-
     Object.defineProperties(this, {
         settings: {
             set: function(value) {
@@ -117,9 +95,13 @@ FileUploadElement.prototype.didInit = function() {
 }
 
 FileUploadElement.prototype.onSelectImage = function($event) {
-    var files = Array.from($event.target.files);
     //reset form
     $event.target.form.reset();
+    this.processSelectedFiles($event.target.files);
+}
+
+FileUploadElement.prototype.processSelectedFiles = function(files){
+    files = Array.from(files);
     var allImages = true;
     var imgRegExp = /^image/;
     // remove previously selected files if not multiple selection
@@ -165,7 +147,7 @@ FileUploadElement.prototype.onSelectImage = function($event) {
     } else {
         this.takeAction();
     }
-};
+}
 
 FileUploadElement.prototype.removeImage = function(idx) {
     if (this._settings.autoUpload) return;
@@ -245,4 +227,14 @@ FileUploadElement.prototype.uploadDone = function(hasError) {
         this._uploadFiles = [];
     }
     this.changeDetector.onlySelf();
+}
+
+FileUploadElement.prototype.fileDragDropEvent = function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragClass = ['drop', 'dragleave'].includes(event.type) ? '':'is-dragover';
+    if (event.type == 'drop') {
+        var files = (event.originalEvent || event).dataTransfer.files;
+        this.processSelectedFiles(files);
+    }
 }
