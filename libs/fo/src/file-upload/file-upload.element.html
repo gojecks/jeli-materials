@@ -1,7 +1,7 @@
 <form class="uploadContainer">
   <j-fragment *if="_settings.multiple; else as singleFileTemplate">
     <div class="box has-advanced-upload js mb-3" {:jClass}="dragClass" @:fileUploadDrag="fileDragDropEvent($event)">
-      <div class="box__input" *if="!selectedFiles.length">
+      <div class="box__input" {style.display}="!selectedFiles.length ? 'block':'none'">
         <input class="box__file" type="file" @input="onSelectImage($event)" name="files[]" id="file" multiple />
         <label for="file">${:label || 'Choose or drag photos here.'}</label>
       </div>

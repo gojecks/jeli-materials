@@ -1,4 +1,7 @@
-import { debounce } from "@jeli/core";
+import { debounce, Inject } from "@jeli/core";
+import {DatetimeService} from "@jeli/common/datetime";
+
+var dateTimeService = Inject(DatetimeService);
 
 export function base64ToFile(base64Image) {
     var split = base64Image.split(',');
@@ -75,7 +78,7 @@ export function parseValue(str, replacer, regex, defaultValue) {
     regex = regex || /\{\{(.*?)\}\}/g;
     var isFnRplr = (typeof replacer === 'function');
     return str.replace(regex, (_, key) => {
-        var value =  isFnRplr ? replacer(key) :  deepContext(key, replacer);
+        var value = isFnRplr ? replacer(key) : deepContext(key, replacer);
         return value || defaultValue || '';
     });
 }
@@ -100,7 +103,9 @@ export function htmlValueParser(str, replacer, defaultValue) {
  * @returns 
  */
 export function deepContext(key, context) {
-    if(typeof key !== 'string') null;
+    if (typeof key !== 'string') null;
+    if (typeof context == 'function') return context(key, null, true);
+
     key = key.split('.');
     if (!key[0])
         key.unshift(key.splice(0, 2).join('.'));
@@ -124,7 +129,7 @@ export function checkConditions(conditions, context) {
             var conditionValue = condition[key];
             var isStateKey = key.startsWith('@');
             key = isStateKey ? key.substring(1) : key;
-            var value = isOptionalDeepContext ? context(key, isStateKey) : deepContext(key, context);
+            var value = isOptionalDeepContext ? context(key, isStateKey, true) : deepContext(key, context);
             if (typeof conditionValue === 'object') {
                 operator = (conditionValue.operator || conditionValue.type);
                 conditionValue = conditionValue.value;
@@ -176,21 +181,71 @@ export function createStyleSheet(cssRules, fragment) {
 export function parseText(text, data, ignoreFalseMatch) {
     var regex = /@(\w*)+\[(.*?)\]+(\{(.*?)\}|\((.*?)\))+/gi;
     if (!(text || '').match(regex)) return ignoreFalseMatch ? text : null;
-    var parser = (content) => {
+    /**
+     * 
+     * @param {*} content 
+     * @param {*} replacer 
+     * @returns 
+     */
+    var handlers = {
+        parse: (attr, body, data) => parser(body, data),
+        if: (attr, body, data) => {
+            var attrs = attr.split('|');
+            if (!conditionParser$.parseAndEvaluate(attrs.shift(), data)) return "";
+            body = parser(body, data);
+            return constructHtml(attrs[0] || 'fo-if', attrs[1], body);
+        },
+        for: (attr, body, data) => {
+            var forRepeater = deepContext(attr, data);
+            if (forRepeater) {
+                return forRepeater.map(d => parser(body, d)).join('')
+            }
+            return "";
+        },
+        currency: (attr, body, data) => {
+            var attrs = attr.split('|');
+            var config = {
+                style: 'currency',
+                currency: attrs[2],
+                maximumSignificantDigits: 3
+            };
+
+            var value = new Intl.NumberFormat((attrs[1] || navigator.language), config).format(deepContext(attrs[0], data) || 0);
+            return constructHtml((attrs[3] || 'fo-currency'), attrs[4], (body || '&0').replace('&0', value));
+        },
+        number: (attr, body, data) => {
+            var attrs = attr.split('|');
+            var value = new Intl.NumberFormat((attrs[1] || navigator.language)).format(deepContext(attrs[0], data) || 0);
+            return constructHtml((attrs[2] || 'fo-number'), attrs[3], (body || '&0').replace('&0', value));
+        },
+        time: (attr, body, data) => {
+            var attrs = attr.split('|');
+            var value = dateTimeService.timeConverter(deepContext(attrs[0], data)).timeago;
+            return constructHtml((attrs[1] || 'time-ago'), attrs[2], (body || '&0').replace('&0', value));
+        }
+    };
+
+    var constructHtml = function(tag, attr, body) {
+        return '<'+ tag + ' ' + (attr || '') + '>' + body + '</' + tag + '>';
+    };
+
+
+    var parser = (content, replacer) => {
         return content.replace(regex, function () {
-            var tag = arguments[1];
-            var attr = htmlValueParser(arguments[2] || "", data, '-');
+            var tag = arguments[1].toLowerCase();
+            var attr = arguments[2] || "";
             var body = arguments[4] || arguments[5];
             // check for bad  tags
             if (badElements.includes(tag)) return "";
-            if (tag.toLowerCase() === 'parse') return parser(body);
+            if (handlers.hasOwnProperty(tag))
+                return handlers[tag](attr, htmlValueParser(body, replacer), replacer);
 
             // single replace
-            return '<' + tag + ' ' + attr + '>' + ((!arguments[4]) ? htmlValueParser(body, data) : parser(body)) + '</' + tag + '>';
+            return constructHtml(tag, htmlValueParser(attr, replacer, '-'), ((!arguments[4]) ? htmlValueParser(body, replacer) : parser(body, replacer)));
         });
     };
 
-    return text.split(/\n/g).map(parser).join('');
+    return text.split(/\n/g).map(c => parser(c, data)).join('');
 }
 
 /**
@@ -315,17 +370,26 @@ export var conditionParser$ = {
             return (typeof value === 'object' ? (value.id + (value.conditions ? ':' + conditionParser$.toString(value.conditions, true) : '')) : value)
         }
         return ':' + conditionParser$.toString(value, true);
-    }
+    },
+    parseAndEvaluate: (condition, context) => {
+        var cachedConditions = conditionParser$.$cachedConditions.get(condition);
+        if (!cachedConditions) {
+            cachedConditions = conditionParser$.toObject(condition);
+            conditionParser$.$cachedConditions.set(condition, cachedConditions);
+        }
+        return checkConditions(cachedConditions, context);
+    },
+    $cachedConditions: new Map()
 
 };
 
 function testOrParseJson(value) {
-    if(!value || (typeof value !==  'string')) return value;
+    if (!value || (typeof value !== 'string')) return value;
     try {
         return ('[{'.includes(value.trim().charAt(0)) || /(true|false|null)/.test(value)) ? JSON.parse(value) : /(^[\d]*$)/.test(value) ? +(value) : value;
     } catch (e) {
         return value;
-    } 
+    }
 }
 
 /**

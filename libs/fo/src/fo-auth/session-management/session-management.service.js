@@ -44,6 +44,7 @@ SessionManagementService.prototype.startWatch = function (watchObj) {
         this._trigger('isAlive');
         this.timeoutWarnPercent = ((this.watchObj.expires_in / 100) * (this.session.timeOutWarn || 0));
         this.watchInterval = setInterval(this._watchManInterval.bind(this), this.session.interval || 1000);
+        this._attachEvents();
         return;
     }
 };
@@ -57,7 +58,7 @@ SessionManagementService.prototype.destroy = function (removeAlert) {
         //clear our interval
         //unbind events bound to document
         clearInterval(this.watchInterval);
-        this._unsubscribeListener();
+        this._unsubscribeListener && this._unsubscribeListener();
         this.countDown = this._currentTimer = 0;
         this.started = false;
         if (removeAlert) {
@@ -78,7 +79,6 @@ SessionManagementService.prototype.reset = function () {
     //set the timeoutWarn
     //if it has been removed
     this.timeOutWarnInitialized = false;
-    this._unsubscribeListener();
 };
 
 
@@ -94,7 +94,6 @@ SessionManagementService.prototype._watchManInterval = function () {
     // current time is set to 300 seconds
     if (this.countDown >= this.session.idleTime && this.keepAlive) {
         this.keepAlive = false;
-        this._attachEvents();
         this._trigger('isIdle');
     }
 
@@ -102,7 +101,6 @@ SessionManagementService.prototype._watchManInterval = function () {
         if (this.session.timeOutWarn) {
             var tWarning = this.getTimeOutWarning();
             if (tWarning && !this.timeOutWarnInitialized) {
-                this._attachEvents();
                 this._trigger('isTimeOutWarn');
                 this.keepAlive = false;
                 this.timeOutWarnInitialized = true;

@@ -1,5 +1,5 @@
 <div {class}="error ? 'd-none':'d-block'">
-  <div class="d-lg-block d-none clearfix mb-2" *if="_config.nearbyPlaces">
+  <div class="d-lg-none d-block clearfix mb-2" *if="_config.nearbyPlaces">
     <div class="float-end btn-group btn-group-sm" @click-delegate:button="selectedAction=action">
       <button class="btn" *for="action of actions" {:jClass}="(!selectedAction || selectedAction == action) ? 'btn-secondary':'btn-outline-secondary'">${:action|capitalize}</button>
     </div>

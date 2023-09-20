@@ -28,6 +28,18 @@ export function FoTokenService(authManager) {
     });
 }
 
+FoTokenService.prototype.decodeToken = function(){
+    var token =  this.getAccessToken();
+    return atob((token.bearer || '').split('.')[1]);
+}
+
+FoTokenService.prototype.getClaims =  function(){
+    var claims = this.decodeToken();
+    return function(claim){
+        return claims ? claims[claim] : null;
+    };
+}
+
 FoTokenService.prototype.saveAuthentication = function(response) {
     var tokens = response.getTokens();
     if (tokens) {

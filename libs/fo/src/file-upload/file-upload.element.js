@@ -96,8 +96,8 @@ FileUploadElement.prototype.didInit = function() {
 
 FileUploadElement.prototype.onSelectImage = function($event) {
     //reset form
-    $event.target.form.reset();
     this.processSelectedFiles($event.target.files);
+    $event.target.form.reset();
 }
 
 FileUploadElement.prototype.processSelectedFiles = function(files){
@@ -115,12 +115,12 @@ FileUploadElement.prototype.processSelectedFiles = function(files){
         var ext = file.name.split('.').pop();
         // validate image size and format
         if (!this._settings.accepts.includes(ext) || file.size > this._settings.maximumFileSize) {
-            accum.push({ name: file.name, size: file.size });
+            accum.unshift({ name: file.name, size: file.size });
         } else {
-            this._uploadFiles.push(file);
+            this._uploadFiles.unshift(file);
             // push the image info  for display
             if (!this._settings.imageListPreview) {
-                this.selectedFiles.push({ name: file.name });
+                this.selectedFiles.unshift({ name: file.name });
             }
         }
 
@@ -133,7 +133,7 @@ FileUploadElement.prototype.processSelectedFiles = function(files){
     }, []);
 
     // make sure there are files to upload before proceeding 
-    if (this.selectedFileErrors.length && !this._uploadFiles.length) {
+    if (!this._uploadFiles.length  || (this.selectedFileErrors.length && !this._uploadFiles.length)) {
         return;
     }
 
@@ -192,9 +192,10 @@ FileUploadElement.prototype.blockForm = function() {
 }
 
 FileUploadElement.prototype.uploadImage = function() {
-    if (!this._uploadFiles) {
+    if (!this._uploadFiles.length) {
         return;
     }
+
     this.uploadInProgress = true;
     this.errorMessages = [];
     this.uploadError = false;
