@@ -75,6 +75,7 @@ export var badElements = "script|link|style|meta|head|body|html".split('|');
  * @returns 
  */
 export function parseValue(str, replacer, regex, defaultValue) {
+    if(!str) return '';
     regex = regex || /\{\{(.*?)\}\}/g;
     var isFnRplr = (typeof replacer === 'function');
     return str.replace(regex, (_, key) => {
@@ -104,7 +105,7 @@ export function htmlValueParser(str, replacer, defaultValue) {
  */
 export function deepContext(key, context) {
     if (typeof key !== 'string') null;
-    if (typeof context == 'function') return context(key, null, true);
+    if (typeof context == 'function') return context(key, true);
 
     key = key.split('.');
     if (!key[0])
@@ -127,9 +128,8 @@ export function checkConditions(conditions, context) {
         for (var key of conditionKeys) {
             var operator = null;
             var conditionValue = condition[key];
-            var isStateKey = key.startsWith('@');
-            key = isStateKey ? key.substring(1) : key;
-            var value = isOptionalDeepContext ? context(key, isStateKey, true) : deepContext(key, context);
+            key = key.startsWith('@') ? key.substring(1) : key;
+            var value = isOptionalDeepContext ? context(key, true) : deepContext(key, context);
             if (typeof conditionValue === 'object') {
                 operator = (conditionValue.operator || conditionValue.type);
                 conditionValue = conditionValue.value;
@@ -181,6 +181,7 @@ export function createStyleSheet(cssRules, fragment) {
 export function parseText(text, data, ignoreFalseMatch) {
     var regex = /@(\w*)+\[(.*?)\]+(\{(.*?)\}|\((.*?)\))+/gi;
     if (!(text || '').match(regex)) return ignoreFalseMatch ? text : null;
+    var replaceArg = (content, value) => (content || '&0').replace('&0', value);
     /**
      * 
      * @param {*} content 
@@ -196,9 +197,12 @@ export function parseText(text, data, ignoreFalseMatch) {
             return constructHtml(attrs[0] || 'fo-if', attrs[1], body);
         },
         for: (attr, body, data) => {
-            var forRepeater = deepContext(attr, data);
+            var attrs = attr.split('|');
+            var forRepeater = deepContext(attrs[0], data);
             if (forRepeater) {
-                return forRepeater.map(d => parser(body, d)).join('')
+                if (typeof forRepeater  == 'string') forRepeater  = forRepeater.split(',');
+                var content = forRepeater.map(d => replaceArg(parser(body, d), d)).join('');
+                return constructHtml((attrs[1] || 'fo-for'), attrs[2], content);
             }
             return "";
         },
@@ -211,17 +215,22 @@ export function parseText(text, data, ignoreFalseMatch) {
             };
 
             var value = new Intl.NumberFormat((attrs[1] || navigator.language), config).format(deepContext(attrs[0], data) || 0);
-            return constructHtml((attrs[3] || 'fo-currency'), attrs[4], (body || '&0').replace('&0', value));
+            return constructHtml((attrs[3] || 'fo-currency'), attrs[4], replaceArg(body, value));
         },
         number: (attr, body, data) => {
             var attrs = attr.split('|');
             var value = new Intl.NumberFormat((attrs[1] || navigator.language)).format(deepContext(attrs[0], data) || 0);
-            return constructHtml((attrs[2] || 'fo-number'), attrs[3], (body || '&0').replace('&0', value));
+            return constructHtml((attrs[2] || 'fo-number'), attrs[3], replaceArg(body, value));
         },
         time: (attr, body, data) => {
             var attrs = attr.split('|');
             var value = dateTimeService.timeConverter(deepContext(attrs[0], data)).timeago;
-            return constructHtml((attrs[1] || 'time-ago'), attrs[2], (body || '&0').replace('&0', value));
+            return constructHtml((attrs[1] || 'time-ago'), attrs[2], replaceArg(body, value));
+        },
+        datetime: (attr, body, data) => {
+            var attrs = attr.split('|');
+            var value = dateTimeService.format(deepContext(attrs[0], data), attrs[1] || 'MMM DD, YYYY');
+            return constructHtml((attrs[2] || 'date-time'), attrs[3], replaceArg(body, value));
         }
     };
 

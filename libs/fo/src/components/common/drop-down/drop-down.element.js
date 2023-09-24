@@ -1,24 +1,28 @@
-import { ElementStyle } from '@jeli/core';
+import {AttributeAppender} from '@jeli/core';
+
 Element({
     selector: 'fo-drop-down',
     templateUrl: './drop-down.element.html',
     styleUrl: './drop-down.element.scss',
     props: ["label", "buttonStyle", "position", "size", "color"],
     events: ['document.click:event=registerDocumentClick()'],
-    DI: ['ElementRef?', 'changeDetector?']
+    viewChild: ['dropDown:HTMLElement=#dropDown'],
+    DI: ['changeDetector?']
 })
-export function DropDownElement(elementRef, changeDetector) {
-    this.element = elementRef;
+export function DropDownElement(changeDetector) {
+    this.dropDown = null;
     this.changeDetector = changeDetector;
     this.isDropDownOpen = false;
     this.position = "start";
     this.size = "lg";
-    this.color = ""
+    this.color = "";
+    this.dropDownMenuStyle = {};
 }
 
 DropDownElement.prototype.registerDocumentClick = function() {
     if (this.isDropDownOpen) {
         this.isDropDownOpen = false;
+        this.dropDownMenuStyle = {};
         this.changeDetector.onlySelf();
     }
 }
@@ -28,22 +32,31 @@ DropDownElement.prototype.onOptionSelected = function(ev) {
 }
 
 DropDownElement.prototype.viewDidLoad = function() {
-    var dropDown = this.element.nativeElement.querySelector('.dropdown');
-    var style = {};
-    if (dropDown) {
+   
+}
+
+DropDownElement.prototype.calculateStyle = function(){
+    if (this.dropDown) {
+        var style = {};
         var windowWidth = window.innerWidth;
-        var dropDownMenu = dropDown.querySelector('.dropdown-menu');
+        var windowHeight = window.innerHeight;
+        var dropDownMenu = this.dropDown.querySelector('.dropdown-menu');
         var dropDownRect = dropDownMenu.getBoundingClientRect();
-        var btnRect = dropDown.querySelector('button').getBoundingClientRect();
+        var btnRect = this.dropDown.querySelector('button').getBoundingClientRect();
         if (this.position === 'end' || (windowWidth === (btnRect.left + btnRect.width) && dropDownRect.width > btnRect.width)) {
-            style = { right: '0px' }
+            style.right = 0;
         }
 
-        ElementStyle(dropDownMenu, style);
+        if (dropDownRect.bottom > windowHeight) {
+            style.bottom = btnRect.height;
+        }
+        
+        AttributeAppender(dropDownMenu, {style});
     }
 }
 
 DropDownElement.prototype.openDropDown = function(event) {
     event.stopPropagation();
     this.isDropDownOpen = !this.isDropDownOpen;
+    requestAnimationFrame(() => this.calculateStyle());
 }
