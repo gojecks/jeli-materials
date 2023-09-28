@@ -441,16 +441,17 @@ export function htmlAttrToJson(value, lbs, deep) {
     if (lbs) value = value.split('\n');
     else value = value.match(/(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g);
     return (value || []).reduce((accum, key) => {
-        var spt = key.split('=');
-        var kValue = spt[1].trim().replace(/["']/g, '');
-        var kProp = spt[0].trim();
-        var pType = (kValue.includes(':')) ? 'json-id' : null;
-        if (!deep) {
-            accum[kProp] = parseJson(kValue, pType, true);
-        } else {
-            setCompValue(kProp, accum, kValue, false, pType);
+        if (key) {
+            var spt = key.split('=');
+            var kValue = spt[1].trim().replace(/["']/g, '');
+            var kProp = spt[0].trim();
+            var pType = (kValue.includes(':')) ? 'json-id' : null;
+            if (!deep) {
+                accum[kProp] = parseJson(kValue, pType, true);
+            } else {
+                setCompValue(kProp, accum, kValue, false, pType);
+            }
         }
-
         return accum;
     }, {})
 }
