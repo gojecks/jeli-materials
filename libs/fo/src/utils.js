@@ -172,6 +172,49 @@ export function createStyleSheet(cssRules, fragment) {
 }
 
 /**
+ * 
+ * @param {*} value 
+ * @param {*} lang 
+ * @param {*} currency 
+ * @returns 
+ */
+function formatNumber(value, lang, currency){
+    var config = {
+        maximumSignificantDigits: 3
+    };
+
+    if (currency){
+        config.style = 'currency',
+        config.currency = currency;
+    }
+
+    return new Intl.NumberFormat((lang || navigator.language), config).format(value || 0);
+}
+
+/**
+ * 
+ * @param {*} exprs 
+ * @param {*} data 
+ * @returns number
+ */
+function parseMath(exprs, data){
+    var valueA = deepContext(exprs[0], data);
+    var valueB = deepContext(exprs[2], data);
+    switch(exprs[1]){
+        case('-'):
+            return (valueA - valueB);
+        case('*'):
+            return (valueA * valueB);
+        case('+'):
+            return (valueA + valueB);
+        case('/'):
+            return (valueA / valueB);
+    }
+
+    return 0;
+}
+
+/**
  * return html strings
  * @param {*} text 
  * @param {*} data
@@ -182,6 +225,7 @@ export function parseText(text, data, ignoreFalseMatch) {
     var regex = /@(\w*)+\[(.*?)\]+(\{(.*?)\}|\((.*?)\))+/gi;
     if (!(text || '').match(regex)) return ignoreFalseMatch ? text : null;
     var replaceArg = (content, value) => (content || '&0').replace('&0', value);
+
     /**
      * 
      * @param {*} content 
@@ -208,18 +252,12 @@ export function parseText(text, data, ignoreFalseMatch) {
         },
         currency: (attr, body, data) => {
             var attrs = attr.split('|');
-            var config = {
-                style: 'currency',
-                currency: attrs[2],
-                maximumSignificantDigits: 3
-            };
-
-            var value = new Intl.NumberFormat((attrs[1] || navigator.language), config).format(deepContext(attrs[0], data) || 0);
+            var value = formatNumber(deepContext(attrs[0], data), attrs[1], attrs[2]);
             return constructHtml((attrs[3] || 'fo-currency'), attrs[4], replaceArg(body, value));
         },
         number: (attr, body, data) => {
             var attrs = attr.split('|');
-            var value = new Intl.NumberFormat((attrs[1] || navigator.language)).format(deepContext(attrs[0], data) || 0);
+            var value = formatNumber(deepContext(attrs[0], data), attrs[1]);
             return constructHtml((attrs[2] || 'fo-number'), attrs[3], replaceArg(body, value));
         },
         time: (attr, body, data) => {
@@ -231,11 +269,19 @@ export function parseText(text, data, ignoreFalseMatch) {
             var attrs = attr.split('|');
             var value = dateTimeService.format(deepContext(attrs[0], data), attrs[1] || 'MMM DD, YYYY');
             return constructHtml((attrs[2] || 'date-time'), attrs[3], replaceArg(body, value));
-        }
+        },
+        math: (attr, body, data) => {
+            var attrs = attr.split('|');
+            var value = parseMath(attrs, data);
+            if (attrs[5]){
+                value = formatNumber(value, attrs[5], attrs[6]);
+            }
+            return constructHtml((attrs[3] || 'fo-math'), attrs[4], replaceArg(body, value));
+        },
     };
 
     var constructHtml = function(tag, attr, body) {
-        return '<'+ tag + ' ' + (attr || '') + '>' + body + '</' + tag + '>';
+        return '<'+ tag + ' ' + (attr || '') + '>' + body.replace(/\n/g, '<br/>') + '</' + tag + '>';
     };
 
 

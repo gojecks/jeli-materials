@@ -1,12 +1,33 @@
-<j-fragment {:switch}="type">
-  <div class="form-check" attr-class="cbClass" *switchCase="'native'">
+<j-fragment {template}="type+'Template'"></j-fragment>
+
+<j-template #buttonTemplate>
+  <input type="checkbox" class="btn-check" attr-id="editorsId" {:fieldControl}="_control" autocomplete="off">
+  <label class="btn " {:jClass}="(_control.value?'btn-':'btn-outline-')+(btnColor || 'primary')" attr-class="'btn-'+size +' '+btnClass" attr-for="editorsId">
+    <j-place></j-place>
+  </label>
+</j-template>
+
+<j-template #nativeTemplate>
+  <div class="form-check" attr-class="cbClass">
     <input class="form-check-input" type="checkbox" {:fieldControl}="_control" attr-id="editorsId">
     <label class="form-check-label" attr-for="editorsId"><j-place></j-place></label>
   </div>
-  <j-fragment *switchDefault>
-    <input type="checkbox" class="btn-check" attr-id="editorsId" {:fieldControl}="_control" autocomplete="off">
-    <label class="btn " {:jClass}="(_control.value?'btn-':'btn-outline-')+(cbClass || 'primary')" attr-for="editorsId">
-        <j-place></j-place>
-      </label>
-  </j-fragment>
-</j-fragment>
+</j-template>
+
+<j-template #multipleTemplate>
+  <div @click-delegate:button="badgeSelected(opt.value || opt)">
+    <button class="btn" type="button" attr-id="editorsId +'_checkbox_'+idx" attr-class="'btn-'+size +' '+btnClass"
+      {:jClass}="(value.includes(opt.value || opt) ? 'btn-': 'btn-outline-')+btnColor" *for="opt in options; idx=index">
+      ${:opt.label || opt}
+    </button>
+  </div>
+</j-template>
+
+<j-template #multipleNativeTemplate>
+  <div @click="badgeSelected(opt.value || opt)">
+    <div class="form-check" attr-class="cbClass" *for="opt in options; idx=index">
+      <input class="form-check-input" type="checkbox" attr-id="editorsId +'_checkbox_'+idx">
+      <label class="form-check-label" attr-for="editorsId +'_checkbox_'+idx">${:opt.label || opt}</label>
+    </div>
+  </div>
+</j-template>

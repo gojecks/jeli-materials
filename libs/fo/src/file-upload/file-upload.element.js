@@ -73,7 +73,9 @@ export function FileUploadElement(changeDetector, uploadService) {
          */
         formData: {
             path: "",
-            sizes: []
+            sizes: [],
+            replaceIfExists: false,
+            allowDuplicate: false
         },
         maximumFileSize: 1048576, // 1MB in bytes
         // default url for FO

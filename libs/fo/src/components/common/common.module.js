@@ -2,7 +2,7 @@ import { CommonModule } from '@jeli/common';
 import { FormModule } from '@jeli/form';
 import { FoAccordionElement } from './accordion/accordion.element';
 import { ButterBarElement } from './butter-bar/butter-bar.element';
-import { CheckBoxElement, MultipleCheckBox } from './check-box/check-box.element';
+import { CheckBoxElement } from './check-box/check-box.element';
 import { DatePickerElement } from './date-picker/date-picker.element';
 import { FoAceEditorDirective } from './directives/fo-ace-editor.directive';
 import { DropDownElement } from './drop-down/drop-down.element';
@@ -42,7 +42,6 @@ jModule({
         FoAlertElement,
         FoCarouselElement,
         FoAceEditorDirective,
-        MultipleCheckBox,
         FoAccordionElement,
         OffCanvasElement,
         IconGridElement,

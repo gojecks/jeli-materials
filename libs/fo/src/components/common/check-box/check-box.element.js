@@ -5,7 +5,7 @@ Element({
     selector: 'fo-check-box',
     templateUrl: './check-box.element.html',
     styleUrl: './check-box.element.scss',
-    props: ['id', 'control', 'name', 'type', 'cbClass', 'value'],
+    props: ['id', 'control', 'name', 'size', 'type', 'cbClass', 'value', 'btnClass', 'btnColor','options'],
     events: ['onOptionSelected:emitter'],
     DI: ['ParentRef?=formControl']
 })
@@ -14,6 +14,9 @@ export function CheckBoxElement(parentControl) {
     this.parentControl = parentControl;
     this._control = new FormFieldControlService();
     this.type = 'native';
+    this.size = 'sm';
+    this.btnClass = 'me-1 mb-1';
+    this.btnColor = 'primary';
     this._name = '';
     this.options = null;
     this.onOptionSelected = new EventEmitter();
@@ -57,6 +60,12 @@ export function CheckBoxElement(parentControl) {
     });
 }
 
+CheckBoxElement.prototype.didInit = function() {
+    if (this._control) {
+        this.value = this._control.value;
+    }
+}
+
 CheckBoxElement.prototype.viewDidLoad = function() {
     if (this._control) {
         this._control.valueChanges.subscribe(value => {
@@ -67,34 +76,7 @@ CheckBoxElement.prototype.viewDidLoad = function() {
     }
 }
 
-
-/**
- * Multiple checkbox element
- */
-Element({
-    selector: 'fo-multiple-check-box',
-    template: '<div @click-delegate:button="badgeSelected(opt.value || opt)">\
-    <button class="btn" type="button" attr-class="\'btn-\'+size +\' \'+btnClass" {:jClass}="(value.includes(opt.value || opt) ? \'btn-\': \'btn-outline-\')+btnColor" *for="opt in options">${:opt.label || opt}</button>\
-  </div>',
-    props: ['id', 'control', 'name', 'options', 'value', 'size', 'btnClass', 'btnColor'],
-    events: ['onOptionSelected:emitter'],
-    DI: ['ParentRef?=formControl']
-})
-export function MultipleCheckBox(parentControl) {
-    CheckBoxElement.call(this, parentControl);
-    this.size = 'sm';
-    this.btnClass = 'me-1 mb-1';
-    this.btnColor = 'primary';
-}
-MultipleCheckBox.prototype = Object.create(CheckBoxElement.prototype);
-MultipleCheckBox.constructor = CheckBoxElement;
-MultipleCheckBox.prototype.didInit = function() {
-    if (this._control) {
-        this.value = this._control.value;
-    }
-}
-
-MultipleCheckBox.prototype.badgeSelected = function(opt) {
+CheckBoxElement.prototype.badgeSelected = function(opt) {
     this.value = this.value || [];
     var index = this.value.indexOf(opt);
     if (index > -1) {
@@ -106,7 +88,7 @@ MultipleCheckBox.prototype.badgeSelected = function(opt) {
     this.pushValue();
 }
 
-MultipleCheckBox.prototype.pushValue = function(){
+CheckBoxElement.prototype.pushValue = function(){
     if (this._control) {
         this._control.patchValue(this.value);
     } else {
