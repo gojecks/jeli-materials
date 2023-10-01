@@ -2,7 +2,8 @@
 
 <j-template #buttonTemplate>
   <input type="checkbox" class="btn-check" attr-id="editorsId" {:fieldControl}="_control" autocomplete="off">
-  <label class="btn " {:jClass}="(_control.value?'btn-':'btn-outline-')+(btnColor || 'primary')" attr-class="'btn-'+size +' '+btnClass" attr-for="editorsId">
+  <label class="btn " {:jClass}="(_control.value?'btn-':'btn-outline-')+(btnColor || 'primary')"
+    attr-class="'btn-'+ (size || 'sm') +' '+ (btnClass||'me-1 mb-1')" attr-for="editorsId">
     <j-place></j-place>
   </label>
 </j-template>
@@ -16,8 +17,10 @@
 
 <j-template #multipleTemplate>
   <div @click-delegate:button="badgeSelected(opt.value || opt)">
-    <button class="btn" type="button" attr-id="editorsId +'_checkbox_'+idx" attr-class="'btn-'+size +' '+btnClass"
-      {:jClass}="(value.includes(opt.value || opt) ? 'btn-': 'btn-outline-')+btnColor" *for="opt in options; idx=index">
+    <button class="btn" type="button" attr-id="editorsId +'_checkbox_'+idx"
+      attr-class="'btn-'+ (size || 'sm') +' '+ (btnClass||'me-1 mb-1')"
+      {:jClass}="(value.includes(opt.value || opt) ? 'btn-': 'btn-outline-')+(btnColor || 'primary')"
+      *for="opt in options; idx=index">
       ${:opt.label || opt}
     </button>
   </div>

@@ -28,8 +28,11 @@ export function CheckBoxElement(parentControl) {
             set: function(value) {
                 if (this.parentControl) {
                     this._name = value;
-                    this._control = this.parentControl.getField(value);
-                    this._controlPassed = true;
+                    var control = this.parentControl.getField(value);
+                    if (control){
+                        this._control = control;
+                        this._controlPassed = true;
+                    }
                 }
             },
             get: function() {
