@@ -1,17 +1,14 @@
-import { WebStateService } from '@jeli/router';
 import { AuthIdentityService } from './auth-identity.service';
 import { FoTokenService } from './fo-auth-token.service';
 
 Service({
     DI: [
-        WebStateService,
         FoTokenService,
         AuthIdentityService
     ]
 })
-export function FoAuthService(webStateService, foTokenService, authIdentityService) {
+export function FoAuthService(foTokenService, authIdentityService) {
     this.foTokenService = foTokenService;
-    this.webStateService = webStateService;
     this.authIdentityService = authIdentityService;
 
     Object.defineProperties(this, {

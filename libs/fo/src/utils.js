@@ -1,7 +1,5 @@
-import { debounce, Inject } from "@jeli/core";
-import {DatetimeService} from "@jeli/common/datetime";
-
-var dateTimeService = Inject(DatetimeService);
+import { debounce } from "@jeli/core";
+import { MARKDOWN_REGEX, markupParser } from "./markup.parser";
 
 export function base64ToFile(base64Image) {
     var split = base64Image.split(',');
@@ -64,9 +62,6 @@ export function readFileMultiple(fileList, regEx, asObject) {
     return Promise.all(fileList.map(function (file) { return readFile(file, regEx, asObject) }));
 }
 
-
-
-export var badElements = "script|link|style|meta|head|body|html".split('|');
 /**
  * 
  * @param {*} str 
@@ -171,48 +166,7 @@ export function createStyleSheet(cssRules, fragment) {
     styleSheet = null;
 }
 
-/**
- * 
- * @param {*} value 
- * @param {*} lang 
- * @param {*} currency 
- * @returns 
- */
-function formatNumber(value, lang, currency){
-    var config = {
-        maximumSignificantDigits: 3
-    };
 
-    if (currency){
-        config.style = 'currency',
-        config.currency = currency;
-    }
-
-    return new Intl.NumberFormat((lang || navigator.language), config).format(value || 0);
-}
-
-/**
- * 
- * @param {*} exprs 
- * @param {*} data 
- * @returns number
- */
-function parseMath(exprs, data){
-    var valueA = deepContext(exprs[0], data);
-    var valueB = deepContext(exprs[2], data);
-    switch(exprs[1]){
-        case('-'):
-            return (valueA - valueB);
-        case('*'):
-            return (valueA * valueB);
-        case('+'):
-            return (valueA + valueB);
-        case('/'):
-            return (valueA / valueB);
-    }
-
-    return 0;
-}
 
 /**
  * return html strings
@@ -222,85 +176,8 @@ function parseMath(exprs, data){
  * @returns null|HtmlString
  */
 export function parseText(text, data, ignoreFalseMatch) {
-    var regex = /@(\w*)+\[(.*?)\]+(\{(.*?)\}|\((.*?)\))+/gi;
-    if (!(text || '').match(regex)) return ignoreFalseMatch ? text : null;
-    var replaceArg = (content, value) => (content || '&0').replace('&0', value);
-
-    /**
-     * 
-     * @param {*} content 
-     * @param {*} replacer 
-     * @returns 
-     */
-    var handlers = {
-        parse: (attr, body, data) => parser(body, data),
-        if: (attr, body, data) => {
-            var attrs = attr.split('|');
-            if (!conditionParser$.parseAndEvaluate(attrs.shift(), data)) return "";
-            body = parser(body, data);
-            return constructHtml(attrs[0] || 'fo-if', attrs[1], body);
-        },
-        for: (attr, body, data) => {
-            var attrs = attr.split('|');
-            var forRepeater = deepContext(attrs[0], data);
-            if (forRepeater) {
-                if (typeof forRepeater  == 'string') forRepeater  = forRepeater.split(',');
-                var content = forRepeater.map(d => replaceArg(parser(body, d), d)).join('');
-                return constructHtml((attrs[1] || 'fo-for'), attrs[2], content);
-            }
-            return "";
-        },
-        currency: (attr, body, data) => {
-            var attrs = attr.split('|');
-            var value = formatNumber(deepContext(attrs[0], data), attrs[1], attrs[2]);
-            return constructHtml((attrs[3] || 'fo-currency'), attrs[4], replaceArg(body, value));
-        },
-        number: (attr, body, data) => {
-            var attrs = attr.split('|');
-            var value = formatNumber(deepContext(attrs[0], data), attrs[1]);
-            return constructHtml((attrs[2] || 'fo-number'), attrs[3], replaceArg(body, value));
-        },
-        time: (attr, body, data) => {
-            var attrs = attr.split('|');
-            var value = dateTimeService.timeConverter(deepContext(attrs[0], data)).timeago;
-            return constructHtml((attrs[1] || 'time-ago'), attrs[2], replaceArg(body, value));
-        },
-        datetime: (attr, body, data) => {
-            var attrs = attr.split('|');
-            var value = dateTimeService.format(deepContext(attrs[0], data), attrs[1] || 'MMM DD, YYYY');
-            return constructHtml((attrs[2] || 'date-time'), attrs[3], replaceArg(body, value));
-        },
-        math: (attr, body, data) => {
-            var attrs = attr.split('|');
-            var value = parseMath(attrs, data);
-            if (attrs[5]){
-                value = formatNumber(value, attrs[5], attrs[6]);
-            }
-            return constructHtml((attrs[3] || 'fo-math'), attrs[4], replaceArg(body, value));
-        },
-    };
-
-    var constructHtml = function(tag, attr, body) {
-        return '<'+ tag + ' ' + (attr || '') + '>' + body.replace(/\n/g, '<br/>') + '</' + tag + '>';
-    };
-
-
-    var parser = (content, replacer) => {
-        return content.replace(regex, function () {
-            var tag = arguments[1].toLowerCase();
-            var attr = arguments[2] || "";
-            var body = arguments[4] || arguments[5];
-            // check for bad  tags
-            if (badElements.includes(tag)) return "";
-            if (handlers.hasOwnProperty(tag))
-                return handlers[tag](attr, htmlValueParser(body, replacer), replacer);
-
-            // single replace
-            return constructHtml(tag, htmlValueParser(attr, replacer, '-'), ((!arguments[4]) ? htmlValueParser(body, replacer) : parser(body, replacer)));
-        });
-    };
-
-    return text.split(/\n/g).map(c => parser(c, data)).join('');
+    if (!(text || '').match(MARKDOWN_REGEX)) return ignoreFalseMatch ? text : null;
+    return text.split(/\n/g).map(c => markupParser(c, data)).join('');
 }
 
 /**
