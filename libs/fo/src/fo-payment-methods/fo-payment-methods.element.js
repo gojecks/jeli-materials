@@ -6,19 +6,15 @@ Element({
     templateUrl: './fo-payment-methods.element.html',
     styleUrl: './fo-payment-methods.element.scss',
     events: ['onPaymentValidation:emitter'],
-    props: ['token', 'name', 'canMakePayment']
+    props: ['token', 'name', 'canMakePayment', 'regenerateToken']
 })
 export function FoPaymentMethodsElement() {
-    var currentYear = new Date().getFullYear();
-    var currentMonth = new Date().getMonth() + 1;
-    var _this = this;
+    this.currentYear = new Date().getFullYear();
+    this.currentMonth = new Date().getMonth() + 1;
     this.validationInProgress = false;
-    this.monthRange = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-    this.yearRange = [];
     this.onPaymentValidation = new EventEmitter();
-    for (var d = currentYear; d <= currentYear + 12; d++) {
-        this.yearRange.push(d);
-    }
+    this.tokenResponse = null;
+    this.regenerateToken = true;
 
     this.paymentFormData = new FormControlService({
         number: {
@@ -28,34 +24,27 @@ export function FoPaymentMethodsElement() {
                 isNumber: function(val) {
                     return !isNaN(Number((val || '').replace(/\s/g, '')));
                 },
-                valid_card: function(val) {
-                    return _this.valid_credit_card(val);
+                valid_card: val => {
+                    return this.isCreditCardValid(val);
                 }
             }
         },
         name: {
             value: '',
             validators: {
-                minLength: 6,
+                minLength: 2,
                 pattern: "([a-zA-Z\s])+"
             }
         },
-        expiration_month: {
+        expiration: {
             validators: {
-                required: true,
-                minLength: 2,
-                isCurrentYearAndPastMonth: function(val) {
-                    return !(_this.formData.expiration_year == currentYear && currentMonth >= val);
-                }
-            }
-        },
-        expiration_year: {
-            validators: {
-                minLength: 4
+                minLength: 4,
+                required: true
             }
         },
         security_code: {
             validators: {
+                required: true,
                 minLength: 3,
                 isNumber: function(val) {
                     return !isNaN(Number(val));
@@ -82,13 +71,13 @@ FoPaymentMethodsElement.prototype._getCardType = function(number) {
 }
 
 FoPaymentMethodsElement.prototype.getCardType = function() {
-    var test = this._getCardType(this.paymentFormData.value.number);
-    return test ? ("fa-credit-card") : "";
+    var card = this._getCardType(this.paymentFormData.value.number);
+    return card ? card.type : 'N/A'
 }
 
 
 // takes the form field value and returns true on valid number
-FoPaymentMethodsElement.prototype.valid_credit_card = function(value) {
+FoPaymentMethodsElement.prototype.isCreditCardValid = function(value) {
     value = (value || '').toString();
     // accept only digits, dashes or spaces
     if (/[^0-9-\s]+/.test(value)) return false;
@@ -120,21 +109,33 @@ FoPaymentMethodsElement.prototype.clearFields = function() {
 };
 
 FoPaymentMethodsElement.prototype.validateCardDetails = function() {
-    var _this = this;
+    // token already generated no need to generate new
+    if (this.tokenResponse && !this.regenerateToken){
+        return this.onPaymentValidation.emit(this.tokenResponse);
+    }
+
     this.errMsg = "";
     /**
      * Omise config
      */
     this.validationInProgress = true;
     Omise.setPublicKey(this.token);
-    Omise.createToken('card', this.paymentFormData.value, function(status_code, response) {
+    var expiration = this.paymentFormData.value.expiration.split('/').map(Number);
+    var payload = Object.assign({
+        expiration_month: expiration[0],
+        expiration_year: expiration[1]
+    }, this.paymentFormData.value);
+    delete payload.expiration;
+    Omise.createToken('card', payload, (status_code, response) =>{
         if (status_code !== 200) {
-            _this.validationInProgress = false;
-            _this.clearFields();
-            _this.errMsg = response.message;
-            _this.changeDetector.detectChanges();
+            this.validationInProgress = false;
+            this.errMsg = response.message;
+            this.changeDetector.detectChanges();
             return;
         }
-        _this.onPaymentValidation.emit(response);
+
+        this.validationInProgress = false;
+        this.tokenResponse = response;
+        this.onPaymentValidation.emit(response);
     });
 };

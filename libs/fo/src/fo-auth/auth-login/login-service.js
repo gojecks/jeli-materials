@@ -60,7 +60,7 @@ LoginService.prototype.validateInput = function(field, value) {
  * @param {*} type 
  */
 LoginService.prototype.withOpenId = function(type) {
-    var url = FO_AUTH_CONFIG.openIdURL + FO_AUTH_CONFIG.organisation + '/' + FO_AUTH_CONFIG.name + '/' + type + '?referrer=' + window.location.origin;
+    var url = [FO_AUTH_CONFIG.openIdURL, FO_AUTH_CONFIG.organisation, FO_AUTH_CONFIG.name, type + '?referrer=' + window.location.origin].join('/');
     var auth_window = window.open(url, "ExternalAuthentication", "top=200,left=200,width=500,height=400,location=yes,status=yes,resizable=yes", true);
     auth_window.focus();
 }

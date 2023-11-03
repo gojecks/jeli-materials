@@ -96,7 +96,7 @@ FoTokenService.prototype.getUserRoles = function() {
 }
 
 FoTokenService.prototype.isUserActive = function() {
-    return this.authManager.getData(USER_ACTIVE) || false;
+    return (this.authManager.getData(USER_ACTIVE) || false);
 }
 
 FoTokenService.prototype.destroy = function() {

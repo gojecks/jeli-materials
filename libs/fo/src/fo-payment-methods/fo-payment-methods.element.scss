@@ -1,0 +1,14 @@
+input {
+    font-weight: bold !important;
+}
+
+input.cc-expiry-input {
+	display: inline-block;
+	margin-right: 5%;
+	width: calc(55% - 40px);
+}
+
+input.cc-cvc-input {
+	display: inline-block;
+	width: calc(37.8% - 40px);
+}

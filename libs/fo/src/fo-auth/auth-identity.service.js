@@ -78,10 +78,9 @@ AuthIdentityService.prototype.Authority = function(force, afterLogin) {
             }
         }
 
-        if (stateConstants.toState && stateConstants.toState.data &&
-            !this.foTokenService.hasAnyAuthority(stateConstants.toState.data.authorities)
-        ) {
-
+        if (stateConstants.toState && stateConstants.toState.data) {
+            var isAuthorized = this.foTokenService.hasAnyAuthority(stateConstants.toState.data.authorities);
+            if (isAuthorized && (!stateConstants.toState.data.authorities || this.authenticated)) return;
             if (!this.authenticated) {
                 // user is not authenticated. stow the state they wanted before you
                 // send them to the login service, so you can return them when you're done

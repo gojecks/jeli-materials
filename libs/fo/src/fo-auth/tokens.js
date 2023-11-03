@@ -27,5 +27,5 @@ export var FO_AUTH_CONFIG = {
     redirectOnPages: [],
     loginPage: '',
     roles: ['ROLE_USER', 'ROLE_ADMIN'],
-    openIdURL: 'https://openid.frontendonly.com/'
+    openIdURL: 'https://openid.frontendonly.com'
 };
