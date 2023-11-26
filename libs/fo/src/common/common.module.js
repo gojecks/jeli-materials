@@ -1,5 +1,6 @@
 import { CommonModule } from '@jeli/common';
 import { FormModule } from '@jeli/form';
+import {RouterModule} from '@jeli/router';
 import { FoAccordionElement } from './components/accordion/accordion.element';
 import { ButterBarElement } from './components/butter-bar/butter-bar.element';
 import { CheckBoxElement } from './components/check-box/check-box.element';
@@ -36,6 +37,7 @@ jModule({
     requiredModules: [
         CommonModule,
         FormModule,
+        RouterModule,
         FoCommonDirectivesModule
     ],
     selectors: [

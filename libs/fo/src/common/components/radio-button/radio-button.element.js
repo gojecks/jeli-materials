@@ -114,7 +114,7 @@ RadioItemElement.prototype.setDisabled = function(value) {
 }
 
 RadioItemElement.prototype.setSelected = function(value) {
-    this.selected = (value == this.value);
+    this.selected = ((value !== null) && value == this.value);
     this.changeDetector.detectChanges();
 };
 

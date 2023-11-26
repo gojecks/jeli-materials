@@ -79,7 +79,7 @@ export function FileUploadElement(changeDetector, uploadService) {
         },
         maximumFileSize: 1048576, // 1MB in bytes
         // default url for FO
-        url: '/attachment'
+        url: '/v2/uploads'
     };
 
 
@@ -104,7 +104,6 @@ FileUploadElement.prototype.onSelectImage = function($event) {
 
 FileUploadElement.prototype.processSelectedFiles = function(files){
     files = Array.from(files);
-    var allImages = true;
     var imgRegExp = /^image/;
     // remove previously selected files if not multiple selection
     if (!this._settings.multiple) {
@@ -113,35 +112,18 @@ FileUploadElement.prototype.processSelectedFiles = function(files){
     }
 
     // validate selected files
-    this.selectedFileErrors = files.reduce((accum, file) => {
-        var ext = file.name.split('.').pop();
-        // validate image size and format
-        if (!this._settings.accepts.includes(ext) || file.size > this._settings.maximumFileSize) {
-            accum.unshift({ name: file.name, size: file.size });
-        } else {
-            this._uploadFiles.unshift(file);
-            // push the image info  for display
-            if (!this._settings.imageListPreview) {
-                this.selectedFiles.unshift({ name: file.name });
-            }
-        }
-
-        // set flag for allImages
-        if (!imgRegExp.test(file.type)) {
-            allImages = false;
-        }
-
-        return accum;
-    }, []);
-
+    var processed = this.uploadService.processFiles(files, this._settings.accepts,  this._settings.maximumFileSize, this._settings.imageListPreview);
     // make sure there are files to upload before proceeding 
-    if (!this._uploadFiles.length  || (this.selectedFileErrors.length && !this._uploadFiles.length)) {
+    if (!processed.readyForUpload.length  || (processed.invalid.length && !processed.readyForUpload.length)) {
+        this.selectedFileErrors = processed.invalid;
         return;
     }
 
+    this._uploadFiles = processed.readyForUpload;
+    this.selectedFiles = processed.selectedFiles;
     // previews are only allowded for images
-    if (this._settings.imageListPreview && allImages) {
-        readFileMultiple(this._uploadFiles, imgRegExp, true)
+    if (this._settings.imageListPreview && processed.allImages) {
+        readFileMultiple(processed.readyForUpload, imgRegExp, true)
             .then((processedFiles) => {
                 this.selectedFiles.push.apply(this.selectedFiles, processedFiles);
                 this.takeAction();
@@ -149,6 +131,8 @@ FileUploadElement.prototype.processSelectedFiles = function(files){
     } else {
         this.takeAction();
     }
+
+    processed = null;
 }
 
 FileUploadElement.prototype.removeImage = function(idx) {

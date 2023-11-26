@@ -5,6 +5,7 @@ import { FoDraggableModule } from '../draggable/draggable.module';
 import { ImagePreviewElement } from './image-preview/image-preview.element';
 import { ImageTheatreModule } from '../image-theatre/image-theatre.module';
 import { FileUploadDragDirective } from './file-upload-drag.directive';
+import { FileInstantUploadDirective } from './file-upload-instant.directive';
 
 
 jModule({
@@ -17,7 +18,8 @@ jModule({
         FileUploadElement,
         CameraElement,
         ImagePreviewElement,
-        FileUploadDragDirective
+        FileUploadDragDirective,
+        FileInstantUploadDirective
     ]
 })
 export function FileUploadModule() {}

@@ -15,7 +15,7 @@ export function UploadService(databaseService) {
  * @returns 
  */
 UploadService.prototype.upload = function(data) {
-    return this.databaseService.core.api({ path: '/attachment', data, method: "PUT" });
+    return this.databaseService.core.api({ path: '/v2/uploads', data, method: "PUT" });
 };
 
 UploadService.prototype.getPath = function() {
@@ -23,7 +23,7 @@ UploadService.prototype.getPath = function() {
 }
 
 UploadService.prototype.removeImage = function(data) {
-    return this.databaseService.core.api({ path: '/attachment', data, method: "DELETE" })
+    return this.databaseService.core.api({ path: '/v2/uploads', data, method: "DELETE" })
 }
 
 /**
@@ -43,5 +43,43 @@ UploadService.prototype.multipartUpload = function(filesToUpload, uploadSettings
         formData.append(key, uploadSettings.formData[key]);
     });
 
-    return this.databaseService.core.api({ path: uploadSettings.url || '/attachment', data: formData, method: "POST" });
+    return this.databaseService.core.api({ path: uploadSettings.url || '/v2/uploads', data: formData, method: "POST" });
+}
+
+UploadService.prototype.fromFilePicker = function(accepts, maximumFileSize, allowPreview){
+    return window.showOpenFilePicker()
+    .then(files => {
+        return Promise.all(Array.from(files).map(file => file.getFile())).then(files => this.processFiles(files, accepts, maximumFileSize, allowPreview))
+    });
+}
+
+UploadService.prototype.processFiles = function(files, accepts, maximumFileSize, allowPreview){
+    var response = {
+        invalid: [],
+        readyForUpload: [],
+        selectedFiles: [],
+        allImages: true
+    };
+    
+    var imgRegExp = /^image/;
+    accepts = accepts || ['jpeg', 'jpg', 'png'];
+    for(var file of files) {
+        var ext = file.name.split('.').pop();
+        // validate image size and format
+        if (!accepts.includes(ext) || file.size > maximumFileSize) {
+            response.invalid.unshift({ name: file.name, size: file.size });
+        } else {
+            response.readyForUpload.unshift(file);
+            if (!allowPreview){
+                response.selectedFiles.push({ name: file.name });
+            }
+        }
+
+        // set flag for allImages
+        if (!imgRegExp.test(file.type)) {
+            response.allImages = false;
+        }
+    }
+
+    return response;
 }

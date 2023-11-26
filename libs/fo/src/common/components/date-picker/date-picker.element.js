@@ -11,7 +11,6 @@ Element({
     ]
 })
 export function DatePickerElement(parentControl) {
-    var _this = this;
     var today = new Date();
     this.parentControl = parentControl;
     this.fieldControl = null;
@@ -48,11 +47,11 @@ export function DatePickerElement(parentControl) {
             }
         }
     }, {
-        validMaxDate: function(value) {
-            return _this.minMaxValidator(value, 'max');
+        validMaxDate: (value) => {
+            return this.minMaxValidator(value, 'max');
         },
-        validMinDate: function(value) {
-            return _this.minMaxValidator(value, 'min');
+        validMinDate: (value) => {
+            return this.minMaxValidator(value, 'min');
         }
     });
 
@@ -108,18 +107,18 @@ DatePickerElement.prototype.didInit = function() {
     if (this.parentControl && this.name) {
         this.fieldControl = this.parentControl.getField(this.name);
         this._control.patchValue(this.fieldControl.value);
-        this.fieldControl.valueChanges.subscribe(function(value) {
-            _this._control.patchValue(value, { self: true });
+        this.fieldControl.valueChanges.subscribe((value) => {
+            this._control.patchValue(value, { self: true });
         });
     }
 
-    this._control.valueChanges.subscribe(function(value) {
-        if (_this._control.valid) {
-            value = (_this.toTS ? _this.getTimeStampFromObject(value) : value);
-            if (_this.fieldControl)
-                _this.fieldControl.patchValue(value);
+    this._control.valueChanges.subscribe((value) => {
+        if (this._control.valid) {
+            value = (this.toTS ? this.getTimeStampFromObject(value) : value);
+            if (this.fieldControl)
+                this.fieldControl.patchValue(value);
             else
-                _this.onDateChange.emit(value);
+                this.onDateChange.emit(value);
         }
     });
 
