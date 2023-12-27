@@ -1,4 +1,4 @@
-import { AttributeAppender, LazyLoader } from '@jeli/core';
+import { LazyLoader, DOMHelper } from '@jeli/core';
 var _mapKey = '';
 /**
  * 
@@ -143,16 +143,14 @@ GoogleMapService.prototype.buildAutoComplete = function (callback, input) {
             this.autocomplete = new google.maps.places.Autocomplete(input, this.configuration.autoComplete);
             if (this.map) {
                 this.autocomplete.setBounds(this.coordinates.bounds);
-                this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
                 this.autocomplete.bindTo('bounds', this.map);
                 this.element.AutoComplete = input;
             }
 
             if (callback) {
-                var self = this;
-                this.autocomplete.addListener('place_changed', function (e) {
-                    var place = self.autocomplete.getPlace();
-                    callback.call(self, place);
+                this.autocomplete.addListener('place_changed', e => {
+                    var place = this.autocomplete.getPlace();
+                    callback.call(this, place);
                     place = null;
                 });
             }
@@ -163,11 +161,12 @@ GoogleMapService.prototype.buildAutoComplete = function (callback, input) {
 };
 
 GoogleMapService.prototype.buildControls = function () {
-    var controlContainer = this.element.get(this.configuration.ids.controls);
-    if (controlContainer) {
-        this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlContainer);
-        this.element.buttonControl = controlContainer;
-        this.element.buildButtons(this);
+    if (this.configuration.searchBox) {
+        this.element.buttonControl = this.element.get(this.configuration.ids.controls);
+        if (this.element.buttonControl) {
+            this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(this.element.buttonControl);
+            this.element.buildButtons(this);
+        }
     }
 
     return this;
@@ -219,12 +218,22 @@ GoogleMapService.prototype.element = {
     },
     buildButtons: function (resource) {
         if (resource.configuration.buttons) {
-            resource.configuration.buttons.forEach(function (obj) {
-                var btn = document.createElement('button');
-                AttributeAppender(btn, obj.attr);
-                btn.innerHTML = obj.text;
-                resource.events.listener(btn, 'click', obj.click);
-                resource.element.buttonControl.appendChild(btn);
+            resource.configuration.buttons.forEach(function (obj, idx) {
+                DOMHelper.createElement('button', Object.assign({
+                   data: {
+                    'ref-idx':idx
+                   } 
+                }, obj.attr), obj.text, resource.element.buttonControl);
+            });
+            // attach event listener to the button control
+            resource.events.listener(resource.element.buildControl, 'click', e => {
+                var button = e.target.closest('button');
+                if (button){
+                    var config = resource.configuration.buttons[button.dataset.refIdx];
+                    if (config && config.action){
+                        config.action();
+                    }
+                }
             });
         }
     }
@@ -290,13 +299,10 @@ GoogleMapService.prototype.updateResultPanel = function (places, pagination, add
         //store data for reference
         this.placesServiceData[place.place_id] = place;
         if (placesList) {
-            var list = document.createElement('li');
-            list.innerText = place.name;
-            AttributeAppender(list, {
+            DOMHelper.createElement('li', {
                 'id': place.place_id,
                 'title': place.name
-            });
-            placesList.appendChild(list);
+            }, place.name, placesList);
         }
 
         bounds.extend(place.geometry.location);
@@ -359,7 +365,7 @@ GoogleMapService.prototype.setMapInfoWindowContent = function (place, replacer, 
             ].join(' ');
         }
 
-        replacer = replacer ? replacer : ({ "{name}": place.name, "{address}": address });
+        replacer = replacer ? replacer : ({ "{name}": (place.name || ''), "{address}": address });
         var message = this.templateCompiler(this.configuration.infoBoxTemplate, replacer);
         this.infoWindow.setPosition(this.coordinates.location);
         this.infoWindow.setContent(message);

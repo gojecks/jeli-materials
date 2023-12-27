@@ -1,20 +1,30 @@
 import { debounce } from "@jeli/core";
 import { MARKDOWN_REGEX, markupParser } from "./markup.parser";
 
-export function base64ToFile(base64Image) {
-    var split = base64Image.split(',');
-    var type = split[0].replace('data:', '').replace(';base64', '');
+export function base64ToFile(b64File, type) {
+    var split = b64File.split(',');
+    type = type || split[0].replace('data:', '').replace(';base64', '');
     var byteString = atob(split[1]);
     var ab = new ArrayBuffer(byteString.length);
     var ia = new Uint8Array(ab);
     for (var i = 0; i < byteString.length; i += 1) {
         ia[i] = byteString.charCodeAt(i);
     }
-    return new Blob([ab], { type: type });
+    return new Blob([ab], { type });
 }
 
-export function blobURL(base64Image) {
-    return URL.createObjectURL(base64ToFile(base64Image));
+/**
+ * 
+ * @param {*} b64File 
+ * @param {*} type 
+ * @returns url or File<string>
+ */
+export function blobURL(b64File, type) {
+    try {
+        return URL.createObjectURL(base64ToFile(b64File, type));
+    } catch(e) {
+        return b64File;
+    }
 }
 
 /**
@@ -382,3 +392,22 @@ export function htmlAttrToJson(value, lbs, deep) {
 export function deepClone(obj, additionalObj) {
     return Object.assign(JSON.parse(JSON.stringify(obj)), (additionalObj || {}));
 }
+
+export var cryptoUtils = {
+    generate: (content, algo) => {
+        const utf8 = new TextEncoder().encode(content);
+        return crypto.subtle.digest(algo || 'SHA-256', utf8).then((hashBuffer) => {
+          return Array.from(new Uint8Array(hashBuffer)).map((bytes) => bytes.toString(16).padStart(2, '0'))
+            .join('');
+        });
+    },
+    generateMultiple: (values, algo) => {
+        return Promise.all(values.map(val => cryptoUtils.generate(val, algo)))
+    },
+    verify: (value, hash, algo) => {
+        cryptoUtils.generate(value, algo).then(nHash => {
+            // compare newHash vs user supplied
+            resolve(nHash === hash);
+        });
+    }
+};

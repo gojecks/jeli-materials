@@ -1,0 +1,13 @@
+<j-fragment {template}="contentHostRef.type + 'Template'"></j-fragment>
+<j-template #buttonTemplate>
+    <button type="button" class="btn btn-${type}" {:jClass}="{'active':selected}" attr-id="_id" @click="itemChecked()"
+        {disabled}="disabled">
+        <i {class}="iconClass"></i> ${label}
+    </button>
+</j-template>
+<j-template #nativeTemplate>
+    <div class="form-check" attr-class="cbClass">
+        <input class="form-check-input" type="radio" @change="itemChecked()" {disabled}="disabled" {name}="contentHostRef.name" attr-id="_id" {checked}="selected">
+        <label class="form-check-label" attr-for="_id">${label}</label>
+    </div>
+</j-template>

@@ -1,5 +1,5 @@
 <div class="mt-2 mb-2 d-grid gap-2">
   <div class="btn-group btn-group-justified" @click-delegate:a="loginService.withOpenId(id)">
-    <a class="btn btn-${:customClass}" *for="id in _openIds"><i class="fa fa-${:id} bi-${:id}"></i> ${:id | capitalize} </a>
+    <a attr-class="'btn btn-'+customClass" *for="id in _openIds"><i attr-class="'bi-'+id"></i> <span class="d-lg-inline ms-1">${:id | capitalize}</span></a>
   </div>
 </div>

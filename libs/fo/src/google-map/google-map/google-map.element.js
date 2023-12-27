@@ -5,7 +5,7 @@ Element({
     selector: 'fo-google-map',
     templateUrl: './google-map.element.html',
     styleUrl: './google-map.element.scss',
-    props: ['config', 'address', 'readOnly'],
+    props: ['config', 'address', 'readOnly', 'emitCurrentLocation'],
     events: ['onPlaceSelected:emitter']
 })
 export function GoogleMapElement() {
@@ -17,6 +17,7 @@ export function GoogleMapElement() {
     this.readOnly = false;
     this.showResult = false;
     this.error = false;
+    this.emitCurrentLocation = false;
     this._config = {
         showInfoWindow: false,
         searchBox: {
@@ -45,8 +46,8 @@ GoogleMapElement.prototype.viewDidLoad = function () {
     this.geoService.startGeoPlaces(this.address)
         .then(() => {
             this.geoService
-                .buildAutoComplete((place) => this._onPlaceSelected(place, true))
                 .buildControls()
+                .buildAutoComplete((place) => this._onPlaceSelected(place, true))
                 .bindResultPanel((e) => {
                     var id = e.target.getAttribute('id');
                     var place = this.geoService.getPlaceInfo(id);
@@ -60,8 +61,11 @@ GoogleMapElement.prototype.viewDidLoad = function () {
                     if (pos.coords.accuracy) {
                         this.geoService.setCoordinates(pos)
                             .setPosition(place => {
-                                if (place && !this.address) {
-                                    this._onPlaceSelected(place, false);
+                                if (!place) return;
+                                if (!this.address) {
+                                    this._onPlaceSelected(place, this.emitCurrentLocation);
+                                } else if (this._config.showInfoWindow) {
+                                    this.geoService.setMapInfoWindowContent(place, null, true);
                                 }
                             });
                         // load nearbyPlaces
@@ -107,16 +111,16 @@ GoogleMapElement.prototype.viewDidDestroy = function () {
 Directive({
     selector: 'staticMap',
     props: ['size', 'url=:staticMap'],
-    DI: ['ElementRef?']
+    DI: ['HostElement?']
 })
-export function staticMapDirective(elementRef) {
+export function staticMapDirective(hostElement) {
     this.size = null;
     this._url = null;
     Object.defineProperty(this, 'url', {
         set: function (value) {
             if (value) {
                 var mapUrl = GoogleMapService.getStaticImgUrl(value, this.size, 18, true);
-                AttributeAppender.setProp(elementRef.nativeElement, 'src', mapUrl);
+                AttributeAppender.setProp(hostElement.nativeElement, 'src', mapUrl);
                 this._url = value;
             }
         },

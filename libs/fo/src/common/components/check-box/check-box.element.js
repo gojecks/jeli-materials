@@ -5,7 +5,7 @@ Element({
     selector: 'fo-check-box',
     templateUrl: './check-box.element.html',
     styleUrl: './check-box.element.scss',
-    props: ['id', 'control', 'name', 'size', 'type', 'cbClass', 'value', 'btnClass', 'btnColor','options'],
+    props: ['id', 'control', 'name', 'size', 'type', 'cbClass', 'value', 'btnClass', 'btnColor','options', 'label'],
     events: ['onOptionSelected:emitter'],
     DI: ['ParentRef?=formControl']
 })

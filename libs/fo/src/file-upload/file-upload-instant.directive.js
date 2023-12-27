@@ -12,7 +12,6 @@ export function FileInstantUploadDirective(uploadService, changeDetector) {
     this.changeDetector = changeDetector;
     this.supportsFilePicker = !!window.showOpenFilePicker;
     this.fileElement = null;
-    this.formElement = null;
     this.onFileUpload = new EventEmitter();
     this._settings = {
         formData: {
@@ -34,7 +33,7 @@ export function FileInstantUploadDirective(uploadService, changeDetector) {
 
 FileInstantUploadDirective.prototype.didInit = function () {
     if (!this.supportsFilePicker) {
-        this.createFormElement();
+        this.fileElement = this.uploadService.createFilePicker(this._settings.multiple, this.id, files => this.uploadImage(files));
     }
 }
 
@@ -47,13 +46,6 @@ FileInstantUploadDirective.prototype.onClickAction = function (event) {
     }
 }
 
-FileInstantUploadDirective.prototype.onSelectFile = function(event){
-    var processed = this.uploadService.processFiles(event.target.files);
-    event.target.form.reset();
-    this.uploadImage(processed);
-    
-}
-
 FileInstantUploadDirective.prototype.uploadImage = function (processed) {
     if (processed.invalid.length && !processed.readyForUpload.length){
         return this.onFileUpload.emit({ invalid: processed.invalid }); 
@@ -64,23 +56,10 @@ FileInstantUploadDirective.prototype.uploadImage = function (processed) {
 }
 
 FileInstantUploadDirective.prototype.viewDidDestroy = function(){
-    if (this.formElement){
-        document.body.removeChild(this.formElement);
+    if (this.fileElement){
+        document.body.removeChild(this.fileElement.form);
         this.fileElement = null;
-        this.formElement = null;
     }
    
     this.onFileUpload.destroy();
-}
-
-FileInstantUploadDirective.prototype.createFormElement = function(){
-    this.formElement = document.createElement('form');
-    this.formElement.className = "d-none";
-    this.fileElement = document.createElement('input');
-    this.fileElement.type = 'file';
-    this.fileElement.multiple = this._settings.multiple;
-    this.fileElement.id = (this.id || +new Date);
-    this.formElement.appendChild(this.fileElement);
-    document.body.appendChild(this.formElement);
-    this.fileElement.addEventListener('change', event => this.onSelectFile(event));
 }

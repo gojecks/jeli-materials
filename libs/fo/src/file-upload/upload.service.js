@@ -16,10 +16,14 @@ export function UploadService(databaseService) {
  */
 UploadService.prototype.upload = function(data) {
     return this.databaseService.core.api({ path: '/v2/uploads', data, method: "PUT" });
-};
+}
+
+UploadService.prototype.getFile = function(data) {
+    return this.databaseService.core.api({ path: '/uploads', data, method: "GET" });
+}
 
 UploadService.prototype.getPath = function() {
-    return Array.from(arguments).filter(function(item) { return !!item; }).join('/');
+    return Array.from(arguments).filter(it => ![null,undefined].includes(it)).join('/');
 }
 
 UploadService.prototype.removeImage = function(data) {
@@ -83,3 +87,34 @@ UploadService.prototype.processFiles = function(files, accepts, maximumFileSize,
 
     return response;
 }
+
+/**
+ * 
+ * @param {*} mutiple 
+ * @param {*} id 
+ * @param {*} listener 
+ */
+UploadService.prototype.htmlFilePicker = function(multiple, id, listener, autoOpenAndClose){
+    var formElement = document.createElement('form');
+    formElement.className = "d-none";
+    var fileElement = document.createElement('input');
+    fileElement.type = 'file';
+    fileElement.multiple = multiple;
+    fileElement.id = (id || +new Date);
+    formElement.appendChild(fileElement);
+    document.body.appendChild(formElement);
+    fileElement.addEventListener('change', event => {
+        var processed = this.processFiles(event.target.files);
+        event.target.form.reset();
+        listener(processed);
+        if (autoOpenAndClose){
+            formElement.remove();
+        }
+    });
+
+    if (autoOpenAndClose) {
+        return fileElement.click();
+    }
+
+    return fileElement;
+};

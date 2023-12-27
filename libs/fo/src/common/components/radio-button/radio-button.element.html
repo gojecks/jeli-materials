@@ -1,4 +1,13 @@
 <label class="d-block">${:label}</label>
-<div class="btn btn-group p-0 btn-group-${size}">
-  <j-place selector="radio-item"></j-place>
-</div>
+<j-fragment {template}="type + 'Template'"></j-fragment>
+<j-template #buttonTemplate>
+  <div class="btn btn-group p-0 btn-group-${size}">
+    <j-place selector="radio-item"></j-place>
+  </div>
+</j-template>
+
+<j-template #nativeTemplate>
+  <div class="native-radio-button">
+    <j-place selector="radio-item"></j-place>
+  </div>
+</j-template>

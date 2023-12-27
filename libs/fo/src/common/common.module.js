@@ -22,13 +22,15 @@ import { FoHeaderElement } from './components/fo-header/header.element';
 import { SpinnerElement } from './components/spinner.element';
 import { FoTagListElement } from './components/tag-list/tag-list.element';
 import { FoMaskDirective } from './directives/mask.directive';
+import { LongPressDirective } from './directives/long-press.directive';
 
 
 jModule({
     requiredModules:[],
     selectors: [
         FoAceEditorDirective,
-        FoMaskDirective
+        FoMaskDirective,
+        LongPressDirective
     ]
 })
 export function FoCommonDirectivesModule() {}

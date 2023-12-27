@@ -14,12 +14,14 @@ export function AuthIdentityService(foTokenService, databaseService, webStateSer
     this.foTokenService = foTokenService;
     this.databaseService = databaseService;
     this.webStateService = webStateService;
-    this.authenticated = false;
+    Object.defineProperty(this, 'authenticated', {
+        get: () => foTokenService.isAuthenticated
+    });
 }
 
 AuthIdentityService.prototype.identify = function(force) {
     if (force) {
-        this.authenticated = false;
+        this.foTokenService.init(false);
     }
 
     return new Promise((resolve) => {
@@ -34,17 +36,12 @@ AuthIdentityService.prototype.identify = function(force) {
         };
     
         var successAuth  = () => {
-            this.authenticated = true;
-            this.foTokenService.init();
+            this.foTokenService.init(true);
             resolve();
         };
     
         var failedAuth = () => {
-            if (this.authenticated) {
-                this.authenticated = false;
-                this.foTokenService.destroy();
-            }
-    
+            this.foTokenService.destroy();
             resolve();
         };
         
@@ -113,7 +110,6 @@ AuthIdentityService.prototype.getToken = function(data) {
  * @returns 
  */
 AuthIdentityService.prototype.destroy = function() {
-    this.authenticated = false;
     return this.databaseService.core.api('/logout');
 };
 

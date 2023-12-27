@@ -8,9 +8,6 @@ jModule({
     ],
     selectors: [
         FoModalElement
-    ],
-    services: [
-        FoModalService
     ]
 })
 export function FoModalModule() {

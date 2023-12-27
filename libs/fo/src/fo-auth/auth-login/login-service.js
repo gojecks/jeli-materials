@@ -24,8 +24,15 @@ LoginService.prototype.authorizeUser = function(requestBody) {
     return this.databaseService.userServices.authorize(requestBody)
 }
 
-LoginService.prototype.resetPassword = function(requestBody) {
-    return this.databaseService.userServices.update(requestBody)
+LoginService.prototype.resetPassword = function(requestBody, password) {
+    return new Promise((resolve, reject) => {
+        var resetPassword = () => this.update(requestBody).then(resolve, reject);
+        if (password){
+            return this.validatePassword({password}).then(resetPassword, reject);
+        }
+
+        resetPassword();
+    });
 };
 
 LoginService.prototype.validatePassword = function(requestBody) {
@@ -39,10 +46,7 @@ LoginService.prototype.update = function(requestBody, refId) {
         delete requestBody.userId;
     }
 
-    return this.databaseService.userServices.update({
-        _ref: refId,
-        _data: requestBody
-    });
+    return this.databaseService.userServices.update(requestBody);
 }
 
 LoginService.prototype.validateInput = function(field, value) {

@@ -19,7 +19,6 @@ FoAccordionElement.prototype.parseMarkup = function(markup){
 }
 
 FoAccordionElement.prototype.selected = function(idx){
-
     if (!this._selected.includes(idx)){
         if (this.alwaysOpen) 
             this._selected.push(idx);
@@ -27,5 +26,16 @@ FoAccordionElement.prototype.selected = function(idx){
             this._selected = [idx];
     } else {
         this._selected.splice(this._selected.indexOf(idx), 1);
+    }
+}
+
+Element({
+    selector: 'fo-accordion-item',
+    props: ['name', 'id'],
+    DI: ['ContentHostRef?']
+})
+export function FoAccordionItemElement(contentHostRef) {
+    if (!(contentHostRef instanceof FoAccordionElement)) {
+        throw new Error('<fo-accordion-item/> requires ConenentHostRef<fo-accordion> element in-order to function');
     }
 }

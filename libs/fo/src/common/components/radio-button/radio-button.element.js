@@ -5,33 +5,41 @@ Element({
     selector: 'fo-radio-button',
     templateUrl: './radio-button.element.html',
     styleUrl: './radio-button.element.scss',
-    props: ['label', 'disabled', 'name', 'size'],
+    props: ['label', 'disabled', 'name', 'size', 'type'],
+    events: ['onValueChanged:emitter'],
     DI: ['ParentRef?=formControl']
 })
 export function RadioButtonElement(parentControl) {
     this.parentControl = parentControl;
+    this.onValueChanged = new EventEmitter();
     this._disabled = false;
     this.fieldControl = null;
     this._unsubscribe = null;
     this.size = "sm";
+    this.type = 'button';
     this.radioItemLists = [];
 
-    Object.defineProperty(this, 'disabled', {
-        set: function(value) {
-            this._disabled = value;
-            if (this.radioItemLists && this._disabled !== value)
-                this.setDisabled();
+    Object.defineProperties(this, {
+        'disabled': {
+            set: function (value) {
+                this._disabled = value;
+                if (this.radioItemLists && this._disabled !== value)
+                    this.setDisabled();
+            }
+        },
+        value: {
+            get: () => (this.fieldControl ? this.fieldControl.value : null)
         }
     });
 }
 
-RadioButtonElement.prototype.setRadioItem = function(radioItem) {
+RadioButtonElement.prototype.setRadioItem = function (radioItem) {
     this.radioItemLists.push(radioItem);
     radioItem.setDisabled(this._disabled);
-    radioItem.setSelected(this.fieldControl && this.fieldControl.value);
+    radioItem.setSelected(this.value);
 }
 
-RadioButtonElement.prototype.didInit = function() {
+RadioButtonElement.prototype.didInit = function () {
     if (this.parentControl && this.name) {
         this.fieldControl = this.parentControl.getField(this.name);
         if (this.fieldControl) {
@@ -41,44 +49,44 @@ RadioButtonElement.prototype.didInit = function() {
     }
 }
 
-RadioButtonElement.prototype.viewDidLoad = function() {
+RadioButtonElement.prototype.viewDidLoad = function () {
     this.setDisabled();
     if (this.fieldControl && this.fieldControl.value !== null) {
         this.setValue(this.fieldControl.value, true);
     }
 };
 
-RadioButtonElement.prototype.viewDidDestroy = function() {
+RadioButtonElement.prototype.viewDidDestroy = function () {
     this._unsubscribe && this._unsubscribe();
     this.radioItemLists.length = 0;
 }
 
-RadioButtonElement.prototype.setDisabled = function() {
-    for(var radioItem of this.radioItemLists){
+RadioButtonElement.prototype.setDisabled = function () {
+    for (var radioItem of this.radioItemLists) {
         radioItem.setDisabled(this._disabled);
     }
 }
 
-RadioButtonElement.prototype.setValue = function(value, ignoreValuePatching) {
-    for(var radioItem of this.radioItemLists) {
+RadioButtonElement.prototype.setValue = function (value, ignoreValuePatching) {
+    for (var radioItem of this.radioItemLists) {
         radioItem.setSelected(value);
     }
 
     if (!ignoreValuePatching && this.fieldControl) {
         this.fieldControl.patchValue(value, { emitToView: false });
     }
+    this.onValueChanged.emit(value);
 };
 
-RadioButtonElement.prototype.removeRadioItem = function(radioItem){
+RadioButtonElement.prototype.removeRadioItem = function (radioItem) {
     this.radioItemLists.splice(this.radioItemLists.indexOf(radioItem), 1);
 }
 
 
 Element({
     selector: 'radio-item',
-    template: '<button type="button" class="btn btn-${type}" {:jClass}="{\'active\':selected}" attr-id="_id" @click="buttonClicked()" {disabled}="disabled">\
-    <i {class}="iconClass"></i> ${label}</button>',
-    props: ['value', 'id', 'type', 'label', 'iconClass'],
+    templateUrl: './radio-item.html',
+    props: ['value', 'id', 'type', 'label', 'iconClass', 'cbClass'],
     events: ['onValueChanged:emitter'],
     DI: ['changeDetector?', 'ContentHostRef?']
 })
@@ -86,6 +94,7 @@ export function RadioItemElement(changeDetector, contentHostRef) {
     if (!contentHostRef) throw Error('<radio-item/> requires ConenentHostRef<fo-radio-button> in-order to function');
     this.contentHostRef = contentHostRef;
     this.changeDetector = changeDetector;
+    this.cbClass = '';
     this.onValueChanged = new EventEmitter();
     this.disabled = false;
     this.selected = false;
@@ -93,7 +102,7 @@ export function RadioItemElement(changeDetector, contentHostRef) {
     this.type = "outline-primary";
 
     Object.defineProperty(this, 'id', {
-        set: function(value) {
+        set: function (value) {
             if (value) {
                 this._id = value;
             }
@@ -103,21 +112,25 @@ export function RadioItemElement(changeDetector, contentHostRef) {
     contentHostRef.setRadioItem(this);
 }
 
-RadioItemElement.prototype.buttonClicked = function() {
+RadioItemElement.prototype.didInit = function () {
+    this.selected = (this.value == this.contentHostRef.value);
+}
+
+RadioItemElement.prototype.itemChecked = function () {
     this.selected = true;
     this.contentHostRef.setValue(this.value);
 }
 
-RadioItemElement.prototype.setDisabled = function(value) {
+RadioItemElement.prototype.setDisabled = function (value) {
     this.disabled = value;
     this.changeDetector.detectChanges();
 }
 
-RadioItemElement.prototype.setSelected = function(value) {
+RadioItemElement.prototype.setSelected = function (value) {
     this.selected = ((value !== null) && value == this.value);
     this.changeDetector.detectChanges();
 };
 
-RadioItemElement.prototype.viewDidDestroy = function(){
+RadioItemElement.prototype.viewDidDestroy = function () {
     this.contentHostRef.removeRadioItem(this);
 }

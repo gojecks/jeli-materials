@@ -15,15 +15,13 @@ export function FoTokenService(authManager) {
     this.authManager = authManager;
     this._authenticated = false;
     this.onTokenUpdate = new EventEmitter();
-    this.init = function() {
-        this._authenticated = true;
+    this.init = function(isAuthenticated) {
+        this._authenticated = isAuthenticated == undefined ? true : isAuthenticated;
     };
 
     Object.defineProperties(this, {
         isAuthenticated: {
-            get: function() {
-                return this._authenticated;
-            }
+            get: () => this._authenticated
         }
     });
 }
