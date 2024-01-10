@@ -1,14 +1,14 @@
 <form {:formControl}="regoForm">
   <div class="mb-3">
     <label class="form-label">Email:</label>
-    <input type="email" id="email" class="form-control" placeholder="Email address" :formField="email" {class}="{'is-invalid': isInvalidField('email')}" />
+    <input type="email" id="email" class="form-control" placeholder="Email address" :formField="email" {class}="{'is-invalid': isInvalidField('email')}"/>
     <div class="alert alert-danger mt-2" {class}="{'d-none': !isInvalidField('email')}">
       You have entered an invalid email or email address already exists.
     </div>
   </div>
   <div class="mb-3">
     <label class="form-label">Password:</label>
-    <input type="password" placeholder="Password" autocomplete="off" class="form-control" :formField="password" {class}="{'is-invalid': isInvalidField('password')}">
+    <input type="password" placeholder="Password" autocomplete="off" class="form-control" :formField="password" {class}="{'is-invalid': isInvalidField('password')}" :foPasswordTextSwitcher>
     <div class="alert alert-info mt-2" {class}="{'d-none': !isInvalidField('password')}">
       Password must contain at least 1 lowercase alphabetical character
       <br>1 uppercase alphabetical character

@@ -280,7 +280,8 @@ export var conditionParser$ = {
             is: () => value === check,
             eq: () => value == check,
             noteq: () => value !== check,
-            not: () => value != check
+            not: () => value != check,
+            isdefined: () => ((undefined == value) == check)
         })[operator.toLowerCase()] || function () { return false; })();
     },
     simpleCondition: condition => {

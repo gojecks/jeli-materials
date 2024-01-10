@@ -5,7 +5,7 @@ Element({
     selector: 'fo-ratings',
     templateUrl: './rating.element.html',
     styleUrl: './rating.element.scss',
-    props: ['ratings', 'rateId', 'showProgress', 'size', 'bgClass'],
+    props: ['ratings', 'rateId', 'showProgress', 'size', 'bgClass', 'isEditable', 'title'],
     events: [
         'onUserRate:emitter'
     ]
@@ -20,8 +20,9 @@ export function RatingElement() {
     this.size = 3;
     this.showProgress = true;
     this.isRated = false;
-    this._bgClass = { 5: 'warning', 4: 'warning', 3: 'warning', 2: 'warning', 1: 'warning' };
-    this._userRateCache = JSON.parse(localStorage.getItem(RATE_CACHE_ID) || '{}');
+    this.isEditable = true;
+    this.lastSelected = 0;
+    this._bgClass = { 5: 'warning', 4: 'warning', 3: 'warning', 2: 'warning', 1: 'warning', notSelected: 'bg-secondary-subtle' };
 
     Object.defineProperty(this, 'ratings', {
         set: function(value) {
@@ -38,8 +39,8 @@ export function RatingElement() {
             return this._bgClass;
         },
         set: function(value) {
-            if (!value) return;
-            this._bgClass = value;
+            if (!value || typeof value != 'object') return;
+            Object.assign(this._bgClass, value);
         }
     })
 }
@@ -53,17 +54,21 @@ RatingElement.prototype.didInit = function() {
 }
 
 RatingElement.prototype.submitRatings = function(star) {
-    if (this.rateId && !this._userRateCache.hasOwnProperty(this.rateId)) {
+    if (this.rateId && this.isEditable) {
         // set the user rating count
-        this._userRateCache[this.rateId] = star;
-        this._ratings[star] += 1;
+        if (this.lastSelected) {
+            this._ratings[this.lastSelected]--;
+            this.totalRatings--;
+        }
+        
+        this._ratings[star]++;
         this.onUserRate.emit({
             rateId: this.rateId,
-            star: star
+            star,
+            previous: this.lastSelected
         });
-        this.calculate();
-        //store the user rate locally
-        localStorage.setItem(RATE_CACHE_ID, JSON.stringify(this._userRateCache));
+        this.lastSelected = star;
+        this.calculate();    
     }
 }
 

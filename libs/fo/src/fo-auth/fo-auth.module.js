@@ -14,6 +14,7 @@ import { AuthSessionManager } from './auth.session.manager.js';
 import { AuthRouterInterceptorService } from './auth-router-interceptor.service';
 import { AuthRegisterElement } from './auth-register/auth-register.element.js';
 import { NetworkService } from './network-service.js';
+import { FoPasswordTextSwitcherDirective } from './password-text-switcher.directive.js';
 
 
 jModule({
@@ -28,7 +29,8 @@ jModule({
         FoResetPasswordElement,
         FoNewPassword,
         SessionManagementElement,
-        AuthRegisterElement
+        AuthRegisterElement,
+        FoPasswordTextSwitcherDirective
     ],
     services: [
         FoAuthService,

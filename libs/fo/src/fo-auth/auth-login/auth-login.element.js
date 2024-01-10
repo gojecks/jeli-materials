@@ -47,7 +47,8 @@ AuthLoginElement.prototype.login = function() {
         //set the authorities
         this.foTokenService.saveAuthentication(res);
         this.onLoginEvent.emit({
-            success: !res.disabled
+            success: !res.disabled,
+            reset: res.forcePasswordReset || false
         });
     };
 
@@ -57,7 +58,8 @@ AuthLoginElement.prototype.login = function() {
         this.isProcessing = false;
         this.onLoginEvent.emit({
             success: false,
-            data: (err || {})
+            data: (err || {}),
+            reset: err.forcePasswordReset || false
         });
     };
 

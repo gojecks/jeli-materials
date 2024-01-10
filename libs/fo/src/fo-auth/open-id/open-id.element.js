@@ -7,7 +7,7 @@ Element({
     templateUrl: './open-id.element.html',
     styleUrl: './open-id.element.scss',
     DI: ['changeDetector?', FoAuthService, LoginService],
-    props: ['openIds', 'customClass'],
+    props: ['openIds', 'customClass', 'divider'],
     events: [
         "onOpenIdLogin:emitter",
         "window.message:event=onMessageListener($event)"

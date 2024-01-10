@@ -23,6 +23,7 @@ import { SpinnerElement } from './components/spinner.element';
 import { FoTagListElement } from './components/tag-list/tag-list.element';
 import { FoMaskDirective } from './directives/mask.directive';
 import { LongPressDirective } from './directives/long-press.directive';
+import { FoTagListDirective } from './components/tag-list/tag-list.directive';
 
 
 jModule({
@@ -62,7 +63,8 @@ jModule({
         RatingElement,
         FoHeaderElement,
         SpinnerElement,
-        FoTagListElement
+        FoTagListElement,
+        FoTagListDirective
     ]
 })
 export function FoCommonModule() {}

@@ -94,7 +94,7 @@ UploadService.prototype.processFiles = function(files, accepts, maximumFileSize,
  * @param {*} id 
  * @param {*} listener 
  */
-UploadService.prototype.htmlFilePicker = function(multiple, id, listener, autoOpenAndClose){
+UploadService.prototype.htmlFilePicker = function(multiple, id, listener, autoOpenAndClose, skipFileProcessing){
     var formElement = document.createElement('form');
     formElement.className = "d-none";
     var fileElement = document.createElement('input');
@@ -104,12 +104,13 @@ UploadService.prototype.htmlFilePicker = function(multiple, id, listener, autoOp
     formElement.appendChild(fileElement);
     document.body.appendChild(formElement);
     fileElement.addEventListener('change', event => {
-        var processed = this.processFiles(event.target.files);
-        event.target.form.reset();
+        var processed = skipFileProcessing ? event.target.files : this.processFiles(event.target.files);
         listener(processed);
+        event.target.form.reset();
         if (autoOpenAndClose){
             formElement.remove();
         }
+        processed = null;
     });
 
     if (autoOpenAndClose) {

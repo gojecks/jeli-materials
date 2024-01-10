@@ -10,6 +10,14 @@ span {
     color: orange;
 }
 
+.star-container {
+    .block-view {
+        padding: 0.3rem;
+        color: #fff;
+        border-radius: 0.2rem;
+    }
+}
+
 .row {
     .side {
         float: left;

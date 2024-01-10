@@ -16,6 +16,7 @@
 </j-template>
 
 <j-template #multipleTemplate>
+  <j-place></j-place>
   <div @click-delegate:button="badgeSelected(opt.value || opt)">
     <button class="btn" type="button" attr-id="editorsId +'_checkbox_'+idx"
       attr-class="'btn-'+ (size || 'sm') +' '+ (btnClass||'me-1 mb-1')"
@@ -27,6 +28,7 @@
 </j-template>
 
 <j-template #multipleNativeTemplate>
+  <j-place></j-place>
   <div @click="badgeSelected(opt.value || opt)">
     <div class="form-check" attr-class="cbClass" *for="opt in options; idx=index">
       <input class="form-check-input" type="checkbox" attr-id="editorsId +'_checkbox_'+idx">

@@ -1,5 +1,6 @@
-<div class="star-container" @click-delegate:span.star="submitRatings(star)">
-  <span class="star me-1 bi-star-fill" attr-class="'fs-'+size" *for="star of stars" {:jClass}="percentage >= star ? 'checked':''"></span>
+<div class="star-container" @click-delegate:span.star="submitRatings(star)" @mouseenter-delegate:span.star="hoveredStar=star" @mouseout="hoveredStar=0">
+  <p class="fs-6 mb-2">${:title || 'Overall rating'}</p>
+  <span class="star me-1 bi-star-fill text-white p-2 rounded" attr-class="'fs-'+(size || 3)"  *for="star of stars" {:jClass}="((!isEditable && percentage >= star) || (isEditable && (lastSelected >= star || hoveredStar >= star))) ? 'bg-'+bgClass[star]:bgClass.notSelected"></span>
   <p class="mt-2 clearfix" *if="totalRatings">${:percentage} average based on ${:totalRatings} reviews.
     <span class="float-end text-muted" *if="showProgress" @click="expandDetail=!expandDetail"><small>Details</small></span>
   </p>

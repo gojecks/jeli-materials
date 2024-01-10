@@ -1,24 +1,24 @@
-import { LoginService } from "../auth-login/login-service";
 import { FoTokenService } from "../fo-auth-token.service";
 import { FormControlService } from '@jeli/form';
 import { EventEmitter } from '@jeli/core';
+import { RegisterService } from "./register.service";
 
 Element({
     selector: 'fo-auth-register',
     templateUrl: './auth-register.element.html',
     styleUrl: './auth-register.element.scss',
-    DI: [LoginService, FoTokenService, 'changeDetector?'],
+    DI: [RegisterService, FoTokenService, 'changeDetector?'],
     events: [
         "onAuthRegister:emitter"
     ],
     props: ["buttonText", "regoForm"]
 })
-export function AuthRegisterElement(loginService, foTokenService, changeDetector) {
+export function AuthRegisterElement(registerService, foTokenService, changeDetector) {
     /**
      * additional form to be rendered dynamically
      */
     this.additionalForm = null;
-    this.loginService = loginService;
+    this.registerService = registerService;
     this.foTokenService = foTokenService;
     this.changeDetector = changeDetector;
     this.isProcessing = false;
@@ -27,6 +27,7 @@ export function AuthRegisterElement(loginService, foTokenService, changeDetector
         email: {
             eventType: 'blur',
             validators: {
+                required:true,
                 emailValidation: true,
                 async: (email) => {
                     return this.handleValidation('email', email);
@@ -35,6 +36,7 @@ export function AuthRegisterElement(loginService, foTokenService, changeDetector
         },
         password: {
             validators: {
+                required:true,
                 minLength: 8,
                 mediumPasswordStrength: true
             }
@@ -53,7 +55,7 @@ AuthRegisterElement.prototype.handleValidation = function (field, value) {
         return Promise.resolve(true);
     }
 
-    return this.loginService.validateInput(field, value)
+    return this.registerService.validateInput(field, value)
         .then(res => {
             this.changeDetector.detectChanges();
             return !res.isExists;
@@ -71,6 +73,7 @@ AuthRegisterElement.prototype.isInvalidField = function (field) {
  * email exists triggers error
  */
 AuthRegisterElement.prototype.registerAccount = function () {
+    if (this.regoForm.invalid) return;
     this.isProcessing = true;
     /**
      * 
@@ -88,10 +91,6 @@ AuthRegisterElement.prototype.registerAccount = function () {
         this.onAuthRegister.emit(state);
     };
 
-    this.loginService.userServices.add(this.regoForm.value)
-        .then(function (res) {
-            emit(true, res);
-        }, function (err) {
-            emit(false, err);
-        });
+    this.registerService.createUser(this.regoForm.value)
+        .then((res) => emit(true, res), (err) => emit(false, err));
 };

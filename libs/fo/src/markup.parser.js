@@ -127,6 +127,13 @@ var markupHandlers$ = {
         }
         return constructHtml((attrs[3] || 'fo-math'), attrs[4], replaceArg(body, value));
     },
+    th: (attr, body, data) => {
+        var content = body.split('|').map(v => constructHtml('th', attr, replaceArg(v, data))).join('');
+        return constructHtml('thead', '', content);
+    },
+    td: (attr, body, data) => {
+        return body.split('|').map(v => constructHtml('td', attr, replaceArg(v, data))).join('');
+    }
 };
 
 export function markupParser(content, replacer){

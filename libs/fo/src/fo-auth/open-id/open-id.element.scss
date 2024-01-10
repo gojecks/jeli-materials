@@ -1,0 +1,45 @@
+.btn-group {
+    .bg-google{
+        --bs-btn-bg: #d44637 !important;
+        --bs-btn-border-color: #d44637 !important;
+    } 
+    .bg-microsoft{
+        --bs-btn-bg: #515bc1 !important;
+        --bs-btn-border-color: #515bc1 !important;
+    } 
+    .bg-github{
+        --bs-btn-bg: #292929 !important;
+        --bs-btn-border-color: #292929 !important;
+    } 
+    .bg-yahoo {
+        --bs-btn-bg: #720e9e !important;
+        --bs-btn-border-color: #720e9e !important;
+    }
+}
+
+.divider {
+    width: 100%;
+    span {
+        width: 100%;
+        display: block;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+    span:before, span:after {
+        content: "";
+        background-color: #ddd;
+        width: 55%;
+        height: 1px;
+        position: absolute;
+        top: .8rem;
+    }
+
+    span:before {
+        left: -3rem;
+    }
+    span:after {
+        right: -3rem;
+    }
+}
