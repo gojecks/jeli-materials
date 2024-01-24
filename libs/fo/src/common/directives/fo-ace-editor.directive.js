@@ -2,7 +2,7 @@ import { LazyLoader, EventEmitter } from '@jeli/core';
 Directive({
     selector: "foAceEditor",
     DI: ['ElementRef?'],
-    props: ['version=:foAceEditor', 'mode', 'events'],
+    props: ['version=:foAceEditor', 'mode', 'events', 'readOnly'],
     events: ['editorLoaded:emitter', 'editorValueChanged:emitter']
 })
 export function FoAceEditorDirective(elementRef) {
@@ -11,6 +11,7 @@ export function FoAceEditorDirective(elementRef) {
     this.editorValueChanged  = new EventEmitter();
     this.elementRef = elementRef;
     this.events = [];
+    this.readOnly = false;
 }
 
 FoAceEditorDirective.prototype.didInit = function() {
@@ -18,6 +19,12 @@ FoAceEditorDirective.prototype.didInit = function() {
         this.editor = ace.edit(this.elementRef.nativeElement);
         this.editor.setTheme("ace/theme/monokai");
         this.editor.session.setMode("ace/mode/" + this.mode);
+        // set as readOnly
+        if (this.readOnly) {
+            this.editor.session.setUseWorker(false);
+            this.editor.setShowPrintMargin(false);
+            this.editor.setReadOnly(true);
+        }
         this.editorLoaded.emit(this.editor);
         this.attachListener()
     }, 'js');

@@ -6,7 +6,7 @@ import { ButterBarElement } from './components/butter-bar/butter-bar.element';
 import { CheckBoxElement } from './components/check-box/check-box.element';
 import { DatePickerElement } from './components/date-picker/date-picker.element';
 import { FoAceEditorDirective } from './directives/fo-ace-editor.directive';
-import { DropDownElement } from './components/drop-down/drop-down.element';
+import { DropDownElement, DropDownItemElement } from './components/drop-down/drop-down.element';
 import { FoAlertElement } from './components/fo-alert/fo-alert.element';
 import { FoCarouselElement } from './components/fo-carousel/fo-carousel.element';
 import { FoTreeElement } from './components/fo-tree/fo-tree-element';
@@ -24,6 +24,7 @@ import { FoTagListElement } from './components/tag-list/tag-list.element';
 import { FoMaskDirective } from './directives/mask.directive';
 import { LongPressDirective } from './directives/long-press.directive';
 import { FoTagListDirective } from './components/tag-list/tag-list.directive';
+import { InfoIconElement } from './components/info-icon/info-icon.element';
 
 
 jModule({
@@ -64,7 +65,9 @@ jModule({
         FoHeaderElement,
         SpinnerElement,
         FoTagListElement,
-        FoTagListDirective
+        FoTagListDirective,
+        InfoIconElement,
+        DropDownItemElement
     ]
 })
 export function FoCommonModule() {}

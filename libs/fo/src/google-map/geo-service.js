@@ -1,5 +1,12 @@
 import { LazyLoader, DOMHelper } from '@jeli/core';
 var _mapKey = '';
+var GOOGLE_API_URLS = [
+    'https://maps.googleapis.com/maps/api/place/nearbysearch/json',
+    'https://maps.googleapis.com/maps/api/geocode/json',
+    'https://maps.googleapis.com/maps/api/staticmap',
+    'https://maps.google.com/maps'
+];
+
 /**
  * 
  * @param {*} config 
@@ -456,15 +463,14 @@ GoogleMapService.setKey = function (key, ignoreLibrary) {
 };
 
 GoogleMapService.getStaticImgUrl = function (address, size, zoom, setMarker) {
-    var staticUrl = 'https://maps.googleapis.com/maps/api/staticmap?scale=2&center=' + encodeURI(address);
-    staticUrl += '&zoom=' + (zoom || 17);
-    staticUrl += '&size=' + (size || '500x250');
-    if (setMarker) {
-        staticUrl += '&markers=' + encodeURI(address);
-    }
-    staticUrl += '&key=' + _mapKey;
-
-    return staticUrl;
+    var params = {
+        scale:2,
+        center: address,
+        zoom: (zoom || 17),
+        size: (size || '500x250'),
+        markers: setMarker ? address: ''
+    };
+    return GoogleMapService.constructURL(GoogleMapService.APIS.STATIC, params);
 }
 
 
@@ -510,10 +516,46 @@ GoogleMapService.getCurrentPosition = function (address, geoCode) {
     });
 };
 
+GoogleMapService.APIS = {
+    PLACES: 0,
+    GEOCODE: 1,
+    STATIC: 2,
+    FRAME: 3
+};
+
+/**
+ * 
+ * @param {*} apiInt 
+ * @param {*} params 
+ */
+GoogleMapService.constructURL = function(apiInt, params, ignoreKey) {
+    var url = new URL(GOOGLE_API_URLS[apiInt]);
+    for(var name in params) {
+        url.searchParams.append(name, params[name]);
+    }
+
+    if (!ignoreKey){
+        url.searchParams.append('key', _mapKey);
+    }
+
+    return url;
+}
+
+GoogleMapService.callApi = function(urlType, params) {
+   var requestURL = GoogleMapService.constructURL(urlType, params);
+    return fetch(requestURL.toString()).then(res => res.json());
+}
+
 GoogleMapService.geoCodeLocation = function (pos) {
     var latlng = pos.coords.latitude + ',' + pos.coords.longitude;
-    return fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latlng + '&sensor=true&key=' + _mapKey)
-        .then(res => res.json());
+    return GoogleMapService.callApi(GoogleMapService.APIS.GEOCODE, {
+        latlng,
+        sensor:true
+    });
+}
+
+GoogleMapService.getPlacesNearBy = function(params) {
+    return GoogleMapService.callApi(GoogleMapService.APIS.PLACES, params);
 }
 
 GoogleMapService.watchPosition = function (options, success, error) {

@@ -21,7 +21,9 @@ export function FoTagListDirective(hostElement) {
         id: this.id,
         style: {
             display: 'none',
-            zIndex: 1
+            zIndex: 15,
+            overflow: 'hidden',
+            overflowY: 'scroll'
         }
     },
         ele => {
@@ -90,12 +92,24 @@ FoTagListDirective.prototype.showBox = function (show) {
     if (show) {
         var rect = this.hostElement.nativeElement.getBoundingClientRect();
         var bodyRect = document.body.getBoundingClientRect();
-        this.optionListContainer.style.top = (rect.top + rect.height) + 'px';
-        var containerWidth = this.optionListContainer.offsetWidth;
+        var containerRect = this.optionListContainer.getBoundingClientRect();
+        var cTop = (rect.top + rect.height);
+        var height = containerRect.height;
         var right = (bodyRect.width - rect.right);
-        if(containerWidth < rect.width){
-            right += ((rect.width - containerWidth) / 2);
+        if (height > rect.top) {
+            height = (containerRect.height / 2);
+            this.optionListContainer.style.height = height + 'px';
         }
+        // calculate top for container
+        if ((height + cTop) > bodyRect.height){
+            cTop = rect.top - height;
+        }
+        // calculate right for container
+        if(containerRect.width < rect.width){
+            right += ((rect.width - containerRect.width) / 2);
+        }
+
         this.optionListContainer.style.right =  right + 'px';
+        this.optionListContainer.style.top = cTop + 'px';
     }
 }
