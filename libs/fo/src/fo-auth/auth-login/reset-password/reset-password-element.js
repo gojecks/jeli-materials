@@ -6,7 +6,7 @@ import { FoTokenService } from "../../fo-auth-token.service";
 Element({
     selector: 'fo-reset-password',
     DI: [LoginService, FoTokenService, 'changeDetector?'],
-    props: ["queryField", "waitingTime", 'resetCodeInputAmount'],
+    props: ['queryField', 'email', 'waitingTime', 'resetCodeInputAmount', 'message'],
     templateUrl: './reset-password.html',
     styleUrl: './reset-password-element.scss',
     events: ['onLoginEvent:emitter']
@@ -33,12 +33,6 @@ export function FoResetPasswordElement(loginService, foTokenService, changeDetec
     this._resetCodeInputAmount = 6;
     this.capturedCode = {};
     this.resetControl = new FormControlService({
-        email: {
-            validators: {
-                required: true,
-                emailValidation: true
-            }
-        },
         code: {
             validators: {
                 required: true,
@@ -64,7 +58,14 @@ export function FoResetPasswordElement(loginService, foTokenService, changeDetec
 }
 
 FoResetPasswordElement.prototype.didInit = function () {
-
+    this.resetControl.addField('email', {
+        value: this.email || null,
+        disabled: !!this.email,
+        validators: {
+            required: true,
+            emailValidation: true
+        }
+    });
 }
 
 FoResetPasswordElement.prototype.submit = function () {
@@ -110,7 +111,7 @@ FoResetPasswordElement.prototype.validateCode = function () {
     })
         .then(res => {
             this.foTokenService.saveAuthentication(res);
-            this.onLoginEvent.emit({ reset: true });
+            this.onLoginEvent.emit({ success: true, reset:true });
         }, err => this.errorHandler(err));
 };
 

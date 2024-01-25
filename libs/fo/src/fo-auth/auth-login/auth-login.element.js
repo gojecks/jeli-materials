@@ -59,7 +59,8 @@ AuthLoginElement.prototype.login = function() {
         this.onLoginEvent.emit({
             success: false,
             data: (err || {}),
-            reset: err.forcePasswordReset || false
+            reset: err.forcePasswordReset || false,
+            email: this.loginForm.value.email
         });
     };
 
