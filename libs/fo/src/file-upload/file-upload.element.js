@@ -79,7 +79,13 @@ export function FileUploadElement(changeDetector, uploadService) {
         },
         maximumFileSize: 1048576, // 1MB in bytes
         // default url for FO
-        url: '/v2/uploads'
+        url: '/v2/uploads',
+
+        // allow Dir Scanning when dragNdrop is used
+        scanDirs: false,
+        
+        // Files starting with . will be removed
+        ignoreDotFiles: true
     };
 
 
@@ -96,7 +102,7 @@ FileUploadElement.prototype.didInit = function() {
 
 }
 
-FileUploadElement.prototype.onSelectImage = function($event) {
+FileUploadElement.prototype.onFileSelected = function($event) {
     //reset form
     this.processSelectedFiles($event.target.files);
     $event.target.form.reset();
@@ -112,27 +118,27 @@ FileUploadElement.prototype.processSelectedFiles = function(files){
     }
 
     // validate selected files
-    var processed = this.uploadService.processFiles(files, this._settings.accepts,  this._settings.maximumFileSize, this._settings.imageListPreview);
-    // make sure there are files to upload before proceeding 
-    if (!processed.readyForUpload.length  || (processed.invalid.length && !processed.readyForUpload.length)) {
-        this.selectedFileErrors = processed.invalid;
-        return;
-    }
+    this.uploadService.processFiles(files, this._settings)
+    .then( processed => {
+        // make sure there are files to upload before proceeding 
+        if (!processed.readyForUpload.length  || (processed.invalid.length && !processed.readyForUpload.length)) {
+            this.selectedFileErrors = processed.invalid;
+            return this.changeDetector.onlySelf();
+        }
 
-    this._uploadFiles = processed.readyForUpload;
-    this.selectedFiles = processed.selectedFiles;
-    // previews are only allowded for images
-    if (this._settings.imageListPreview && processed.allImages) {
-        readFileMultiple(processed.readyForUpload, imgRegExp, true)
-            .then((processedFiles) => {
-                this.selectedFiles.push.apply(this.selectedFiles, processedFiles);
-                this.takeAction();
-            });
-    } else {
-        this.takeAction();
-    }
-
-    processed = null;
+        this._uploadFiles = processed.readyForUpload;
+        this.selectedFiles = processed.selectedFiles;
+        // previews are only allowded for images
+        if (this._settings.imageListPreview && processed.allImages) {
+            readFileMultiple(processed.readyForUpload, imgRegExp, true)
+                .then(processedFiles => {
+                    this.selectedFiles.push.apply(this.selectedFiles, processedFiles);
+                    this.takeAction();
+                });
+        } else {
+            this.takeAction();
+        }
+    })
 }
 
 FileUploadElement.prototype.removeImage = function(idx) {
@@ -221,7 +227,7 @@ FileUploadElement.prototype.fileDragDropEvent = function(event) {
     event.stopPropagation();
     this.dragClass = ['drop', 'dragleave'].includes(event.type) ? '':'is-dragover';
     if (event.type == 'drop') {
-        var files = (event.originalEvent || event).dataTransfer.files;
-        this.processSelectedFiles(files);
+        var dataTransfer = (event.originalEvent || event).dataTransfer;
+        this.processSelectedFiles(dataTransfer.items || dataTransfer.files);
     }
 }

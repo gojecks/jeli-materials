@@ -1,17 +1,33 @@
 import { debounce } from "@jeli/core";
-import { MARKDOWN_REGEX, markupParser } from "./markup.parser";
+import { MARKDOWN_REGEX, renderMarkupElements } from "./markup.parser";
 
 export function base64ToFile(b64File, type) {
     var split = b64File.split(',');
     type = type || split[0].replace('data:', '').replace(';base64', '');
     var byteString = atob(split[1]);
+    return createBlobObject(byteString, type);
+}
+
+/**
+ * 
+ * @param {*} byteString 
+ * @param {*} type 
+ * @param {*} withUrl 
+ */
+export function createBlobObject(byteString, type, withUrl) {
     var ab = new ArrayBuffer(byteString.length);
     var ia = new Uint8Array(ab);
     for (var i = 0; i < byteString.length; i += 1) {
         ia[i] = byteString.charCodeAt(i);
     }
-    return new Blob([ab], { type });
-}
+    
+    var blobObject = new Blob([ab], { type });
+    // create a object URl for serving our blob content
+    if (withUrl) blobObject = URL.createObjectURL(blobObject);
+
+    return blobObject;
+};
+
 
 /**
  * 
@@ -81,7 +97,7 @@ export function readFileMultiple(fileList, regEx, asObject) {
  */
 export function parseValue(str, replacer, regex, defaultValue) {
     if(!str) return '';
-    regex = regex || /\{\{(.*?)\}\}/g;
+    regex = regex || /\{\{([\w.]+)\}\}/g;
     var isFnRplr = (typeof replacer === 'function');
     return str.replace(regex, (_, key) => {
         var value = isFnRplr ? replacer(key) : deepContext(key, replacer);
@@ -96,10 +112,12 @@ export function parseValue(str, replacer, regex, defaultValue) {
  * @returns 
  */
 export function htmlValueParser(str, replacer, defaultValue) {
+    if (!str) return defaultValue;
+
     if (typeof replacer === 'function') {
         return replacer(str);
     }
-    return parseValue(str, replacer, /\%(.*?)\%/g, defaultValue);
+    return parseValue(str, replacer, /\%([\w.]+)\%/g, defaultValue);
 }
 
 /**
@@ -187,7 +205,7 @@ export function createStyleSheet(cssRules, fragment) {
  */
 export function parseText(text, data, ignoreFalseMatch) {
     if (!(text || '').match(MARKDOWN_REGEX)) return ignoreFalseMatch ? text : null;
-    return text.split(/\n/g).map(c => markupParser(c, data)).join('');
+    return text.split(/\n/g).map(c => renderMarkupElements(c, data)).join('');
 }
 
 /**
@@ -379,7 +397,7 @@ export function htmlAttrToJson(value, lbs, deep) {
             var spt = key.split('=');
             var kValue = spt[1].trim().replace(/["']/g, '');
             var kProp = spt[0].trim();
-            var pType = (kValue.includes(':')) ? 'json-id' : null;
+            var pType = (kValue.includes('=:')) ? 'json-id' : null;
             if (!deep) {
                 accum[kProp] = parseJson(kValue, pType, true);
             } else {

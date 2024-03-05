@@ -1,22 +1,22 @@
-import { FoAuthService } from "../fo-auth.service";
 import { EventEmitter } from '@jeli/core';
 import { LoginService } from "../auth-login/login-service";
+import { FoTokenService } from '../fo-auth-token.service';
 
 Element({
     selector: 'fo-open-id',
     templateUrl: './open-id.element.html',
     styleUrl: './open-id.element.scss',
-    DI: ['changeDetector?', FoAuthService, LoginService],
+    DI: ['changeDetector?', LoginService, FoTokenService],
     props: ['openIds', 'customClass', 'divider'],
     events: [
         "onOpenIdLogin:emitter",
         "window.message:event=onMessageListener($event)"
     ]
 })
-export function OpenIdElement(changeDetector, authService, loginService) {
+export function OpenIdElement(changeDetector, loginService, foTokenService) {
     this.changeDetector = changeDetector;
     this.loginService = loginService;
-    this.authService = authService;
+    this.foTokenService = foTokenService;
     this.onOpenIdLogin = new EventEmitter();
     this.customClass = 'secondary';
     this._defaultIds = ['google', 'github', 'microsoft'];
@@ -35,11 +35,13 @@ OpenIdElement.prototype.onMessageListener = function(event) {
             data: event.data
         });
     } else {
-        // retrieve the token and log user in
-        this.authService.getToken(event.data)
-            .then(() => {
+        // retrieve the user token
+        this.loginService.getOidcToken(event.data)
+            .then(res => {
+                this.foTokenService.saveAuthentication(res);
                 this.onOpenIdLogin.emit({
-                    success: true
+                    success: !res.isDisabled(),
+                    reset: res.isPasswordReset()
                 });
             }, (err) => {
                 this.onOpenIdLogin.emit({

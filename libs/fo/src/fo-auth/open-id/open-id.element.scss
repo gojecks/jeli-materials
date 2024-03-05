@@ -15,6 +15,23 @@
         --bs-btn-bg: #720e9e !important;
         --bs-btn-border-color: #720e9e !important;
     }
+    .bg-facebook {
+        --bs-btn-bg: #4267B2 !important;
+        --bs-btn-border-color: #4267B2 !important;
+    }
+    .bg-instagram {
+        --bs-btn-bg: linear-gradient(360deg, #d12798 19.18%, #881962 96.29%) !important;
+        --bs-btn-border-color: linear-gradient(360deg, #d12798 19.18%, #881962 96.29%) !important
+    }
+
+    .bg-twitter {
+        --bs-btn-bg: #292929 !important;
+        --bs-btn-border-color: #292929 !important;
+    }
+    .bg-linkedin {
+        --bs-btn-bg: #0e76a8 !important;
+        --bs-btn-border-color: #0e76a8 !important;
+    }
 }
 
 .divider {

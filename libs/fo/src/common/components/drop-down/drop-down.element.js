@@ -1,11 +1,11 @@
 import {AttributeAppender, EventEmitter} from '@jeli/core';
-
 var dropDownCountIndex = 0;
+
 Element({
     selector: 'fo-drop-down',
     templateUrl: './drop-down.element.html',
     styleUrl: './drop-down.element.scss',
-    props: ["label", "buttonStyle", "position", "size", "color", 'value'],
+    props: ["label", "buttonStyle", "position", "size", "color", 'value', 'iconClass'],
     events: [
         'document.click:event=registerDocumentClick()',
         'click-delegate:a=onItemClicked($event.target.id)',
@@ -18,6 +18,7 @@ export function DropDownElement(changeDetector) {
     this.dropDown = null;
     this.changeDetector = changeDetector;
     this.isDropDownOpen = false;
+    this.iconClass = 'dropdown-toggle'
     this.position = "start";
     this.size = "lg";
     this.color = "";

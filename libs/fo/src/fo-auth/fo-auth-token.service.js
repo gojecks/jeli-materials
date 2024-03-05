@@ -28,7 +28,7 @@ export function FoTokenService(authManager) {
 
 FoTokenService.prototype.decodeToken = function(){
     var token =  this.getAccessToken();
-    return atob((token.bearer || '').split('.')[1]);
+    return token ? JSON.parse(atob((token.bearer || '').split('.')[1])) : null;
 }
 
 FoTokenService.prototype.getClaims =  function(){

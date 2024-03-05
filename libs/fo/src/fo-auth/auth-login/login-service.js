@@ -35,6 +35,10 @@ LoginService.prototype.resetPassword = function(requestBody, password) {
     });
 };
 
+LoginService.prototype.removeUser = function(userRef) {
+    return this.databaseService.userServices.remove(userRef) 
+}
+
 LoginService.prototype.validatePassword = function(requestBody) {
     return this.databaseService.userServices.password.validate(requestBody)
 }
@@ -57,6 +61,15 @@ LoginService.prototype.validateInput = function(field, value) {
     };
 
     return this.databaseService.userServices.isExists(request);
+}
+
+/**
+ * Call this service to retrive user token after successfull OIDC authorization
+ * @param {*} data 
+ * @returns 
+ */
+LoginService.prototype.getOidcToken = function(data) {
+    return this.databaseService.userServices.getOidcToken(data);
 }
 
 /**

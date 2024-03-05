@@ -1,4 +1,4 @@
-<label class="d-block">${:label}</label>
+<label class="d-block form-label">${:label}</label>
 <j-fragment {template}="type + 'Template'"></j-fragment>
 <j-template #buttonTemplate>
   <div class="btn btn-group p-0 btn-group-${size}">
@@ -7,7 +7,7 @@
 </j-template>
 
 <j-template #nativeTemplate>
-  <div class="native-radio-button">
+  <div class="native-radio-button" {class}="{'d-flex': flex}">
     <j-place selector="radio-item"></j-place>
   </div>
 </j-template>

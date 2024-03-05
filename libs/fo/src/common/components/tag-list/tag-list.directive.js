@@ -68,8 +68,8 @@ FoTagListDirective.prototype.onEvent = function (event) {
 
 
 FoTagListDirective.prototype.generateView = function (value) {
-    if (this.value != value) {
-        var listItems = this.options;
+    var listItems = this.options || [];
+    if (this.value != value || (!listItems.options && this.isVisible)) {
         if (value) {
             listItems = listItems.filter(item => item.startsWith(value));
         }
@@ -79,6 +79,7 @@ FoTagListDirective.prototype.generateView = function (value) {
 
     this.value = value;
     this.showBox(this.isVisible);
+    listItems = null;
 }
 
 FoTagListDirective.prototype.viewDidDestroy = function () {

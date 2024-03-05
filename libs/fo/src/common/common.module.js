@@ -25,6 +25,7 @@ import { FoMaskDirective } from './directives/mask.directive';
 import { LongPressDirective } from './directives/long-press.directive';
 import { FoTagListDirective } from './components/tag-list/tag-list.directive';
 import { InfoIconElement } from './components/info-icon/info-icon.element';
+import { PrettyPrintElement } from './components/pretty-print/pretty-print.element';
 
 
 jModule({
@@ -67,7 +68,8 @@ jModule({
         FoTagListElement,
         FoTagListDirective,
         InfoIconElement,
-        DropDownItemElement
+        DropDownItemElement,
+        PrettyPrintElement
     ]
 })
 export function FoCommonModule() {}

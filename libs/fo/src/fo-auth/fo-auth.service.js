@@ -13,43 +13,33 @@ export function FoAuthService(foTokenService, authIdentityService) {
 
     Object.defineProperties(this, {
         userIsActive: {
-            get: function() {
+            get: function () {
                 return foTokenService.isUserActive();
             }
         },
         userId: {
-            get: function() {
+            get: function () {
                 return foTokenService.getPrincipal();
             }
         },
         userInfo: {
-            get: function() {
+            get: function () {
                 return foTokenService.getUserInfo();
             }
         }
     });
 }
 
-FoAuthService.prototype.hasAnyRole = function(roles) {
+FoAuthService.prototype.hasAnyRole = function (roles) {
     return this.foTokenService.hasAnyAuthority(roles);
 }
 
 
-FoAuthService.prototype.checkAuthority = function(force) {
+FoAuthService.prototype.checkAuthority = function (force) {
     this.authIdentityService.Authority(force);
 };
 
-FoAuthService.prototype.disconnect = function() {
+FoAuthService.prototype.disconnect = function () {
     //log the user out from the server
     return this.authIdentityService.destroy().then(() => this.foTokenService.destroy());
-};
-
-FoAuthService.prototype.getToken = function(data) {
-    return new Promise(function(resolve, reject) {
-        this.authIdentityService.getToken(data)
-            .then((res)  => {
-                this.foTokenService.saveAuthentication(res);
-                resolve();
-            }, reject);
-    });
-};
+}

@@ -20,9 +20,14 @@ export function FileInstantUploadDirective(uploadService, changeDetector) {
             replaceIfExists: false,
             allowDuplicate: false
         },
-        maximumFileSize: 1048576, // 1MB in bytes
+        maximumFileSize: 1048576, // 1MB in bytes,
+        imageListPreview: true,
+        scanDirs: false,
+        accepts: ['jpeg', 'jpg', 'png'],
+        // Files starting with . will be removed
+        ignoreDotFiles: true,
         url: '/v2/uploads'
-    }
+    };
 
     Object.defineProperty(this, 'settings', {
         set: value => {
@@ -33,7 +38,7 @@ export function FileInstantUploadDirective(uploadService, changeDetector) {
 
 FileInstantUploadDirective.prototype.didInit = function () {
     if (!this.supportsFilePicker) {
-        this.fileElement = this.uploadService.createFilePicker(this._settings.multiple, this.id, files => this.uploadImage(files));
+        this.fileElement = this.uploadService.htmlFilePicker(this._settings.multiple, this.id, files => this.uploadImage(files));
     }
 }
 
@@ -41,7 +46,7 @@ FileInstantUploadDirective.prototype.onClickAction = function (event) {
     if (this.fileElement) {
         this.fileElement.click();
     } else if (this.supportsFilePicker) {
-        this.uploadService.fromFilePicker(this._settings.accepts, this._settings.maximumFileSize, true)
+        this.uploadService.fromFilePicker(this._settings)
             .then(processed => this.uploadImage(processed));
     }
 }

@@ -32,11 +32,21 @@ export function JsonXPipe() {
     }
 }
 
+/**
+ * 
+ * @param {*} value 
+ * @param {*} nls 
+ * @param {*} hc 
+ * @returns 
+ */
 JsonXPipe.prototype.stripToEqual = function (value, nls, hc) {
     var res = [];
     var write = (key, cvalue) => {
-        if (typeof cvalue === 'object' && cvalue !== null) {
-            if (key && hc && (key.startsWith('ids.') || key.endsWith('.conditions') || key.endsWith('.where'))){
+        if (cvalue && typeof cvalue === 'object') {
+            /**
+             * check if key endsWith any of the following prefix [ids., .conditions, .where]
+             */
+            if (key && hc && (key.startsWith('ids.') || key.endsWith('.conditions') || (key.endsWith('.where') && 'string' != typeof cvalue[0]))){
                 res.push(key + '=' + conditionParser$.idsToString(cvalue, key.startsWith('ids.')));
             }  else {
                 Object.keys(cvalue).forEach(ckey => write(((key ? key + '.' : '') + ckey), cvalue[ckey]));

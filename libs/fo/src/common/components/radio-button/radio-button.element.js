@@ -5,7 +5,7 @@ Element({
     selector: 'fo-radio-button',
     templateUrl: './radio-button.element.html',
     styleUrl: './radio-button.element.scss',
-    props: ['label', 'disabled', 'name', 'size', 'type'],
+    props: ['label', 'value', 'disabled', 'name', 'size', 'type', 'flex'],
     events: ['onValueChanged:emitter'],
     DI: ['ParentRef?=formControl']
 })
@@ -15,6 +15,7 @@ export function RadioButtonElement(parentControl) {
     this._disabled = false;
     this.fieldControl = null;
     this._unsubscribe = null;
+    this._value = null;
     this.size = "sm";
     this.type = 'button';
     this.radioItemLists = [];
@@ -28,7 +29,11 @@ export function RadioButtonElement(parentControl) {
             }
         },
         value: {
-            get: () => (this.fieldControl ? this.fieldControl.value : null)
+            get: () => (this.fieldControl ? this.fieldControl.value : this._value),
+            set: value => {
+                this._value = value;
+                this.setValue(value);
+            }
         }
     });
 }
@@ -87,7 +92,7 @@ Element({
     selector: 'radio-item',
     templateUrl: './radio-item.html',
     props: ['value', 'id', 'type', 'label', 'iconClass', 'cbClass'],
-    events: ['onValueChanged:emitter'],
+    events: ['onValueChanged:emitter', 'click-delegate:button,input=itemChecked()'],
     DI: ['changeDetector?', 'ContentHostRef?']
 })
 export function RadioItemElement(changeDetector, contentHostRef) {

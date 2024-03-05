@@ -94,16 +94,7 @@ AuthIdentityService.prototype.Authority = function(force, afterLogin) {
     };
 
     return this.identify(force).then(authAccount);
-};
-
-/**
- * get accessToken from OIDC
- * @param {*} data 
- * @returns 
- */
-AuthIdentityService.prototype.getToken = function(data) {
-    return this.databaseService.core.api({ path: '/user/openid/token', data: data });
-};
+}
 
 /**
  * destroy accessToken
