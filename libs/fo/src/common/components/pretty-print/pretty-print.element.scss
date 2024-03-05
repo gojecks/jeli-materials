@@ -1,0 +1,17 @@
+pre {
+    background-color: #031b4e !important;
+    border: 1px solid silver;
+    padding: 10px 20px;
+    color: #fff;
+    max-height: 43vh;
+    overflow: scroll;
+    .json-key {
+        color: #fff;
+     }
+     .json-value {
+        color: rgb(252, 194, 140);
+      }
+     .json-string {
+        color: rgb(162, 252, 162);;
+     }
+ }
