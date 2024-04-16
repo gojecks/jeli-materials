@@ -6,15 +6,18 @@ Element({
     templateUrl: './fo-payment-methods.element.html',
     styleUrl: './fo-payment-methods.element.scss',
     events: ['onPaymentValidation:emitter'],
-    props: ['token', 'name', 'canMakePayment', 'regenerateToken']
+    props: ['token', 'name', 'canMakePayment', 'regenerateToken', 'btnText'],
+    DI: ['changeDetector?']
 })
-export function FoPaymentMethodsElement() {
+export function FoPaymentMethodsElement(changeDetector) {
     this.currentYear = new Date().getFullYear();
     this.currentMonth = new Date().getMonth() + 1;
     this.validationInProgress = false;
     this.onPaymentValidation = new EventEmitter();
+    this.changeDetector = changeDetector;
     this.tokenResponse = null;
     this.regenerateToken = true;
+    this.btnText = 'Pay Now';
 
     this.paymentFormData = new FormControlService({
         number: {
@@ -32,7 +35,9 @@ export function FoPaymentMethodsElement() {
         name: {
             value: '',
             validators: {
-                minLength: 2,
+                required: true,
+                minLength: 3,
+                maxLength: 65,
                 pattern: "([a-zA-Z\s])+"
             }
         },
@@ -57,6 +62,9 @@ export function FoPaymentMethodsElement() {
 
 FoPaymentMethodsElement.prototype.didInit = function() {
     this.clearFields();
+    if (!this.token){
+        this.errMsg = 'Card collection not possible at this time due to missing token.';
+    }
 }
 
 FoPaymentMethodsElement.prototype._getCardType = function(number) {
@@ -73,6 +81,11 @@ FoPaymentMethodsElement.prototype._getCardType = function(number) {
 FoPaymentMethodsElement.prototype.getCardType = function() {
     var card = this._getCardType(this.paymentFormData.value.number);
     return card ? card.type : 'N/A'
+}
+
+FoPaymentMethodsElement.prototype.hasError = function(fieldName) {
+    var field = this.paymentFormData.getField(fieldName);
+    return field.touched && field.invalid;
 }
 
 

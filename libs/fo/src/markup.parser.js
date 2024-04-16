@@ -106,17 +106,15 @@ var markupHandlers$ = {
         var value = dateTimeService.timeConverter(deepContext(attrs[0], data)).timeago;
         return constructHtml((attrs[1] || 'fo-time-ago'), attrs[2], replaceArg(body, value));
     },
-    datetime: (attr, body, data) => {
-        var attrs = attr.split('|');
+    datetime: (attrs, body, data) => {
         var value = dateTimeService.format(deepContext(attrs[0], data), attrs[1] || 'MMM DD, YYYY');
         return constructHtml((attrs[2] || 'fo-date-time'), attrs[3], replaceArg(body, value));
     },
     math: (attrs, body, data) => {
         var value = parseMath(attrs, data);
-        if (null == value) return "";
-        if (attrs[5]) {
+        if (null == value) return '';
+        if (attrs[5])
             value = formatNumber(value, attrs[5], attrs[6]);
-        }
         return constructHtml((attrs[3] || 'fo-math'), attrs[4], replaceArg( body, value));
     },
     th: (attrs, body, data) => {
@@ -137,6 +135,8 @@ var markupHandlers$ = {
  * @returns 
  */
 function renderBody(astNodes, replacerData) {
+    if (typeof astNodes == 'string') return  htmlValueParser(astNodes, replacerData);
+
     return astNodes.map(node => {
         // node can be string if the body of an element contains textNode and element
         // e.g @element[]{this is another element @newElement[](New element)}
@@ -147,14 +147,17 @@ function renderBody(astNodes, replacerData) {
 
         var isArrayBody = (Array.isArray(node[2]) && (Array.isArray(node[2][0]) || node[2].length > 1));
         var body = '';
+        var attr = '';
+
         // node[2] body is defined
         if (node[2]){
             body = isArrayBody ? renderBody(node[2], replacerData) : htmlValueParser(node[2], replacerData);
         }
 
         // single replace
-        return constructHtml(node[0], htmlValueParser(node[1], replacerData, '-'), body);
-    }).join('')
+        if (node[1].trim()) attr = htmlValueParser(node[1], replacerData, '-');
+        return constructHtml(node[0], attr, body);
+    }).join('');
 }
 
 /**
@@ -199,7 +202,6 @@ function parseMarkupLanguage(markupLanguage) {
                 currentElem.push([]);
                 manyNested.push(currentElem)
             }
-
         } else {
             var isFnBrace = item.match(/\((.*?)\)$/);
             if (isFnBrace) {
@@ -226,8 +228,7 @@ function parseMarkupLanguage(markupLanguage) {
                             x = closingTagIndex;
                             // some element can define a empty ()
                             // if textContent is empty we don't set it
-                            if (textContent)
-                                currentElem[2] = textContent;
+                            if (textContent) currentElem[2] = textContent;
 
                             textContent = '';
                             // set currentElem to be the parent since the child element is closed
@@ -251,9 +252,8 @@ function parseMarkupLanguage(markupLanguage) {
                 }
 
                 // attach text content to child if any found
-                if (textContent) {
+                if (textContent)
                     currentElem[2].push(textContent);
-                }
             }
 
         }

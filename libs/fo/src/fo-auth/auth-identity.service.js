@@ -101,7 +101,7 @@ AuthIdentityService.prototype.Authority = function(force, afterLogin) {
  * @returns 
  */
 AuthIdentityService.prototype.destroy = function() {
-    return this.databaseService.core.api('/logout');
+    return this.databaseService.core.api('/user/session/destroy');
 };
 
 /**

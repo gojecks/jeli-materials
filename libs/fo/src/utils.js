@@ -97,7 +97,7 @@ export function readFileMultiple(fileList, regEx, asObject) {
  */
 export function parseValue(str, replacer, regex, defaultValue) {
     if(!str) return '';
-    regex = regex || /\{\{([\w.]+)\}\}/g;
+    regex = regex || /\{\{([\w.@]+)\}\}/g;
     var isFnRplr = (typeof replacer === 'function');
     return str.replace(regex, (_, key) => {
         var value = isFnRplr ? replacer(key) : deepContext(key, replacer);
@@ -117,7 +117,7 @@ export function htmlValueParser(str, replacer, defaultValue) {
     if (typeof replacer === 'function') {
         return replacer(str);
     }
-    return parseValue(str, replacer, /\%([\w.]+)\%/g, defaultValue);
+    return parseValue(str, replacer, /\%([\w.@]+)\%/g, defaultValue);
 }
 
 /**
@@ -127,12 +127,13 @@ export function htmlValueParser(str, replacer, defaultValue) {
  * @returns 
  */
 export function deepContext(key, context) {
-    if (typeof key !== 'string') null;
+    if (typeof key !== 'string' || !context) null;
     if (typeof context == 'function') return context(key, true);
 
     key = key.split('.');
-    if (!key[0])
-        key.unshift(key.splice(0, 2).join('.'));
+    if (!key[0]) key.unshift(key.splice(0, 2).join('.'));
+    if (key[0].startsWith('@')) key[0] = key[0].substring(1);
+    
     return key.reduce((accum, key) => {
         if (key && accum) { accum = accum[key] } return accum
     }, context);
@@ -151,7 +152,6 @@ export function checkConditions(conditions, context) {
         for (var key of conditionKeys) {
             var operator = null;
             var conditionValue = condition[key];
-            key = key.startsWith('@') ? key.substring(1) : key;
             var value = isOptionalDeepContext ? context(key, true) : deepContext(key, context);
             if (typeof conditionValue === 'object') {
                 operator = (conditionValue.operator || conditionValue.type);
@@ -327,9 +327,9 @@ export var conditionParser$ = {
         return conditionParser$.simpleCondition(spId.pop());
     },
     idsToString: (value, isIds) => {
-        if (isIds) {
-            return (typeof value === 'object' ? (value.id + (value.conditions ? ':' + conditionParser$.toString(value.conditions, true) : '')) : value)
-        }
+        if (isIds)
+            return (typeof value === 'object' ? (value.id + (value.conditions ? ':' + conditionParser$.toString(value.conditions, true) : '')) : value);
+        
         return ':' + conditionParser$.toString(value, true);
     },
     parseAndEvaluate: (condition, context) => {
@@ -397,7 +397,7 @@ export function htmlAttrToJson(value, lbs, deep) {
             var spt = key.split('=');
             var kValue = spt[1].trim().replace(/["']/g, '');
             var kProp = spt[0].trim();
-            var pType = (kValue.includes('=:')) ? 'json-id' : null;
+            var pType = /=(:|\w+:)/.test(key) ? 'json-id' : null;
             if (!deep) {
                 accum[kProp] = parseJson(kValue, pType, true);
             } else {
