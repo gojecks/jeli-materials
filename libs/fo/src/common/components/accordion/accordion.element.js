@@ -4,7 +4,7 @@ Element({
     selector: 'fo-accordion',
     templateUrl: './accordion.element.html',
     styleUrl: './accordion.element.scss',
-    props: ['items', 'alwaysOpen', 'flush', 'data']
+    props: ['items', 'alwaysOpen', 'flush']
 })
 export function FoAccordionElement() {
     this.currentSelectedAccord = -1;
@@ -14,8 +14,8 @@ export function FoAccordionElement() {
     this._selected  = [];
 }
 
-FoAccordionElement.prototype.parseMarkup = function(markup){
-    return parseText(markup, this.data, true);
+FoAccordionElement.prototype.parseMarkup = function(markup, data){
+    return parseText(markup, data, true);
 }
 
 FoAccordionElement.prototype.selected = function(idx){

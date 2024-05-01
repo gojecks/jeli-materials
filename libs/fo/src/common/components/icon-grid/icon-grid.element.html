@@ -1,14 +1,14 @@
-<div class="row" attr-class="gridContents.rowClass || ''" @click-delegate:a="webStateService.go(content.action.href, content.action.params)">
-  <div attr-class="gridContents.colClass || 'col d-flex align-items-start'" *for="content in gridContents.views;">
-    <div attr-class="gridContents.colWrapperClass">
-      <div attr-class="content.iconContainerClass || 'bg-light text-dark flex-shrink-0 me-3'">
-        <img attr-src="content.imgSrc" attr-class="content.iconClass || 'img-fluid'" attr-alt="content.title" *if="content.imgSrc" />
-        <i attr-class="content.iconClass" *if="!content.imgSrc"></i>
+<div class="row" {class}="gridClass || ''" @click-delegate:a="onGridItemClicked.emit(item)">
+  <div {class}="colClass || 'col d-flex align-items-start'" *for="item in items;">
+    <div {class}="colWrapperClass || ''">
+      <div {class}="iconContainerClass||'bg-light text-dark flex-shrink-0 me-3'">
+        <img {src}="item.imgSrc" {class}="item.iconClass || 'img-fluid'" {alt}="item.title" *if="item.imgSrc" />
+        <i {class}="item.iconClass" *if="!item.imgSrc"></i>
       </div>
       <div>
-        <h2 attr-class="content.headerClass">${:content.title}</h2>
-        <p *if="content.subtitle">${:content.subtitle}</p>
-        <a attr-class="content.action.class" *if="content.action.href">${:content.action.text}</a>
+        <h2 {class}="headerClass||''">${:item.title}</h2>
+        <p *if="item.subtitle">${:item.subtitle}</p>
+        <a {class}="item.action.class" *if="item.action.href">${:item.action.text}</a>
       </div>
     </div>
   </div>

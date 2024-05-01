@@ -205,7 +205,7 @@ export function createStyleSheet(cssRules, fragment) {
  */
 export function parseText(text, data, ignoreFalseMatch) {
     if (!(text || '').match(MARKDOWN_REGEX)) return ignoreFalseMatch ? text : null;
-    return text.split(/\n/g).map(c => renderMarkupElements(c, data)).join('');
+    return renderMarkupElements(text, data);
 }
 
 /**
@@ -286,10 +286,10 @@ export var conditionParser$ = {
         return (({
             falsy: () => !value === check,
             truthy: () => !!value === check,
-            in: () => value.include(check),
-            notin: () => !value.includes(check),
-            rin: () => check.includes(value),
-            rnotin: () => !check.includes(value),
+            in: () => (value || '').includes(check),
+            notin: () => !(value || '').includes(check),
+            rin: () => (check || '').includes(value),
+            rnotin: () => !(check || '').includes(value),
             any: () => Array.isArray(value) && value.some(v => check.includes(v)),
             gt: () => value > check,
             gte: () => value >= check,

@@ -14,3 +14,4 @@ export * from './src/draggable/draggable.module';
 export * from './src/cookies-policy/cookies-policy.module';
 export * from './src/fo-analytics/fo-analytics.module';
 export * from './src/common/filters/filters.module';
+export * from './src/common/services/swiper';

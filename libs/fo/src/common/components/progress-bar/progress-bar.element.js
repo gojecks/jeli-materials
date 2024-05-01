@@ -4,10 +4,10 @@ Element({
     selector: 'fo-progress-bar'
 })
 export function ProgressBarElement() {
-    this.progressStyle = '';
-    this.max = '';
+    this.progressStyle = 'warning';
+    this.max = 100;
     this.percent = '';
-    this.value = 0;
+    this.value = 10;
 }
 
 ProgressBarElement.prototype.willObserve = function() {

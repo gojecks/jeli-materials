@@ -1,9 +1,10 @@
 <div attr-id="id" class="carousel slide" {:jClass}="{'carousel-dark': darkVariant, 'carousel-fade': crossFade}">
   <j-fragment *if="indicator" template="indicatorControl"></j-fragment>
   <div class="carousel-inner">
-    <div class="carousel-item" attr-id="id +'-item-'+idx" {:jClass}="currentIndex === idx ? 'active':''" *for="item of carouselItems; idx=index">
-      <img attr-src="item.imgPath" class="d-block w-100" attr-alt="item.alt || item.imgPath">
-      <div class="carousel-caption d-none d-md-block" attr-innerHTML="item.caption"></div>
+    <div class="carousel-item" attr-id="id +'-item-'+idx" {:jClass}="currentIndex == idx ? 'active':''" *for="item of carouselItems; idx=index">
+      <img attr-src="item.image" class="d-block w-100" attr-alt="item.alt || item.image" *if="!asBkg; else as asBkgTemplate">
+      <div class="carousel-overlay"></div>
+      <div class="carousel-caption d-none d-md-block" attr-innerHTML="getCaption(item)"></div>
     </div>
   </div>
   <j-fragment *if="control && carouselItems.length > 1" template="buttonControl"></j-fragment>
@@ -21,7 +22,11 @@
 </j-template>
 
 <j-template #indicatorControl>
-  <div class="carousel-indicators" @click-delegate:button="currentIndex = indicatorIndex">
+  <div class="carousel-indicators" attr-class="indicator" @click-delegate:button="currentIndex = indicatorIndex">
     <button type="button" *for="indicatorIndex of indicatorIndexes" {:jClass}="currentIndex==indicatorIndex ?'active':''" aria-current="${currentIndex==indicatorIndex}" aria-label="Slide ${:indicatorIndex}"></button>
   </div>
+</j-template>
+
+<j-template #asBkgTemplate>
+  <div class="carousel-background" attr-style.backgroundImage="item.image"></div>
 </j-template>

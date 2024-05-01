@@ -83,6 +83,13 @@ var markupHandlers$ = {
     },
     for: (attrs, body, data) => {
         var forRepeater = deepContext(attrs[0], data);
+        forRepeater = forRepeater || attrs[0];
+        // static data
+        if (!Array.isArray(forRepeater) && /\w+,+\w/g.test(forRepeater)) 
+            forRepeater = forRepeater.split(',');
+        else if (forRepeater == '&' && Array.isArray(data))
+            forRepeater = data;
+
         var content = "";
         if (Array.isArray(forRepeater)) {
             if (typeof forRepeater == 'string') forRepeater = forRepeater.split(',');
@@ -107,7 +114,9 @@ var markupHandlers$ = {
         return constructHtml((attrs[1] || 'fo-time-ago'), attrs[2], replaceArg(body, value));
     },
     datetime: (attrs, body, data) => {
-        var value = dateTimeService.format(deepContext(attrs[0], data), attrs[1] || 'MMM DD, YYYY');
+        var origValue = parseInt(attrs[0]);
+        var value = deepContext(attrs[0], data);
+        value = dateTimeService.format(value || origValue, attrs[1] || 'MMM DD, YYYY');
         return constructHtml((attrs[2] || 'fo-date-time'), attrs[3], replaceArg(body, value));
     },
     math: (attrs, body, data) => {
@@ -150,12 +159,11 @@ function renderBody(astNodes, replacerData) {
         var attr = '';
 
         // node[2] body is defined
-        if (node[2]){
+        if (node[2])
             body = isArrayBody ? renderBody(node[2], replacerData) : htmlValueParser(node[2], replacerData);
-        }
 
         // single replace
-        if (node[1].trim()) attr = htmlValueParser(node[1], replacerData, '-');
+        if (node[1] && node[1].trim()) attr = htmlValueParser(node[1], replacerData, '-');
         return constructHtml(node[0], attr, body);
     }).join('');
 }

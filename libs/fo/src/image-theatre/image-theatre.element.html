@@ -1,39 +1,47 @@
-<div class="modal" style="display:block" *if="openTheatre">
-  <div class="modal-dialog modal-fullscreen">
-    <div class="modal-content">
-      <div class="modal-body  row m-0 p-0">
-        <div class="col-md-${:openTheatre.comments ? '9':'12'} previewArea">
-          <div class='clearfix top-action-container'>
-            <button class='btn-close' @click="closeTheatre()"><i class="bi-x-lg"></i></button>
-            <div class="float-end zoom-btn" @click-delegate:button='scale(idx)'>
-              <button class="btn-close" *for="t in ['out', 'in']; idx=index"><i attr-class="'bi-zoom-'+t"></i></button>
+<div class="theaterContainer" *if="openTheatre">
+  <div class="modal">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        <div class="modal-body  row m-0 p-0">
+          <div class="col-md-${:openTheatre.comments ? '9':'12'} previewArea">
+            <div class='clearfix top-action-container'>
+              <div class="progress rounded" *if="isPlaying" role="progressbar" aria-label="loading" aria-valuenow="${progress}" aria-valuemin="10" aria-valuemax="100">
+                <div class="progress-bar bg-warning text-dark" {style}="{width: progress+'%'}"></div>
+              </div>
+              <div class="float-end btn-group bg-black rounded-0" @click-delegate:button='theatreBtnAction($event.target.id)'>
+                <button class="btn" *for="t in ['out', 'in']; idx=index" attr-title="'Zoom '+ t" attr-id="'zoom-'+ t"><i attr-class="'bi-zoom-'+t"></i></button>
+                <button class="btn" *if="_config.autoPlay" id="playPause" {title}="isPlaying ? 'Pause':'Play'"><i {:jClass}="'bi-'+ (isPlaying ? 'pause':'play')"></i></button>
+                <button class="btn" id="fscrn" {title}="isFullScreen ? 'Fullscreen':'Exit Fullscreen'"><i {:jClass}="'bi-fullscreen'+ (isFullScreen ? '-exit':'')"></i></button>
+                <button class='btn' title="Close" id="close"><i class="bi-x-lg"></i></button>
+              </div>
+            </div>
+            <div class="clearfix nav-container" @click-delegate:button='prevNext(idx)'>
+              <button class="btn bg-black rounded-0" attr-class="'float-'+(idx ?'end':'start')" *for="t in ['prev','next']; idx=index"><i attr-class="'bi-arrow-'+(idx ?'right':'left')"></i></button>
+            </div>
+            <img {src}="openTheatre.fileUrl + openTheatre.files[openTheatre.entry].name" {style}="{width:zoomScale+'%', display:imageLoading ? 'none':'block'}" @error="handleImageLoading(false)" @load="handleImageLoading(true)"/>
+            <div class="text-white" *if="errorLoadingImage">There was an error loading image, please try again.</div>
+            <div class="text-white spinner-border" role="status" *if="imageLoading">
+              <span class="visually-hidden">Loading...</span>
             </div>
           </div>
-          <div class="clearfix nav-container" @click-delegate:button='prevNext(idx)'>
-            <button class="float-${:idx ?'end':'start'} carousel-control-${:t}" *for="t in ['prev','next']; idx=index"><i attr-class="'carousel-control-'+t+'-icon'"></i></button>
+          <div class="col-md-3 p-0 bg-white" *if="openTheatre.comments">
+            <a class="d-block p-2 clearfix border-bottom text-decoration-none text-black" attr-href="openTheatre.profileUrl">
+              <img attr-src="openTheatre.userInfo.profilePhoto.fileUrl + openTheatre.userInfo.profilePhoto.files.fileName+'&s=50x50'" class="float-start me-3 rounded-2 border-0">
+              <div class="pt-1">
+                <h6 class="h6 mb-1">${:openTheatre.userInfo.name | capitalize}</h6>
+              </div>
+            </a>
           </div>
-          <img {src}="openTheatre.fileUrl + openTheatre.files[openTheatre.entry].name" {style}="{width:zoomScale+'%', display:imageLoading ? 'none':'block'}" @error="errorLoadingImage = true" @load="imageLoading = false"/>
-          <div class="text-white" *if="errorLoadingImage">There was an error loading image, please try again.</div>
-          <div class="text-white spinner-border" role="status" *if="imageLoading">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-        <div class="col-md-3 p-0 bg-white" *if="openTheatre.comments">
-          <a class="d-block p-2 clearfix border-bottom text-decoration-none text-black" attr-href="openTheatre.profileUrl">
-            <img attr-src="openTheatre.userInfo.profilePhoto.fileUrl + openTheatre.userInfo.profilePhoto.files.fileName+'&s=50x50'" class="float-start me-3 rounded-2 border-0">
-            <div class="pt-1">
-              <h6 class="h6 mb-1">${:openTheatre.userInfo.name | capitalize}</h6>
-            </div>
-          </a>
         </div>
       </div>
     </div>
   </div>
+  <div class="modal-backdrop show"></div>
 </div>
 
-<div class="container-fluid" *if="showGridList">
-  <div class="fo-imgp-container row" attr-class="_config.gridClass||'me-0 mb-3 g-0'" @click-delegate:img="openTheatre(idx)">
-    <div class="pe-0 position-relative clearfix fo-imgp-item" attr-class="_config.size" *for="img of photos.files; idx=index;">
+<div class="container-fluid p-0" *if="showGridList">
+  <div class="fo-imgp-container row" attr-class="_config.gridClass||'me-0 mb-3 g-0'" @click-delegate:img="startTheatre(idx)">
+    <div class="position-relative clearfix fo-imgp-item" attr-class="_config.size" *for="img of photos.files; idx=index;">
       <img attr-src="photos.fileUrl + (img.name || img)" class="img-fluid" attr-class="_config.imgClass" attr-alt="img.name||img">
     </div>
   </div>

@@ -2,10 +2,10 @@
   <div class="accordion-item" *for="item of items; idx=index">
     <h2 class="accordion-header" attr-id="'panels-heading-'+idx">
       <button class="accordion-button" type="button" {:jClass}="_selected.includes(idx) ? '':'collapsed'"
-      attr-innerHTML="parseMarkup(item.title)"></button>
+      {innerHTML}="parseMarkup(item.title, item)"></button>
     </h2>
     <div attr-id="'panel-body-'+idx" class="accordion-collapse collapse" {:jClass}="_selected.includes(idx) ? 'show':''">
-      <div class="accordion-body" attr-innerHTML="parseMarkup(item.content)"></div>
+      <div class="accordion-body" {innerHTML}="parseMarkup(item.content, item)"></div>
     </div>
   </div>
   <j-place selector="fo-accordion-item"></j-place>

@@ -103,7 +103,6 @@ export function DatePickerElement(parentControl) {
 }
 
 DatePickerElement.prototype.didInit = function() {
-    var _this = this;
     if (this.parentControl && this.name) {
         this.fieldControl = this.parentControl.getField(this.name);
         this._control.patchValue(this.fieldControl.value);
