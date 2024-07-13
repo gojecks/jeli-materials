@@ -2,8 +2,11 @@
 <j-template #defaultTemplate>
   <label class="d-block form-label">${:label}</label>
   <div class="input-group" {:formControl}="_control">
+    <span class="input-group-text">Day</span>
     <input type="number" class="form-control" placeholder="DD" :formField="day" />
+    <span class="input-group-text">Month</span>
     <input type="number" class="form-control" placeholder="MM" :formField="month" />
+    <span class="input-group-text">Year</span>
     <input type="number" class="form-control col-sm-4" placeholder="YYYY" :formField="year" />
     <j-fragment *if="isDT">
       <input type="number" class="form-control" placeholder="Hour" :formField="hour" />

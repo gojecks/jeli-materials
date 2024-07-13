@@ -228,6 +228,7 @@ FileUploadElement.prototype.fileDragDropEvent = function(event) {
     this.dragClass = ['drop', 'dragleave'].includes(event.type) ? '':'is-dragover';
     if (event.type == 'drop') {
         var dataTransfer = (event.originalEvent || event).dataTransfer;
-        this.processSelectedFiles(dataTransfer.items || dataTransfer.files);
+        var isFileTransfer = (dataTransfer.types.length == 1 && dataTransfer.types[0].toLowerCase() == 'files')
+        this.processSelectedFiles(!isFileTransfer ? dataTransfer.items:dataTransfer.files);
     }
 }

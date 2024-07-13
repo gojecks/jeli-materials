@@ -6,7 +6,7 @@ Element({
     templateUrl: './fo-ckeditor.element.html',
     styleUrl: './fo-ckeditor.element.scss',
     events: ['onValueChanged:emitter'],
-    props: ['placeHolder', 'content'],
+    props: ['placeHolder', 'content', 'version', 'distribution'],
     DI: [UtilsService]
 })
 export function FoCkeditorElement(utilService) {
@@ -15,6 +15,8 @@ export function FoCkeditorElement(utilService) {
     this.id = 'fo-ckeditor-' + +new Date;
     this.onValueChanged  = new EventEmitter();
     this._content = '';
+    this.version = '23.1.0';
+    this.distribution = 'classic';
 
     Object.defineProperty(this, 'content', {
         set: value  => {
@@ -28,7 +30,7 @@ export function FoCkeditorElement(utilService) {
 }
 
 FoCkeditorElement.prototype.viewDidLoad = function() {
-    this.utilService.openEditor(this.id).then(editor => {
+    this.utilService.openEditor({editorId:this.id, version: this.version, distribution:this.distribution}).then(editor => {
         this.editorContext = editor;
         if (this._content) {
             editor.setData(this._content);

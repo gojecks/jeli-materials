@@ -88,37 +88,6 @@ export function readFileMultiple(fileList, regEx, asObject) {
     return Promise.all(fileList.map(function (file) { return readFile(file, regEx, asObject) }));
 }
 
-/**
- * 
- * @param {*} str 
- * @param {*} values 
- * @param {*} regex 
- * @returns 
- */
-export function parseValue(str, replacer, regex, defaultValue) {
-    if(!str) return '';
-    regex = regex || /\{\{([\w.@]+)\}\}/g;
-    var isFnRplr = (typeof replacer === 'function');
-    return str.replace(regex, (_, key) => {
-        var value = isFnRplr ? replacer(key) : deepContext(key, replacer);
-        return value || defaultValue || '';
-    });
-}
-
-/**
- * 
- * @param {*} str 
- * @param {*} values 
- * @returns 
- */
-export function htmlValueParser(str, replacer, defaultValue) {
-    if (!str) return defaultValue;
-
-    if (typeof replacer === 'function') {
-        return replacer(str);
-    }
-    return parseValue(str, replacer, /\%([\w.@]+)\%/g, defaultValue);
-}
 
 /**
  * 
@@ -135,6 +104,7 @@ export function deepContext(key, context) {
     if (key[0].startsWith('@')) key[0] = key[0].substring(1);
     
     return key.reduce((accum, key) => {
+        if (key == '$0') return accum;
         if (key && accum) { accum = accum[key] } return accum
     }, context);
 }
@@ -283,14 +253,25 @@ export var conditionParser$ = {
         return conditions;
     },
     evaluate: (operator, value, check) => {
-        return (({
+        var operators = ({
             falsy: () => !value === check,
             truthy: () => !!value === check,
             in: () => (value || '').includes(check),
-            notin: () => !(value || '').includes(check),
+            notin: () => !operators.in(),
+            nnotin: () => !!operators.in(),
             rin: () => (check || '').includes(value),
-            rnotin: () => !(check || '').includes(value),
-            any: () => Array.isArray(value) && value.some(v => check.includes(v)),
+            rnotin: () => !operators.rin(),
+            rnnotin: () => !!operators.rin(),
+            any: () => Array.isArray(value) && check && value.some(v => check.includes(v)),
+            notany: () => {
+                if (typeof value == 'string') value = value.split(',');
+                return !operators.any();
+            },
+            rany: () => Array.isArray(check) && value && check.some(v => value.includes(v)),
+            rnotany: () => {
+                if (typeof check == 'string') check = check.split(',');
+                return !operators.rany();
+            },
             gt: () => value > check,
             gte: () => value >= check,
             lt: () => value < check,
@@ -299,8 +280,10 @@ export var conditionParser$ = {
             eq: () => value == check,
             noteq: () => value !== check,
             not: () => value != check,
-            isdefined: () => ((undefined == value) == check)
-        })[operator.toLowerCase()] || function () { return false; })();
+            isdefined: () => ((undefined != value) == check)
+        });
+        
+        return (operators[operator.toLowerCase()] || function () { return false; })();
     },
     simpleCondition: condition => {
         return condition.split('|').map(entry => entry.split('&').reduce((accum, cEntry) => {
@@ -333,12 +316,34 @@ export var conditionParser$ = {
         return ':' + conditionParser$.toString(value, true);
     },
     parseAndEvaluate: (condition, context) => {
+        if (!condition) return true;
         var cachedConditions = conditionParser$.$cachedConditions.get(condition);
         if (!cachedConditions) {
             cachedConditions = conditionParser$.toObject(condition);
             conditionParser$.$cachedConditions.set(condition, cachedConditions);
         }
         return checkConditions(cachedConditions, context);
+    },
+    evaluateConditionalValue: (condition, context) => {
+        var cachedConditions = conditionParser$.$cachedConditions.get(condition);
+        if (!cachedConditions) {
+            cachedConditions = condition.split(':').map(a => a.trim().split('='));
+            conditionParser$.$cachedConditions.set(condition, cachedConditions);
+        }
+
+        var getValue = propValue => propValue.startsWith('@') ? deepContext(propValue, context) : testOrParseJson(propValue);
+
+        // parse the value
+        for(var cond of cachedConditions) {
+            if (!cond[1]) {
+                var value = getValue(cond[0]);
+                if (![undefined, null].includes(value)) return value;
+            } else if (conditionParser$.parseAndEvaluate(cond[1], context)){
+                return getValue(cond[0]);
+            }          
+        }
+
+        return '';
     },
     $cachedConditions: new Map()
 
@@ -391,7 +396,7 @@ function arrayKeyValuePairAttrToJson(value) {
  */
 export function htmlAttrToJson(value, lbs, deep) {
     if (lbs) value = value.split('\n');
-    else value = value.match(/(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g);
+    else value = value.match(/(\S+)=\s*?((?:.(?!["']?\s+(?:\S+)=|["']))+.)?./g);
     return (value || []).reduce((accum, key) => {
         if (key) {
             var spt = key.split('=');

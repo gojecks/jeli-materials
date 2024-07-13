@@ -1,9 +1,13 @@
-<div class="toast" attr-class="customClass" role="alert" aria-live="assertive" aria-atomic="true">
-  <div class="toast-header">
-    <j-place selector="#toastHeader"></j-place>
-    <button type="button" class="btn-close" aria-label="Close"></button>
-  </div>
-  <div class="toast-body">
-    <j-place selector="#toastBody"></j-place>
+<div class="toast-container" {class}="containerClass">
+  <div class="toast fade" role="alert" attr-class="bgClass" aria-live="assertive" aria-atomic="true"  {class}="{'show':_showToast}">
+    <div class="toast-header">
+      <div class="me-auto">
+        <j-place selector="#toastHeader"></j-place>
+      </div>
+      <button type="button" class="btn-close" aria-label="Close toast" @click="closeToast()"></button>
+    </div>
+    <div class="toast-body">
+      <j-place selector="#toastBody"></j-place>
+    </div>
   </div>
 </div>

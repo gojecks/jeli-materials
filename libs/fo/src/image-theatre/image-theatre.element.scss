@@ -67,3 +67,38 @@
         opacity: 0.8;
     }
 }
+
+.thumbnailPreview {
+    .zoom-icon {
+        width: 50px;
+        height: 50px;
+        text-align: center;
+        font-size: 0;
+        text-indent: 0;
+        border-width: 0;
+        border-radius: 50%;
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        left: auto;
+        transition: 250ms ease;
+        cursor: pointer;
+    }
+    
+    .zoom-icon i {
+        font-size: 30px;
+        line-height: 50px;
+        position: static;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: inline-block;
+        color:rgba(0,0,0,1);
+    }
+    
+    .zoom-icon:hover {
+        color: #000;
+        background-color: rgba(232,243,254,1);
+        border-color: rgba(232,243,254,1);
+    }
+}

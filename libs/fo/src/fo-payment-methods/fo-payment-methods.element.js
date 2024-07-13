@@ -10,8 +10,9 @@ Element({
     DI: ['changeDetector?']
 })
 export function FoPaymentMethodsElement(changeDetector) {
-    this.currentYear = new Date().getFullYear();
-    this.currentMonth = new Date().getMonth() + 1;
+    var curDate = new Date();
+    this.currentYear = curDate.getFullYear();
+    this.currentMonth = curDate.getMonth() + 1;
     this.validationInProgress = false;
     this.onPaymentValidation = new EventEmitter();
     this.changeDetector = changeDetector;

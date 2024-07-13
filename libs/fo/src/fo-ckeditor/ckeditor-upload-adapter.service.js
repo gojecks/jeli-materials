@@ -19,6 +19,7 @@ CkeditorUploadAdapterService.prototype.upload = function() {
                         this.uploadService.upload({
                                 file: base64Image,
                                 fileName: file.name,
+                                fullPath: true,
                                 path: 'photos/'
                             })
                             .then(function(res) {

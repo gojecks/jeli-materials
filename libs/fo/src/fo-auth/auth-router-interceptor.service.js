@@ -1,14 +1,14 @@
-import { AuthIdentityService } from "./auth-identity.service";
 import { stateConstants } from "./constants";
+import { FoAuthService } from "./fo-auth.service";
 
 
 Service({
-    DI: [AuthIdentityService]
+    DI: [FoAuthService]
 })
-export function AuthRouterInterceptorService(authIdentityService) {
+export function AuthRouterInterceptorService(foAuthService) {
     this.resolve = function(route, next) {
         stateConstants.currentNav = route.name;
         stateConstants.toState = route;
-        authIdentityService.Authority().then(next);
+        foAuthService.checkAuthority().then(next);
     };
 }

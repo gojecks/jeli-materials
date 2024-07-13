@@ -98,8 +98,10 @@ FoTokenService.prototype.isUserActive = function() {
 }
 
 FoTokenService.prototype.destroy = function() {
-    this._authenticated = false;
-    this.authManager.destroy();
+    if (this._authenticated) {
+        this._authenticated = false;
+        this.authManager.destroy();
+    }
 }
 
 FoTokenService.prototype.hasAuthority = function(role) {

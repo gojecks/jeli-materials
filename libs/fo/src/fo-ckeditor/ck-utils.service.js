@@ -2,27 +2,36 @@ import { LazyLoader, ProviderToken } from '@jeli/core';
 import { CkeditorUploadAdapterService } from './ckeditor-upload-adapter.service';
 
 export var CKEDITOR_URL = new ProviderToken('ckEditorUrl', false, {
-    value: ['https://cdn.ckeditor.com/ckeditor5/23.1.0/classic/ckeditor.js']
+    value: ['https://cdn.ckeditor.com/ckeditor5/{{version}}/{{distribution}}/ckeditor.js']
 });
 
 Service({
     DI: [CkeditorUploadAdapterService, CKEDITOR_URL]
 })
 export function UtilsService(ckeditorUploadAdapterService, ckeditorUrl) {
-    this.openEditor = function(elementId, uploadConfig){
+    this.openEditor = function(props, uploadConfig){
         return new Promise((resolve, reject) => {
-            LazyLoader.staticLoader(ckeditorUrl, function() {
+            LazyLoader.staticLoader(ckeditorUrl.map(url => parserUrl(url, props)), function() {
                 // Depending on the wysiwygare plugin availability initialize classic or inline editor.
                 // templates,section removed from extraPlugins
-                var element = document.getElementById(elementId || 'postBody');
-                ClassicEditor
+                var element = document.getElementById(props.editorId || 'postBody');
+                if (typeof ClassicEditor == 'function') {
+                    ClassicEditor
                     .create(element || {}, {
                         extraPlugins: [CustomUploadPlugin],
                     })
                     .then(resolve, reject)
                     .catch(reject);
+                } else {
+                    reject({message: 'Editor Instance not found!'});
+                }
+
             }, 'js');
         })
+    }
+
+    function parserUrl(url, props) {
+        return url.replace(/\{\{([\w.]+)\}\}/g, (_, key) => props[key]);
     }
 
     /**

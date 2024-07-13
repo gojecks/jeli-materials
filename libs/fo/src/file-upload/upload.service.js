@@ -127,6 +127,7 @@ UploadService.prototype.processFiles = function (files, config, checkExists) {
      * @param {*} next 
      */
     var scanFiles = (item, next) => {
+        directoryInProcess++;
         if (item.isDirectory) {
             var directoryReader = item.createReader();
             directoryReader.readEntries(entries => {
@@ -175,22 +176,30 @@ UploadService.prototype.processFiles = function (files, config, checkExists) {
         }
     };
 
+    var getFileEntry = (file) => {
+        if (!!file.webkitGetAsEntry) return file.webkitGetAsEntry();
+        else if (!!file.getAsEntry) return file.getAsEntry();
+
+        return null;
+    };
+
     /**
      * @param {*} next 
      */
     function _process(next) {
         var file = files[inc];
         // get the file entry
-        var item = null;
-        if (!!file.webkitGetAsEntry) item = file.webkitGetAsEntry();
-        else if (!!file.getAsEntry) item = file.getAsEntry();
-
+        var item = getFileEntry(file);
         if (config.scanDirs && item) {
-            directoryInProcess++;
             // can files and only trigger next when all done
             scanFiles(item, () => {
                 if (directoryInProcess <= 0) next();
             });
+        } else if (file instanceof FileSystemFileHandle) {
+            file.getFile().then(file => {
+                pushItem(file, '');
+                next();
+            }); 
         } else {
             pushItem(file, '');
             next();
@@ -199,10 +208,10 @@ UploadService.prototype.processFiles = function (files, config, checkExists) {
 
     function start(callBack) {
         function next() {
+            inc++;
             if (!files[inc])
                 callBack();
             else {
-                inc++;
                 _process(next)
             }
         }

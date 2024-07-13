@@ -19,7 +19,7 @@
               <button class="btn bg-black rounded-0" attr-class="'float-'+(idx ?'end':'start')" *for="t in ['prev','next']; idx=index"><i attr-class="'bi-arrow-'+(idx ?'right':'left')"></i></button>
             </div>
             <img {src}="openTheatre.fileUrl + openTheatre.files[openTheatre.entry].name" {style}="{width:zoomScale+'%', display:imageLoading ? 'none':'block'}" @error="handleImageLoading(false)" @load="handleImageLoading(true)"/>
-            <div class="text-white" *if="errorLoadingImage">There was an error loading image, please try again.</div>
+            <div class="text-white position-absolute" *if="errorLoadingImage">There was an error loading image, please try again.</div>
             <div class="text-white spinner-border" role="status" *if="imageLoading">
               <span class="visually-hidden">Loading...</span>
             </div>
@@ -40,9 +40,13 @@
 </div>
 
 <div class="container-fluid p-0" *if="showGridList">
+  <div class="overflow-hidden border rounded mb-3 text-center thumbnailPreview position-relative" *if="_config.allowThumbNailPreview">
+    <div class="zoom-icon" @click="startTheatre(entryIndex, true)"><i class="bi-search"></i></div>
+    <img {src}="currentImageUrl" class="col-12"/>
+  </div>
   <div class="fo-imgp-container row" attr-class="_config.gridClass||'me-0 mb-3 g-0'" @click-delegate:img="startTheatre(idx)">
-    <div class="position-relative clearfix fo-imgp-item" attr-class="_config.size" *for="img of photos.files; idx=index;">
-      <img attr-src="photos.fileUrl + (img.name || img)" class="img-fluid" attr-class="_config.imgClass" attr-alt="img.name||img">
+    <div class="position-relative clearfix fo-imgp-item" {class}="_config.size" *for="img of photos.files; idx=index;">
+      <img {src}="photos.fileUrl + (img.name || img)" class="img-fluid" {class}="_config.imgClass" {alt}="img.name||img">
     </div>
   </div>
 </div>

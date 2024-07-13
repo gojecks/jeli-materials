@@ -1,7 +1,13 @@
 import { DatetimeService } from "@jeli/common/datetime";
 import { Inject } from "@jeli/core";
+import { deepContext } from "./utils";
 
 var dateTimeService = Inject(DatetimeService);
+var tagsCheckers = {
+    select: [['class', 'form-select']],
+    input: [['type', 'text'], ['class', 'form-control']],
+    button: [['class', 'btn btn-primary']]
+};
 
 export var badElements = "script|link|style|meta|head|body|html".split('|');
 /**
@@ -10,7 +16,7 @@ export var badElements = "script|link|style|meta|head|body|html".split('|');
  * @param {*} value 
  * @returns 
  */
-export function replaceArg(content, value) { return (content || '&0').replace('&0', value) };
+export function replaceArg(content, value, regex) { return (content || '&0').replace(regex || /&0/g, value) };
 /**
  * 
  * @param {*} tag 
@@ -19,7 +25,7 @@ export function replaceArg(content, value) { return (content || '&0').replace('&
  * @returns 
  */
 export function constructHtml(tag, attr, body) {
-    return '<' + tag + ' ' + (attr || '') + '>' + body.replace(/\n/g, '<br/>') + '</' + tag + '>';
+    return `<${tag} ${(attr || '')}>${(Array.isArray(body) ? body.join('') : (body || '')).replace(/\n/g, '<br/>')}</${tag}>`;
 };
 
 /**
@@ -34,17 +40,107 @@ export var MARKDOWN_REGEX = /@(\w*)+\[(.*?)\]+(\{(.*?)\}|\((.*?)\))+/gi;
  * @param {*} currency 
  * @returns 
  */
-function formatNumber(value, lang, currency) {
+export function formatNumber(value, lang, currency) {
     var config = {
         maximumSignificantDigits: 3
     };
 
     if (currency) {
-        config.style = 'currency',
-            config.currency = currency;
-    }
+        config = {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+            style: 'currency',
+            currency,
+        };
+    };
 
     return new Intl.NumberFormat((lang || navigator.language), config).format(value || 0);
+}
+/**
+ * Object to hold interpolators
+ */
+var interPolators = {
+    json: (value) => {
+        if (typeof value == 'object')
+            return JSON.stringify(value);
+        return value || '';
+    },
+    noop: (value) => value,
+    datetime: (value, attrs) => dateTimeService.format(value, attrs[0] || 'MMM DD, YYYY'),
+    timeago: (value) => dateTimeService.timeConverter(value).timeAgo
+};
+
+
+
+/**
+ * 
+ * @param {*} key 
+ * @param {*} replacer 
+ * @param {*} defaultValue 
+ * @returns 
+ */
+function interpolationParser(key, replacer, defaultValue) {
+    // extract pipe from str
+    var interpolation = key.split('|');
+    key = interpolation.shift().trim();
+    var value = key ? replacer(key) : key;
+    if ([null, undefined, ''].includes(value))
+        value = (value || defaultValue || '');
+    // check value state
+    return !interpolation[0] ? value : runFilters(value, interpolation, replacer);
+}
+
+/**
+ * 
+ * @param {*} value 
+ * @param {*} interpolations 
+ * @param {*} replacer 
+ * @returns 
+ */
+export function runFilters(value, interpolations, replacer) {
+    return interpolations.reduce((accum, interpolation) => {
+        interpolation = interpolation.trim().split(':');
+        accum = interPolators[(interpolation.shift() || 'noop').toLowerCase()](accum, interpolation, replacer);
+        return accum;
+    }, value);
+}
+
+/**
+ * 
+ * @param {*} str 
+ * @param {*} values 
+ * @param {*} regex 
+ * @returns 
+ */
+export function parseValue(str, replacer, regex, defaultValue) {
+    if (!str) return '';
+
+    regex = regex || /\{\{([\w,\s.$@|:*+-_/]+)\}\}/g;
+    var isFnRplr = (typeof replacer == 'function');
+    var dataFn = ckey => (isFnRplr ? replacer(ckey, true) : deepContext(ckey, replacer));
+    return str.replace(regex, (_, key) => interpolationParser(key, dataFn, defaultValue));
+}
+
+/**
+ * context fn for var and for markups
+ * @param {*} value 
+ * @param {*} data 
+ * @param {*} idx
+ * @returns 
+ */
+export function getContextFn(value, data, idx) {
+    return key => (key == '$index') ? idx : deepContext(key, key.charAt(0) == '@' ? data : value);
+}
+
+/**
+ * 
+ * @param {*} str 
+ * @param {*} values 
+ * @returns 
+ */
+export function htmlValueParser(str, replacer, defaultValue) {
+    if (!str) return defaultValue;
+    return parseValue(str, replacer, /\%([\w,\s.$@|:*+-_/]+)\%/g, defaultValue);
 }
 
 /**
@@ -53,7 +149,7 @@ function formatNumber(value, lang, currency) {
  * @param {*} data 
  * @returns number
  */
-function parseMath(exprs, data) {
+export function parseMath(exprs, data) {
     var valueA = deepContext(exprs[0], data);
     var valueB = deepContext(exprs[2], data);
     switch (exprs[1]) {
@@ -72,36 +168,62 @@ function parseMath(exprs, data) {
 
 /**
  * 
+ * @param {*} attr 
+ * @param {*} node 
+ * @param {*} replacerData 
+ * @returns 
+ */
+function mapAttributes(attr, node, replacerData) {
+    if (!attr && !tagsCheckers[node]) return '';
+    if (tagsCheckers[node])
+        attr = tagsCheckers[node].reduce((accum, checkObj) => {
+            if (!accum.includes(checkObj[0])) accum += `${checkObj[0]}="${checkObj[1]}"`;
+            return accum;
+        }, attr || '');
+
+    return htmlValueParser(attr, replacerData, '-')
+}
+
+/**
+ * 
  * @param {*} content 
  * @param {*} replacer 
  * @returns 
  */
+
 var markupHandlers$ = {
     if: (attrs, body, data) => {
-        if (!conditionParser$.parseAndEvaluate(attrs.shift(), data)) return "";
-        return constructHtml(attrs[0] || 'fo-if', attrs[1], renderBody(body, data));
+        if (!conditionParser$.parseAndEvaluate(parseValue(attrs.shift(), data), data)) return '';
+        var tagName = attrs.shift();
+        if (!!markupHandlers$[tagName])
+            return markupHandlers$[tagName](attrs, body, data);
+
+        return constructHtml(tagName || 'fo-if', attrs[0], renderBody(body, data));
     },
+    /**
+     * 
+     * @param {*} attrs 
+     * @param {*} body 
+     * @param {*} data 
+     * @returns HTML string
+     */
     for: (attrs, body, data) => {
         var forRepeater = deepContext(attrs[0], data);
         forRepeater = forRepeater || attrs[0];
         // static data
-        if (!Array.isArray(forRepeater) && /\w+,+\w/g.test(forRepeater)) 
-            forRepeater = forRepeater.split(',');
+        if (!Array.isArray(forRepeater) && /\w+,+\w/g.test(forRepeater))
+            forRepeater = forRepeater.split(',').map(t => (t.includes(':') ? t.split(':') : t));
         else if (forRepeater == '&' && Array.isArray(data))
             forRepeater = data;
 
-        var content = "";
+        var content = '';
         if (Array.isArray(forRepeater)) {
             if (typeof forRepeater == 'string') forRepeater = forRepeater.split(',');
-            content = forRepeater.map(d => replaceArg(renderBody([[(attrs[1] || 'fo-for'), attrs[2], body]], d), d)).join('');
+            var tag = (attrs[1] || 'fo-for');
+            attrs = attrs.splice(2).join('|');
+            content = forRepeater.map(d => replaceArg(renderBody([[tag, attrs, body]], d), d)).join('');
         }
         return content;
-    },
-    currency: (attrs, body, data) => {
-        var value = deepContext(attrs[0], data);
-        if (null == value) return "";
-        value = formatNumber(value, attrs[1], attrs[2]);
-        return constructHtml((attrs[3] || 'fo-currency'), attrs[4], replaceArg(body, value));
     },
     number: (attrs, body, data) => {
         var value = deepContext(attrs[0], data);
@@ -124,18 +246,9 @@ var markupHandlers$ = {
         if (null == value) return '';
         if (attrs[5])
             value = formatNumber(value, attrs[5], attrs[6]);
-        return constructHtml((attrs[3] || 'fo-math'), attrs[4], replaceArg( body, value));
-    },
-    th: (attrs, body, data) => {
-        var content = body.split('|').map(v => constructHtml('th', attrs.join(''), replaceArg(v, data))).join('');
-        return constructHtml('thead', '', content);
-    },
-    td: (attrs, body, data) => {
-        return body.split('|').map(v => constructHtml('td', attrs.join(''), replaceArg(v, data))).join('');
+        return constructHtml((attrs[3] || 'fo-math'), attrs[4], replaceArg(body, value));
     }
 };
-
-
 
 /**
  * 
@@ -143,30 +256,75 @@ var markupHandlers$ = {
  * @param {*} replacerData 
  * @returns 
  */
-function renderBody(astNodes, replacerData) {
-    if (typeof astNodes == 'string') return  htmlValueParser(astNodes, replacerData);
+export function renderBody(astNodes, replacerData) {
+    if (!astNodes) return astNodes;
+    if (typeof astNodes == 'string') return htmlValueParser(astNodes, replacerData);
 
     return astNodes.map(node => {
-        // node can be string if the body of an element contains textNode and element
-        // e.g @element[]{this is another element @newElement[](New element)}
-        if (typeof node == 'string') return htmlValueParser(node, replacerData);
+        try {
+            // node can be string if the body of an element contains textNode and element
+            // e.g @element[]{this is another element @newElement[](New element)}
+            if (typeof node == 'string') return htmlValueParser(node, replacerData);
 
-        if (!!markupHandlers$[node[0]])
-            return htmlValueParser(markupHandlers$[node[0]](node[1].split('|'), node[2], replacerData), replacerData);
+            var tagName = node[0];
+            var handler = markupHandlers$[tagName];
+            if (!!handler)
+                return htmlValueParser(handler(node[1].split('|'), node[2], replacerData), replacerData);
 
-        var isArrayBody = (Array.isArray(node[2]) && (Array.isArray(node[2][0]) || node[2].length > 1));
-        var body = '';
-        var attr = '';
+            var body = '';
+            var attr = mapAttributes(node[1] && node[1].trim(), tagName, replacerData);
 
-        // node[2] body is defined
-        if (node[2])
-            body = isArrayBody ? renderBody(node[2], replacerData) : htmlValueParser(node[2], replacerData);
+            // node[2] body is defined
+            if (node[2])
+                body = Array.isArray(node[2]) ? renderBody(node[2], replacerData) : htmlValueParser(node[2], replacerData);
 
-        // single replace
-        if (node[1] && node[1].trim()) attr = htmlValueParser(node[1], replacerData, '-');
-        return constructHtml(node[0], attr, body);
+            // attach template and observer slot
+            if (tagName == 'dyn-observe') {
+                body = [
+                    constructHtml('dyn-observer-slot', '', body),
+                    constructHtml('template', null, JSON.stringify(node[2]))
+                ];
+            }
+
+            return constructHtml(tagName, attr, body);
+        } catch (e) {
+            return ''
+        }
     }).join('');
 }
+
+
+export var markupRegistry = {
+    /**
+     * 
+     * @param {*} markupName 
+     * @param {*} handler 
+     */
+    tag: function (markupName, handler) {
+        if (markupHandlers$.hasOwnProperty(markupName))
+            throw new Error(`${markupName} already exists please change tag name`);
+        if (typeof handler !== 'function')
+            throw new Error(`${markupName} handler must be a function`);
+        markupHandlers$[markupName] = handler;
+
+        return markupRegistry;
+    },
+    /**
+     * 
+     * @param {*} filterName 
+     * @param {*} handler 
+     */
+    filter: (filterName, handler) => {
+        if (interPolators.hasOwnProperty(filterName))
+            throw new Error(`${filterName} already exists please change tag name`);
+        if (typeof handler !== 'function')
+            throw new Error(`${filterName} handler must be a function`);
+        interPolators[filterName] = handler;
+
+        return markupRegistry;
+    }
+};
+
 
 /**
  * 
@@ -184,7 +342,7 @@ export function renderMarkupElements(markupLanguage, replacerData) {
  * @returns 
  */
 function parseMarkupLanguage(markupLanguage) {
-    var tokens = markupLanguage.split(/(@[\w]+\[.*?\])/g);
+    var tokens = markupLanguage.split(/(@[\w-]+\[.*?\])/g);
     var currentElem = null;
     var manyNested = [];
     var astNodes = [];
@@ -193,19 +351,19 @@ function parseMarkupLanguage(markupLanguage) {
         if (!item || '({'.includes(item)) continue;
         var currentNested = manyNested[manyNested.length - 1];
         if (item.startsWith('@')) {
-            var match = item.match(/@(\w*)+\[(.*?)\]/);
+            var match = item.match(/@([\w-]*)+\[(.*?)\]/);
             // check for badElement and skip if found
-            if (badElements.includes(match[1])) continue;
+            if (!match || badElements.includes(match[1])) continue;
             currentElem = [match[1].toLowerCase(), match[2]];
             // push to astNodes
             if (!manyNested.length) {
                 astNodes.push(currentElem);
             }
             // push element to children if manyNested have a element
-            if (currentNested && Array.isArray(currentNested[2])) {
-                currentNested[2].push(currentElem)
-            }
-            if (tokens[i + 1].trim().startsWith('{')) {
+            if (currentNested && Array.isArray(currentNested[2]))
+                currentNested[2].push(currentElem);
+
+            if (tokens[i + 1] && tokens[i + 1].trim().startsWith('{')) {
                 // set the container for children elements
                 currentElem.push([]);
                 manyNested.push(currentElem)
@@ -260,7 +418,7 @@ function parseMarkupLanguage(markupLanguage) {
                 }
 
                 // attach text content to child if any found
-                if (textContent)
+                if (textContent && Array.isArray(currentElem[2]))
                     currentElem[2].push(textContent);
             }
 

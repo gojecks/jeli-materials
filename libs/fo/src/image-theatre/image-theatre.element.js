@@ -21,12 +21,13 @@ export function ImageTheatreElement(imageTheatreService, changeDetector, hostEle
     this.isPlaying = false;
     this.interval = null;
     this.isFullScreen = false;
-    this._config =  {
+    this._config = {
         size: 'col',
         gridClass: null,
         imgClass: null,
         autoPlay: true,
-        interval: 3000
+        interval: 3000,
+        allowThumbNailPreview: false
     };
 
     imageTheatreService.startTheatreEvent.subscribe(eventObj => {
@@ -35,20 +36,29 @@ export function ImageTheatreElement(imageTheatreService, changeDetector, hostEle
         }
     });
 
-    Object.defineProperty(this, 'config', {
-        get: () =>  this._config,
-        set:  value => Object.assign(this._config, value)
+    Object.defineProperties(this, {
+        currentImageUrl: {
+            get: () => {
+                var imgPath = this.photos.files[this.entryIndex];
+                if (!imgPath) return '';
+                return `${this.photos.fileUrl}${imgPath.name || imgPath}`;
+            }
+        },
+        'config': {
+            get: () => this._config,
+            set: value => Object.assign(this._config, value)
+        }
     });
 }
 
-ImageTheatreElement.prototype.start = function(eventObj) {
+ImageTheatreElement.prototype.start = function (eventObj) {
     this.imageLoading = true;
     this.openTheatre = eventObj;
     document.body.classList.add(this.bodyClassList);
     this.play();
 }
 
-ImageTheatreElement.prototype.scale = function(scale) {
+ImageTheatreElement.prototype.scale = function (scale) {
     if ((!scale && this.zoomScale === 80) || (this.zoomScale === 100 && scale)) return;
     if (scale) {
         this.zoomScale += 10;
@@ -59,7 +69,7 @@ ImageTheatreElement.prototype.scale = function(scale) {
     this.stop();
 }
 
-ImageTheatreElement.prototype.prevNext = function(next) {
+ImageTheatreElement.prototype.prevNext = function (next) {
     this.imageLoading = true;
     this.errorLoadingImage = false;
     var totalImages = this.openTheatre.files.length - 1;
@@ -67,12 +77,12 @@ ImageTheatreElement.prototype.prevNext = function(next) {
     this.zoomScale = 80;
     if (next) {
         this.openTheatre.entry = ((totalImages == this.openTheatre.entry) ? 0 : ++this.openTheatre.entry);
-    } else  {
+    } else {
         this.openTheatre.entry = ((this.openTheatre.entry === 0) ? totalImages : --this.openTheatre.entry);
     }
 }
 
-ImageTheatreElement.prototype.closeTheatre = function(){
+ImageTheatreElement.prototype.closeTheatre = function () {
     this.openTheatre = null;
     this.zoomScale = 80;
     this.imageLoading = false;
@@ -82,24 +92,24 @@ ImageTheatreElement.prototype.closeTheatre = function(){
     document.body.classList.remove(this.bodyClassList);
 }
 
-ImageTheatreElement.prototype.stop = function(){
-    if(!this._config.autoPlay) return;
+ImageTheatreElement.prototype.stop = function () {
+    if (!this._config.autoPlay) return;
     clearInterval(this.interval);
     this.isPlaying = false;
     this.progress = 0;
     this.interval = null;
 }
 
-ImageTheatreElement.prototype.play = function(){
-    if(!this._config.autoPlay || this.interval) return;
+ImageTheatreElement.prototype.play = function () {
+    if (!this._config.autoPlay || this.interval) return;
     this.isPlaying = true;
     var interVal = this._config.interval || 5000;
-    var progressInc = (100 / (interVal / 100 ));
+    var progressInc = (100 / (interVal / 100));
     this.interval = setInterval(() => {
         // wait until image is loaded before start progressing
         if (this.imageLoading) return;
 
-        if (this.progress >= 100){
+        if (this.progress >= 100) {
             this.prevNext();
             this.progress = 0;
         } else {
@@ -109,19 +119,24 @@ ImageTheatreElement.prototype.play = function(){
     }, 100);
 }
 
-ImageTheatreElement.prototype.handleImageLoading = function(isLoaded) {
+ImageTheatreElement.prototype.handleImageLoading = function (isLoaded) {
     this.imageLoading = false;
     this.errorLoadingImage = !isLoaded;
     if (!isLoaded) this.stop();
     else this.play();
 }
 
-ImageTheatreElement.prototype.startTheatre = function(idx) {
-   this.start(Object.assign({ entry: idx }, this.photos));
+ImageTheatreElement.prototype.startTheatre = function (idx, fromZoomIcon) {
+    if (this._config.allowThumbNailPreview && !fromZoomIcon) {
+        this.entryIndex = idx;
+        return;
+    }
+
+    this.start(Object.assign({ entry: idx }, this.photos));
 }
 
-ImageTheatreElement.prototype.fullScreen = function(){
-    if (!this.isFullScreen){
+ImageTheatreElement.prototype.fullScreen = function () {
+    if (!this.isFullScreen) {
         this.hostElement.nativeElement.requestFullscreen();
     } else {
         document.exitFullscreen();
@@ -129,13 +144,13 @@ ImageTheatreElement.prototype.fullScreen = function(){
     this.isFullScreen = !this.isFullScreen;
 }
 
-ImageTheatreElement.prototype.theatreBtnAction = function(id){
+ImageTheatreElement.prototype.theatreBtnAction = function (id) {
     var actions = {
         'zoom-in': () => this.scale(1),
         'zoom-out': () => this.scale(0),
         close: () => this.closeTheatre(),
         playPause: () => {
-            if (this.isPlaying) 
+            if (this.isPlaying)
                 this.stop();
             else
                 this.play();

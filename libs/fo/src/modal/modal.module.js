@@ -1,6 +1,7 @@
 import { CommonModule } from '@jeli/common';
 import { FoModalElement } from './modal.element';
 import { ModalService } from './modal.service';
+import { modalRegistry } from './modal.registry';
 
 jModule({
     requiredModules: [
@@ -13,6 +14,12 @@ jModule({
         FoModalElement
     ]
 })
-export function FoModalModule() {
+export class FoModalModule {
+    static registerComponent(component){
+        if (('function' == typeof component)) {
+            modalRegistry.set(component.type, component);
+        }
+    }
 
+    constructor(){}
 }

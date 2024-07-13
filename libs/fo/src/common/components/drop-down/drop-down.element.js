@@ -12,7 +12,10 @@ Element({
         'foDropDownChange:emitter'
     ],
     viewChild: ['dropDown:HTMLElement=#dropDown'],
-    DI: ['changeDetector?']
+    DI: ['changeDetector?'],
+    asNative: {
+        selector: 'fo-drop-down-native'
+    }
 })
 export function DropDownElement(changeDetector) {
     this.dropDown = null;
