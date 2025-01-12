@@ -16,16 +16,21 @@ export function registerQueryEvent(breakPoints, callback){
         'lg': 3
     };
 
-    var breakPointValues = Object.keys(breakPoints).reduce((accum, key) => {
-        if(mediaQueries[key])
-            accum[mediaQueries[key]] = breakPoints[key];
-        else if(typeof key == 'number')
-            accum[key] = breakPoints[key];
+    var fallbackSize = 0;
+    if (breakPoints.hasOwnProperty('xs')){
+        var windowWidth = window.innerWidth;
+        if (windowWidth < mediaQueries.sm)
+            fallbackSize = windowWidth;
+    }
 
+    var breakPointValues = Object.keys(breakPoints).reduce((accum, key) => {
+        var mediaSize = mediaQueries[key] || fallbackSize || ((typeof key == 'number') ? key : 0);
+        if (mediaSize) accum[mediaSize] = breakPoints[key];
         return accum;
     }, {});
+
     return MediaQueryEvent(Object.keys(breakPointValues), (mediaEvent, screenSize) => {
         console.log(`Media breakpoint changed to size ${screenSize}`);
-        callback(breakPointValues[screenSize])
+        callback(Number(breakPointValues[screenSize]))
     });
 }

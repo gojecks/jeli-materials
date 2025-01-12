@@ -1,0 +1,113 @@
+<j-fragment template="directPaymentView" *if="!existingPaymentConfig.enabled; else as paymentMethodView"></j-fragment>
+<j-place></j-place>
+
+<j-template #directPaymentView>
+  <form {:formControl}="paymentFormData" name="paymentForm" @submit="validateCardDetails()">
+    <label class="form-label">Account details</label>
+    <div class="mb-3 mbm">
+      <input type="text" :formField="name" class="form-control" placeholder="Name on card" {class}="{'is-invalid': hasError('name')}" />
+    </div>
+    <label class="form-label">Payment details</label>
+    <j-fragment {template}="merchant+'View'"></j-fragment>
+    <div class="mb-3 mbm d-grid gap-2" *if="token">
+      <button class="btn btn-primary" type="submit"
+        {disabled}="!formValid || !canMakePayment || validationInProgress || !regenerateToken">
+        <i class="spinner-border spinner-border-sm" *if="validationInProgress"></i> ${:btnText || 'Pay now'}
+      </button>
+    </div>
+    <div class="alert alert-danger" *if="errMsg" {innerHTML}="errMsg" trust-html></div>
+  </form>
+</j-template>
+
+<j-template #omiseView>
+    <div class="input-group mbm mb-3">
+      <input type="text" class="form-control" :formField="number" placeholder="Card Number" maxlength="19"
+        :foMask="^\d{0,16}$" limit="4" {class}="{'is-invalid': hasError('number')}" />
+      <span class="input-group-text text-bold">${getCardType()|uppercase}</span>
+      <span class="input-group-text"><i class="bi bi-credit-card-2-front"></i></span>
+    </div>
+    <div class="input-group mbm mb-3">
+      <input type="text" class="form-control cc-expiry-input" placeholder="MM/YY"
+        :foMask="^\d{0,4}$" :formField="expiration" separator="/" limit="2" maxlength="5">
+      <input type="password" :formField="security_code" maxlength="3" class="form-control cc-cvc-input"
+        placeholder="CVV:" {class}="{'is-invalid': hasError('security_code')}"/>
+      <span class="input-group-text"><i class="bi bi-credit-card-2-back"></i></span>
+    </div>
+</j-template>
+
+<j-template #stripeView>
+  <div class="stripe-view mb-3 border rounded p-3" #stripeMountView>Loading Fields...</div>
+</j-template>
+
+<j-template #paymentMethodView>
+  <div class="mt-5" @click-delegate:button="paymentMethodAction($event.target.id, card)">
+    <h5 class="clearfix">
+        ${:existingPaymentConfig.header} 
+        <button class="btn float-end" {class}="existingPaymentConfig.btnClass" id="addPaymentMethod">
+            ${:existingPaymentConfig.btnLabel}
+        </button>
+    </h5>
+    <div class="border p-2 clearfix mb-2" *for="card of customerDetails.cards">
+        <div class="float-start">
+            <span class="fw-bold d-block">${:card.brand | capitalize} ending with ${:card.last4} </span>
+            <span class="text-muted d-block">Created ${:(card.created || card.metadata.created)|dateTime: 'YYYY-MM-DD hh:mm:ss TT'}</span>
+            <span class="badge bg-primary" *if="(card.default || card.id == customerDetails.default_source
+            )">Default</span>
+        </div>
+        <div class="float-end py-2">
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-primary" id="editCardDetails"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-outline-danger" *if="!!card.default || customerDetails.default_source !== card.id" id="deleteCard"><i
+                        class="bi bi-trash"></i></button>
+            </div>
+        </div>
+    </div>
+    <p *if="!customerDetails.cards.length" class="alert alert-info text-center">No existing payment records. </p>
+</div>
+</j-template>
+
+<j-template #addPaymentMethodView>
+  <j-fragment *if="existingPaymentConfig.paymentMethods.length > 1; else as directPaymentView">
+    <p>Select a payment method to add</p>
+    <div class="mb-3" @click-delegate:a="selectedMethodType=details.type">
+      <a class="border p-2 d-block" {:jClass}="selectedMethodType==details.type ? 'text-bg-primary':'text-bg-light'"
+        *for="details of existingPaymentConfig.paymentMethods">
+        <h6>${:details.title}</h6>
+        <p class="m-0">${:details.description}</p>
+      </a>
+    </div>
+    <j-fragment {template}="selectedMethodType + 'View'"></j-fragment>
+  </j-fragment>
+  <div class="alert alert-danger" *if="selectedMethodType && onAddError">Unable to add payment method.</div>
+</j-template>
+
+<j-template #editCardDetailsView>
+  <div class="input-group mbm mb-3" card>
+    <span class="input-group-text">Name</span>
+    <input type="text" class="form-control" @{:model}="cardEditor.name" placeholder="FullName" maxlength="65"
+      minlength="3">
+  </div>
+  <div class="input-group mbm mb-3">
+    <span class="input-group-text">Expiration *</span>
+    <input type="month" class="form-control" @{:model}="cardEditor.exp">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Billing Address</label>
+    <div class="input-group">
+      <span class="input-group-text">City</span>
+      <input type="text" class="form-control" placeholder="Billing City" @{:model}="cardEditor.city" />
+      <span class="input-group-text">PostalCode</span>
+      <input type="text" class="form-control" placeholder="PostalCode" @{:model}="cardEditor.postal_code" />
+    </div>
+  </div>
+  <div class="clearfix">
+    <button class="btn btn-primary float-end" @click="updateCardDetails()" {disabled}="!cardEditor.exp">Update
+      Card</button>
+  </div>
+</j-template>
+
+<j-template #cardView use="directPaymentView"></j-template>
+
+<j-template #deletePaymentMethodView>
+  <p class="fw-bold">Are you sure you want to remove this paymentMethod? ${selectedCard.brand + ':' + selectedCard.last4} </p>
+</j-template>

@@ -1,0 +1,4 @@
+<form class="row gx-3 mb-3 mbm digit-group" novalidate @keyup="handleDigitGroup($event)">
+    <input maxlength="1" attr-placeholder="idx" class="col border" type="text" attr-id="'digit-'+ idx"
+    attr-name="'digit-'+ idx" *for="idx of $range(1,6)">
+</form>

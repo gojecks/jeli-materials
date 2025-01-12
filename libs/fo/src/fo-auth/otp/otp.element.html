@@ -1,0 +1,37 @@
+<j-fragment *if="!success; else as validateCode">
+    <p class="alert alert-danger" *if="message">${:message}</p>
+    <div class="mb-3 mbm" {:formControl}="otpFormControl">
+        <j-place selector="[stepOneLabel]"></j-place>
+        <div class="input-group">
+            <span class="input-group-text" *if="(type == 'sms')">${countryCode}</span>
+            <input type="text" attr-placeholder="'Enter your '+ (type == 'sms'?'mobile number':'email address')" class="form-control" :formField="identifier">
+        </div>
+    </div>
+    <div class="d-grid gap-2">
+        <button class="btn btn-primary btn-block"
+            {disabled}="otpFormControl.getField('identifier').invalid || isProcessing" @click="sendCode()"> Send
+            Verification Code </button>
+    </div>
+    <div class="alert alert-danger mt-3 mtm" *if="error">
+        <p>${errMsg || 'unable to validate your input, please try again.'}</p>
+    </div>
+</j-fragment>
+
+<j-template #validateCode>
+    <p class="alert alert-success">Verification code sent to ${otpFormControl.value.identifier}. Please check your messages with ref: ${response.ref}.</p>
+    <j-place selector="[stepTwoLabel]"></j-place>
+    <fo-digit-group @onDigitGroupChange="onDigitGroupChange($event)"></fo-digit-group>
+    <div class="mt-3 mtm clearfix">
+        <button type="button" class="btn btn-primary float-end pull-right" @click="validateCode()"
+            {disabled}="isProcessing || otpFormControl.getField('code').invalid">
+            Validate code
+        </button>
+        <p><button @click="sendCode()" {disabled}="isProcessing || !expired" class="btn btn-outline-primary">Resend code</button>
+        </p>
+    </div>
+    <div class="mt-3 mtm">
+        <div class="alert alert-danger" *if="error">
+            <p>${errMsg || 'There was an error, please try again.'}</p>
+        </div>
+    </div>
+</j-template>

@@ -9,44 +9,46 @@ Element({
     props: ['options'],
     DI: [GoogleMapService, 'changeDetector?']
 })
-export function PlaceElasticSearchElement(googleMapService, changeDetector) {
-    this.onPlaceSelected = new EventEmitter();
-    this.googleMapService = googleMapService;
-    this.changeDetector = changeDetector;
-    this.homeLocations = [];
-    this._options = {
-        ids: {
-            autoComplete: "_gpAutoComplete"
-        },
-        searchBox: true
-    };
-    this.autoCompleteInstance = null;
-    Object.defineProperty(this, 'options', {
-        set: function(value) {
-            if (value && typeof value === 'object') {
-                Object.assign(this._options, value);
+export class PlaceElasticSearchElement {
+    constructor(googleMapService, changeDetector) {
+        this.onPlaceSelected = new EventEmitter();
+        this.googleMapService = googleMapService;
+        this.changeDetector = changeDetector;
+        this.homeLocations = [];
+        this._options = {
+            ids: {
+                autoComplete: "_gpAutoComplete"
+            },
+            searchBox: true
+        };
+        this.autoCompleteInstance = null;
+        Object.defineProperty(this, 'options', {
+            set: function (value) {
+                if (value && typeof value === 'object') {
+                    Object.assign(this._options, value);
+                }
             }
+        });
+    }
+    didInit() {
+        this.googleMapService
+            .setConfiguration(this._options)
+            .init()
+            .then(pos => this.googleMapService.setCoordinates(pos));
+    }
+    viewDidLoad() {
+        this.googleMapService.buildAutoComplete(place => this.onPlaceSelected.emit(place));
+    }
+    viewDidDestroy() {
+        var googlePacContainer = document.querySelector('.pac-container');
+        if (googlePacContainer) {
+            document.body.removeChild(googlePacContainer);
         }
-    });
-}
-
-PlaceElasticSearchElement.prototype.didInit = function() {
-    this.googleMapService
-        .setConfiguration(this._options)
-        .init()
-        .then(pos => this.googleMapService.setCoordinates(pos));
-}
-
-PlaceElasticSearchElement.prototype.viewDidLoad = function() {
-    this.googleMapService.buildAutoComplete(place => this.onPlaceSelected.emit(place));
-};
-
-PlaceElasticSearchElement.prototype.viewDidDestroy = function() {
-    var googlePacContainer = document.querySelector('.pac-container');
-    if (googlePacContainer) {
-        document.body.removeChild(googlePacContainer);
     }
 }
+
+
+
 
 Directive({
     selector: 'foPlaceElasticSearch',
@@ -54,14 +56,14 @@ Directive({
     props: ['options'],
     DI: [GoogleMapService, 'changeDetector?', 'ElementRef?']
 })
-export function FoPlaceElasticSearchDirective(googleMapService, changeDetector, elementRef) {
-    PlaceElasticSearchElement.call(this, googleMapService, changeDetector);
-    this.Element = elementRef;
+export class FoPlaceElasticSearchDirective extends PlaceElasticSearchElement {
+    constructor(googleMapService, changeDetector, elementRef) {
+        super(googleMapService, changeDetector);
+        this.Element = elementRef;
+    }
+    viewDidLoad() {
+        this.googleMapService.buildAutoComplete(place => {
+            this.onPlaceSelected.emit(place);
+        }, this.Element.nativeElement);
+    }
 }
-FoPlaceElasticSearchDirective.constructor = PlaceElasticSearchElement;
-FoPlaceElasticSearchDirective.prototype = Object.create(PlaceElasticSearchElement.prototype);
-FoPlaceElasticSearchDirective.prototype.viewDidLoad = function() {
-    this.googleMapService.buildAutoComplete(place => {
-        this.onPlaceSelected.emit(place);
-    }, this.Element.nativeElement);
-};

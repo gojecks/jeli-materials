@@ -9,7 +9,7 @@ export * from './src/file-upload/file-upload.module';
 export * from './src/utils';
 export * from './src/common/common.module';
 export * from './src/fo-ckeditor/fo-ckeditor.module';
-export * from './src/fo-payment-methods/fo-payment-methods.module';
+export * from './src/payment/fo-payment-methods.module';
 export * from './src/draggable/draggable.module';
 export * from './src/cookies-policy/cookies-policy.module';
 export * from './src/fo-analytics/fo-analytics.module';

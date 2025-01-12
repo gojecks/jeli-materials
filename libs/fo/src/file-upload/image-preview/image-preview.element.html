@@ -1,11 +1,11 @@
-<div class="container-fluid">
-  <div class="fo-imgp-container row" attr-class="gridClass||'me-0 mb-3 g-0'" @click-delegate:img="openTheatre(idx)" @click-delegate:button="removeImage(idx)">
-    <div class="pe-0 position-relative clearfix fo-imgp-item" attr-class="size" *for="img of photos.files; idx=index;">
-      <img {src}="photos.fileUrl + (img.name || img)" class="img-fluid" attr-class="imgClass" {alt}="img.name||img" draggable="false">
-      <button type="button" class="btn-close close-btn" aria-label="Remove image" *if="canDelete"></button>
+<div class="preview-container">
+  <div class="fo-imgp-container row" attr-class="gridClass||'me-0 g-0'" @click-delegate:img,button="action($event.target.localName, idx)">
+    <div class="pe-0 position-relative clearfix fo-imgp-item" attr-class="size || 'col'" *for="img of photos.files; idx=index;">
+      <img {src}="photos.fileUrl + (img.name || img)" {id}="'pv_'+idx" class="img-fluid" attr-class="imgClass" {alt}="img.name||img" draggable="false">
+      <button type="button" class="btn-close close-btn" {id}="'rm_'+idx" aria-label="Remove image" *if="canDelete"></button>
     </div>
   </div>
-  <p class="text-muted" *if="canDelete">Select Image(s) to reorder their position</p>
+  <p class="text-muted mt-3" *if="canDelete">Select Image(s) to reorder their position</p>
 </div>
 
 <fo-image-theatre *if="allowPreview"></fo-image-theatre>

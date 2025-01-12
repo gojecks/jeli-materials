@@ -1,6 +1,14 @@
 import { conditionParser$, deepClone, deepContext, setCompValue } from "../utils";
 import { AUTH_STORAGE_PROVIDER } from "./tokens";
 
+/**
+ * list of accepted storage types
+ */
+var STORAGE_TYPES = [
+    'sessionStorage', 
+    'localStorage'
+];
+
 Service({
     DI: [AUTH_STORAGE_PROVIDER]
 })
@@ -13,6 +21,7 @@ Service({
  */
 export class AuthSessionManager {
     constructor(storageProvider) {
+        this.storageProvider = storageProvider;
         this.ignoreKeysOnReload = [];
         this._sessionData = Object.defineProperties({}, {
             ISODate: {
@@ -23,9 +32,8 @@ export class AuthSessionManager {
             },
             location: () => location
         });
-
+        this._storageType = (STORAGE_TYPES[storageProvider.storageType || 0])
         this._observers = {};
-        this.storageProvider = storageProvider;
         this._stack = {
             'auth-reload': () => {
                 // remove keys from state before saving
@@ -36,19 +44,28 @@ export class AuthSessionManager {
 
         // get the storageData
         if (storageProvider.storage) {
-            var sessionData = JSON.parse(window[storageProvider.storageType].getItem('auth-reload') || '{}');
+            var sessionData = JSON.parse(window[this._storageType].getItem('auth-reload') || '{}');
             Object.assign(this._sessionData, sessionData);
             sessionData = null;
             //remove the cache data
-            window[storageProvider.storageType].removeItem('auth-reload');
+            window[this._storageType].removeItem('auth-reload');
         }
 
         /**
          * register eventListener
          */
-        if ("onbeforeunload" in window) {
+        if (document && document.visibilityState) {
+            var isBeforeUnload = false;
             window.addEventListener('beforeunload', () => {
+                isBeforeUnload = true;
                 this.saveSessionStack();
+            }, false);
+
+            // this is workaround for browser that don't trigger beforeunload
+            document.addEventListener('visibilitychange', e => {
+                if (!isBeforeUnload){
+                    this.saveSessionStack();
+                }                    
             }, false);
         }
 
@@ -56,12 +73,12 @@ export class AuthSessionManager {
     }
 
     saveSessionStack() {
-        if (this.storageProvider.storage && this.storageProvider.storageType in window) {
+        if (this.storageProvider.storage && this._storageType in window) {
             for (var stack in this._stack) {
                 var value = this._stack[stack]();
                 //store the ref data to be retrieve
-                if (value) {
-                    window[this.storageProvider.storageType].setItem(stack, JSON.stringify(value));
+                if (value && Object.keys(value).length) {
+                    window[this._storageType].setItem(stack, JSON.stringify(value));
                 }
             }
         }
@@ -79,8 +96,12 @@ export class AuthSessionManager {
         }
     };
 
-    destroy() {
-        this._sessionData = {};
+    destroy(stateIds) {
+        if (Array.isArray(stateIds)){
+            stateIds.forEach(id => { delete this._sessionData[id]});
+        } else {
+            this._sessionData = {};
+        }
     };
 
     getData(key) {

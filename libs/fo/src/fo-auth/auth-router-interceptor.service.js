@@ -1,4 +1,3 @@
-import { stateConstants } from "./constants";
 import { FoAuthService } from "./fo-auth.service";
 
 
@@ -7,8 +6,6 @@ Service({
 })
 export function AuthRouterInterceptorService(foAuthService) {
     this.resolve = function(route, next) {
-        stateConstants.currentNav = route.name;
-        stateConstants.toState = route;
-        foAuthService.checkAuthority().then(next);
+        foAuthService.checkAuthority(route).then(next);
     };
 }

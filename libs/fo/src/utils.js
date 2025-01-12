@@ -1,7 +1,10 @@
 import { debounce } from "@jeli/core";
 import { MARKDOWN_REGEX, renderMarkupElements } from "./markup.parser";
-
+// counter used internally for elements
+export var internal_counter = 0;
 export function base64ToFile(b64File, type) {
+    if (typeof b64File != 'string') return b64File;
+    
     var split = b64File.split(',');
     type = type || split[0].replace('data:', '').replace(';base64', '');
     var byteString = atob(split[1]);
@@ -395,6 +398,7 @@ function arrayKeyValuePairAttrToJson(value) {
  * @returns Object
  */
 export function htmlAttrToJson(value, lbs, deep) {
+    if (typeof value != 'string') return value;
     if (lbs) value = value.split('\n');
     else value = value.match(/(\S+)=\s*?((?:.(?!["']?\s+(?:\S+)=|["']))+.)?./g);
     return (value || []).reduce((accum, key) => {
@@ -435,3 +439,32 @@ export var cryptoUtils = {
         });
     }
 };
+
+export function px2vh(value) {
+    return Math.round((100 * value) / document.documentElement.clientHeight);
+}
+
+export function px2vw(value) {
+    return Math.round((100 * value) / document.documentElement.clientWidth);
+}
+
+export function vw2px(d) {
+    return Math.round((document.documentElement.clientWidth * d) / 100);
+}
+
+export function vh2px(d) {
+    return Math.round((document.documentElement.clientHeight * d) / 100);
+}
+
+export function convert2Number(value, dim){
+    if (typeof value == 'string'){
+        var match = value.match(/[vh%]/g);
+        if (match){
+            value = (dim == 'h' ? vh2px : vw2px)(parseInt(value));
+        } else {
+            value = parseInt(value);
+        }
+    }
+
+    return value;
+}

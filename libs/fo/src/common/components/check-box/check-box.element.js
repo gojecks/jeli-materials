@@ -1,100 +1,115 @@
 import { EventEmitter } from '@jeli/core';
 import { FormFieldControlService } from '@jeli/form';
+import { internal_counter } from '../../../utils';
 
 Element({
     selector: 'fo-check-box',
     templateUrl: './check-box.element.html',
     styleUrl: './check-box.element.scss',
-    props: ['id', 'control', 'name', 'size', 'type', 'cbClass', 'value', 'btnClass', 'btnColor','options', 'label'],
+    props: [
+        'id', 
+        'control', 
+        'name', 
+        'size', 
+        'type', 
+        'cbClass', 
+        'value', 
+        'btnClass', 
+        'btnColor',
+        'options', 
+        'label',
+        'disabled'
+    ],
     events: ['onOptionSelected:emitter'],
     DI: ['ParentRef?=formControl']
 })
-export function CheckBoxElement(parentControl) {
-    this.editorsId = "editBox_" + +new Date;
-    this.parentControl = parentControl;
-    this._control = new FormFieldControlService();
-    this.type = 'native';
-    this.size = 'sm';
-    this.btnClass = 'me-1 mb-1';
-    this.btnColor = 'primary';
-    this._name = '';
-    this.options = null;
-    this.onOptionSelected = new EventEmitter();
-    this._controlPassed = false;
-    this._value = null;
+export class CheckBoxElement {
+    constructor(parentControl) {
+        this.editorsId = "editBox_" + internal_counter++;
+        this.parentControl = parentControl;
+        this._control = new FormFieldControlService();
+        this.type = 'native';
+        this.size = 'sm';
+        this.btnClass = 'me-1 mb-1';
+        this.btnColor = 'primary';
+        this._name = '';
+        this.options = null;
+        this.onOptionSelected = new EventEmitter();
+        this._controlPassed = false;
+        this._value = null;
+        this._disabled = false;
+    }
 
-    Object.defineProperties(this, {
-        name: {
-            set: function(value) {
-                if (this.parentControl) {
-                    this._name = value;
-                    var control = this.parentControl.getField(value);
-                    if (control){
-                        this._control = control;
-                        this._controlPassed = true;
-                    }
-                }
-            },
-            get: function() {
-                return this._name;
-            }
-        },
-        control: {
-            set: function(value) {
-                this._control = value;
+    set name(value) {
+        if (this.parentControl) {
+            var control = this.parentControl.getField(value);
+            if (control){
+                this._control = control;
                 this._controlPassed = true;
-            },
-            get: function() {
-                return this._control;
-            }
-        },
-        value: {
-            set: function(value) {
-                if (this._control) {
-                    this._control.patchValue(value);
-                }
-
-                this._value = value;
-            },
-            get: function() {
-                return this._value;
             }
         }
-    });
-}
-
-CheckBoxElement.prototype.didInit = function() {
-    if (this._control) {
-        this.value = this._control.value;
+        this._name = value;
     }
-}
-
-CheckBoxElement.prototype.viewDidLoad = function() {
-    if (this._control) {
-        this._control.valueChanges.subscribe(value => {
-            if (!this._controlPassed) {
-                this.onOptionSelected.emit(value);
-            }
-        });
+    get name() {
+        return this._name;
     }
-}
-
-CheckBoxElement.prototype.badgeSelected = function(opt) {
-    this.value = this.value || [];
-    var index = this.value.indexOf(opt);
-    if (index > -1) {
-        this.value.splice(index, 1);
-    } else {
-        this.value.push(opt);
+    set control(value) {
+        this._control = value;
+        this._controlPassed = true;
     }
 
-    this.pushValue();
-}
+    get control() {
+        return this._control;
+    }
 
-CheckBoxElement.prototype.pushValue = function(){
-    if (this._control) {
-        this._control.patchValue(this.value);
-    } else {
-        this.onOptionSelected.emit(this.value);
+    set value(value) {
+        this._value = value;
+        this._control.patchValue(value);
+    }
+
+    get value() {
+        return this._value;
+    }
+
+    set disabled(value){
+        this._disabled = value;
+        this._control[value ? 'disable': 'enable']();
+    }
+
+    get disabled(){
+        return this._disabled;
+    }
+
+    didInit() {
+        if (this._control)
+            this._value = this._control.value;
+    }
+    viewDidLoad() {
+        if (this._control) {
+            this._control.valueChanges.subscribe(value => {
+                if (!this._controlPassed) {
+                    this.onOptionSelected.emit(value);
+                }
+            });
+        }
+    }
+    badgeSelected(opt) {
+        this._value = this._value || [];
+        var index = this._value.indexOf(opt);
+        if (index > -1) {
+            this._value.splice(index, 1);
+        } else {
+            this._value.push(opt);
+        }
+
+        this.pushValue();
+    }
+    pushValue() {
+        if (this._control) {
+            this._control.patchValue(this._value);
+            this._control.markAsTouched();
+        } else {
+            this.onOptionSelected.emit(this._value);
+        }
     }
 }

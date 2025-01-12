@@ -1,6 +1,6 @@
 <div class="dropdown" #dropDown>
   <button type="button" class="btn" {class}="buttonStyle +' '+iconClass" @click="openDropDown($event)">${label}</button>
-  <div class="dropdown-menu" attr-class="'dropdown-menu-'+ color"  {:jClass}="{'show':isDropDownOpen}" @click="onOptionSelected($event)">
+  <div class="dropdown-menu" attr-class="'dropdown-menu-'+ color"  {:jClass}="{'show':isDropDownOpen}">
     <j-place></j-place>
   </div>
 </div>

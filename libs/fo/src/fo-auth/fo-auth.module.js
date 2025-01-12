@@ -13,8 +13,9 @@ import { FoModalModule } from '../modal/modal.module.js';
 import { AuthSessionManager } from './auth.session.manager.js';
 import { AuthRouterInterceptorService } from './auth-router-interceptor.service';
 import { AuthRegisterElement } from './auth-register/auth-register.element.js';
-import { NetworkService } from './network-service.js';
 import { FoPasswordTextSwitcherDirective } from './password-text-switcher.directive.js';
+import { FoOtpElement } from './otp/otp.element.js';
+import { FoDigitGroupElement } from './digit-group/digit-group.element.js';
 
 
 jModule({
@@ -30,13 +31,14 @@ jModule({
         FoNewPassword,
         SessionManagementElement,
         AuthRegisterElement,
-        FoPasswordTextSwitcherDirective
+        FoPasswordTextSwitcherDirective,
+        FoOtpElement,
+        FoDigitGroupElement
     ],
     services: [
         FoAuthService,
         FoTokenService,
         AuthSessionManager,
-        NetworkService,
         {
             name: ROUTE_INTERCEPTOR,
             useClass: AuthRouterInterceptorService

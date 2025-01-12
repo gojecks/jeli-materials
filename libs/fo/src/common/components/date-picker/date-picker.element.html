@@ -1,13 +1,10 @@
-<j-fragment template="defaultTemplate"></j-fragment>
+<j-fragment {template}="type +'Template'"></j-fragment>
 <j-template #defaultTemplate>
   <label class="d-block form-label">${:label}</label>
-  <div class="input-group" {:formControl}="_control">
-    <span class="input-group-text">Day</span>
-    <input type="number" class="form-control" placeholder="DD" :formField="day" />
-    <span class="input-group-text">Month</span>
-    <input type="number" class="form-control" placeholder="MM" :formField="month" />
-    <span class="input-group-text">Year</span>
-    <input type="number" class="form-control col-sm-4" placeholder="YYYY" :formField="year" />
+  <div class="input-group" {class}="'input-group-'+(size || 'md')" {:formControl}="_control">
+    <input type="number" class="form-control col-sm-4" placeholder="Year" :formField="year" />
+    <input type="number" class="form-control" placeholder="Month" :formField="month" min="1" max="12" />
+    <input type="number" class="form-control" placeholder="Day" :formField="day" min="1" max="31" />
     <j-fragment *if="isDT">
       <input type="number" class="form-control" placeholder="Hour" :formField="hour" />
       <input type="number" class="form-control" placeholder="Min" :formField="min" />
@@ -19,4 +16,8 @@
   <p class="mt-2 alert alert-danger" *if="_control.touched && _control.invalid">
     You have entered an invalid date please try again.
   </p>
+</j-template>
+
+<j-template #nativeTemplate>
+  <input attr-type="isDT?'datetime-local':'date'" attr-value="dateAsString" class="form-control" @input="onDateTimeInput($event.target)">
 </j-template>

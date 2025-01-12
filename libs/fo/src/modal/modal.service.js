@@ -1,4 +1,10 @@
-import { ComponentFactoryResolver, EventEmitter, animate, ProviderToken, DOMHelper } from '@jeli/core';
+import {
+    ComponentFactoryResolver,
+    EventEmitter,
+    animate,
+    ProviderToken,
+    DOMHelper
+} from '@jeli/core';
 import { renderMarkupElements } from '../markup.parser';
 import { modalRegistry } from './modal.registry';
 
@@ -11,7 +17,7 @@ export var MODAL_DATA = new ProviderToken('modalInstance', false)
  */
 function createModalElement(context) {
     return DOMHelper.createElement('fo-modal', {
-        class: 'modal fade',
+        class: `modal fade ${context.options.backDropClose ? 'pe-none' : ''}`,
         style: {
             display: context.options.displayType || 'block'
         }
@@ -20,54 +26,55 @@ function createModalElement(context) {
             class: `modal-dialog ${context.options.modalStyle || ''}`
         }, modalDialogElement => {
             DOMHelper.createElement('div', {
-                class: 'modal-content'
+                class: `modal-content ${context.options.customClass.content || ''}`
             }, modalContent => {
-                if (!context.options.hideHeader) {
+                if (context.options.showHeader) {
                     DOMHelper.createElement('div', {
-                        class: 'modal-header'
+                        class: `modal-header ${context.options.customClass.header || ''}`
                     }, modalHeader => {
                         if (context.options.title) {
-                            DOMHelper.createElement('h5', { class: 'modal-title'}, parseValue(context.options.title, context.options.data, null, '-'), modalHeader);
+                            DOMHelper.createElement('h5', { class: 'modal-title' }, parseValue(context.options.title, context.options.data, null, '-'), modalHeader);
                         }
-                
+
                         if (!context.options.hideCloseBtn) {
                             DOMHelper.createElement('button', {
-                                class:'btn-close',
+                                class: 'btn-close',
                                 type: 'button'
                             }, null, modalHeader)
-                            .addEventListener('click', () => context.close());
-                        }
-                    }, modalContent); 
-                }
-            
-                // generate body element
-                if (context.options.template || context.options.component) {
-                    DOMHelper.createElement('div', { class: 'modal-body' }, modalBody => {
-                        if (context.options.template) {
-                            if (context.options.markup)
-                                modalBody.innerHTML = renderMarkupElements(context.options.template, context.options.data);
-                            else
-                                modalBody.innerHTML = parseValue(context.options.template, context.options.data, null, '-');
-                        } else if (context.options.component) {
-                            var component = context.options.component;
-                            if (modalRegistry.has(component)) {
-                                component = modalRegistry.get(component);
-                            }
-
-                            // register values to Provider Tokens
-                            MODAL_INSTANCE.register({value: context});
-                            MODAL_DATA.register({value: context.options.data});
-                            ComponentFactoryResolver(component, null, (componentRef) => {
-                                context.componentViewRef = componentRef;
-                                modalBody.appendChild(componentRef.nativeElement);
-                            });
+                                .addEventListener('click', () => context.close());
                         }
                     }, modalContent);
                 }
-            
+
+                // generate body element
+                DOMHelper.createElement('div', { class: `modal-body ${context.options.customClass.body || ''}` }, modalBody => {
+                    if (context.options.template) {
+                        if ('function' == typeof context.options.template)
+                            modalBody.appendChild(context.options.template(context.options.data));
+                        else if (context.options.markup)
+                            modalBody.innerHTML = renderMarkupElements(context.options.template, context.options.data);
+                        else
+                            modalBody.innerHTML = parseValue(context.options.template, context.options.data, null, '-');
+                    }
+                    else if (context.options.component) {
+                        var component = context.options.component;
+                        if (modalRegistry.has(component)) {
+                            component = modalRegistry.get(component);
+                        }
+
+                        // register values to Provider Tokens
+                        MODAL_INSTANCE.register({ value: context });
+                        MODAL_DATA.register({ value: context.options.data });
+                        ComponentFactoryResolver(component, null, (componentRef) => {
+                            context.componentViewRef = componentRef;
+                            modalBody.appendChild(componentRef.nativeElement);
+                        });
+                    }
+                }, modalContent);
+
                 if (context.options.buttons) {
                     DOMHelper.createElement('div', {
-                        class: 'modal-footer'
+                        class: `modal-footer ${context.options.customClass.footer || ''}`
                     }, modalFooter => {
                         // generate the buttons
                         context.options.buttons.forEach((button, idx) => {
@@ -76,11 +83,11 @@ function createModalElement(context) {
                                 type: 'button',
                                 id: (button.id || 'modal_btn_' + idx),
                                 data: {
-                                    'ref-idx':idx
+                                    'ref-idx': idx
                                 }
                             }, buttonEle => {
                                 if (button.iconClass) {
-                                    DOMHelper.creabuttonElement('i', {class: button.iconClass}, null, buttonEle);
+                                    DOMHelper.creabuttonElement('i', { class: button.iconClass }, null, buttonEle);
                                 }
                                 buttonEle.innerText = button.label;
                             }, modalFooter);
@@ -89,14 +96,14 @@ function createModalElement(context) {
                         var clickBtn = event.target.closest('button');
                         if (clickBtn) {
                             var buttonDefinition = context.options.buttons[clickBtn.dataset.refIdx];
-                            if (buttonDefinition){
+                            if (buttonDefinition) {
                                 if ('function' == typeof buttonDefinition.action)
                                     buttonDefinition.action(event);
-                                else 
+                                else
                                     context.onButtonClicked.emit(buttonDefinition);
 
                                 if (buttonDefinition.dismiss) context.close();
-                                
+
                                 buttonDefinition = null;
                             }
                         }
@@ -112,73 +119,155 @@ function createModalElement(context) {
  * 
  * @param {*} options 
  */
-function ModalInstance(options) {
-    this.componentViewRef = null;
-    this.modalId = options.id || 'modal_' + +new Date;
-    this.options = Object.assign({
-        backDrop: true,
-        backDropClose: true,
-        showHeader: true,
-        position: 'center',
-        component: null,
-        static: null,
-        buttons: null,
-        hideCloseBtn: false,
-        displayType: 'flex',
-        modalStyle: '',
-        markup: false,
-        data: null,
-        title: ''
-    }, options);
-    this.componentInstance = null;
-    this.onModalClosed = new EventEmitter();
-    this.onButtonClicked = new EventEmitter();
-    // create overlay
-    this.nativeElement = createModalElement(this);
-    if (this.options.backDrop) {
-        this.overlay = document.createElement('div');
-        this.overlay.classList.add('modal-backdrop', 'fade');
-        this.overlay.addEventListener('click', () => this.close(true));
+class ModalInstance {
+    constructor(options) {
+        this.componentViewRef = null;
+        this.modalId = options.id || 'modal_' + +new Date;
+        this.options = Object.assign({
+            backDrop: true,
+            backDropClose: true,
+            customClass: {
+                content: '',
+                header: '',
+                body: '',
+                footer: ''
+            },
+            modalContentClass: '',
+            showHeader: true,
+            position: 'center',
+            component: null,
+            static: null,
+            buttons: null,
+            hideCloseBtn: false,
+            displayType: 'flex',
+            modalStyle: '',
+            markup: false,
+            data: null,
+            title: '',
+            closeTimeOut: null,
+            openTimeOut: null
+        }, options);
+        this.componentInstance = null;
+        this.isOpened = false;
+        this.onModalOpened = new EventEmitter();
+        this.onModalClosed = new EventEmitter();
+        this.onButtonClicked = new EventEmitter();
+        // create overlay
+        this.nativeElement = createModalElement(this);
+        if (this.options.backDrop) {
+            this.overlay = document.createElement('div');
+            this.overlay.classList.add('modal-backdrop', 'fade');
+            this.overlay.addEventListener('click', () => this.close(true));
+        }
+
+        if (this.options.openTimeOut) {
+            setTimeout(() => this.open(), this.options.openTimeOut);
+        }
     }
-}
+    open() {
+        if (this.isOpened) return;
 
-ModalInstance.prototype.open = function () {
-    if (this.overlay) {
-        document.body.appendChild(this.overlay);
-        this.overlay.classList.add('show');
+        if (this.overlay) {
+            document.body.appendChild(this.overlay);
+            this.overlay.classList.add('show');
+        }
+
+        this.nativeElement.classList.toggle('show');
+        this.onModalClosed.emit(true);
+        // activate timeout
+        if ('number' === typeof this.options.closeTimeOut) {
+            setTimeout(() => this.close(false), this.options.closeTimeOut)
+        }
+
+        this.isOpened = false;
     }
 
-    this.nativeElement.classList.toggle('show');
-}
+    close(fromOverlay) {
+        if (fromOverlay && !this.options.backDropClose) return;
 
-ModalInstance.prototype.close = function (fromOverlay) {
-    if (fromOverlay && !this.options.backDropClose) return;
-    animate.fadeOut(this.nativeElement, 1000, () => {
-        DOMHelper.remove(this.componentViewRef);
         if (this.options.backDrop) {
             this.overlay.classList.toggle('show');
             if (this.overlay.parentElement)
                 this.overlay.parentElement.removeChild(this.overlay);
         }
 
-        this.nativeElement.parentElement.removeChild(this.nativeElement);
-        this.cleanUp();
-    });
-    this.onModalClosed.emit(this.modalId);
+        animate.fadeOut(this.nativeElement, 500, () => {
+            DOMHelper.remove(this.componentViewRef);
+            this.nativeElement && this.nativeElement.parentElement.removeChild(this.nativeElement);
+            this.cleanUp();
+        });
+
+        this.onModalClosed.emit({
+            id: this.modalId,
+            fromOverlay
+        });
+    }
+
+    cleanUp() {
+        this.nativeElement = null;
+        this.options = null;
+        this.overlay = null;
+        this.onModalClosed.destroy();
+        this.onButtonClicked.destroy();
+        this.onModalOpened.destroy();
+    }
 }
 
-ModalInstance.prototype.cleanUp = function(){
-    this.nativeElement = null;
-    this.options = null;
-    this.overlay = null;
-    this.onModalClosed.destroy();
-    this.onButtonClicked.destroy();
-}
 
 Service()
 export class ModalService {
-    constructor(){ }
+    constructor() { }
     createModal(modalOptions) {
         return new ModalInstance(modalOptions);
-    };
+    }
+
+    /**
+     * 
+     * @param {*} template 
+     * @param {*} timer 
+     * @param {*} hideCloseBtn 
+     * @returns 
+     */
+    alert(template, timer, hideCloseBtn) {
+        return this.createModal({
+            title: "Alert",
+            template,
+            closeTimeOut: timer || 2000,
+            modalStyle: "modal-dialog-centered modal-sm",
+            hideCloseBtn
+        }).open();
+    }
+
+    /**
+     * 
+     * @param {*} template 
+     * @param {*} buttons 
+     * @param {*} hideCloseBtn 
+     * @returns 
+     */
+    confirm(template, buttons, hideCloseBtn) {
+        return this.createModal({
+            title: "Please confirm",
+            modalStyle: "modal-dialog-centered modal-sm",
+            template,
+            buttons,
+            hideCloseBtn
+        }).open();
+    }
+
+    /**
+     * 
+     * @param {*} template 
+     * @param {*} buttons 
+     * @returns 
+     */
+    prompt(template, buttons) {
+        return this.createModal({
+            title: "Prompt",
+            modalStyle: "modal-dialog-centered modal-sm",
+            template,
+            buttons,
+            hideCloseBtn: false
+        }).open();
+    }
 }

@@ -3,32 +3,29 @@ import { TimeAgoService } from "./time-ago.service";
 Element({
     selector: 'fo-time-ago',
     template: '<span>${timeago}</span>',
-    props: ['time'],
+    props: ['time', 'interval'],
     DI: [TimeAgoService]
 })
-export function TimeAgoElement(timeAgoService) {
-    this._dateTime = NaN;
-    this.timeago = "";
+export class TimeAgoElement {
+    constructor(timeAgoService) {
+        this.timeago = "";
+        this.interval = 1000;
+        this.timerId = null;
+        this.timeAgoService = timeAgoService;
+    }
 
-    this.refresh = function() {
-        if (!isNaN(this._dateTime)) {
-            this.timeago = timeAgoService.get(this._dateTime);
+    refresh() {
+        if(this.time){
+            this.timeago = this.timeAgoService.get(this.time);
         }
-    };
+    }
 
-    this.didInit = function() {
+    didInit(){
         this.refresh();
-        var _this = this;
-        if (timeAgoService.settings.refreshMillis > 0) {
-            setInterval(function() {
-                _this.refresh();
-            }, timeAgoService.settings.refreshMillis);
-        }
-    };
+        this.timerId = setInterval(() => this.refresh(), this.interval);   
+    }
 
-    Object.defineProperty(this, 'time', {
-        set: function(value) {
-            this._dateTime = timeAgoService.parse(value);
-        }
-    });
+    viewDidDestroy(){
+        clearInterval(this.timerId);
+    }
 }

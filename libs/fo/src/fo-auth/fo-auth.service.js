@@ -33,47 +33,39 @@ export class FoAuthService {
     hasAnyRole(roles) {
         return this.foTokenService.hasAnyAuthority(roles);
     }
+
+    isMe(uid){
+        return (this.userId == uid);
+    }
     
     /**
      * check logged in authority
-     * @param {*} force 
-     * @param {*} afterLogin 
+     * @param {*} route
      * @returns 
      */
-    checkAuthority(force, afterLogin) {
+    checkAuthority(route) {
         var authAccount = () => {
-            if (this.authenticated && !afterLogin) {
+            if (this.authenticated) {
                 var account = this.foTokenService.getUserInfo();
                 if (account.forcePasswordReset) {
-                    stateConstants.toState.redirect(FO_AUTH_CONFIG.passwordResetPage, {
+                    return route.redirect(FO_AUTH_CONFIG.passwordResetPage, {
                         state: 'password',
                         forceReset: true
                     });
-                } else if (FO_AUTH_CONFIG.redirectOnPages.includes(stateConstants.toState.name)) {
-                    stateConstants.toState.redirect(FO_AUTH_CONFIG.pageAfterLogin);
+                } else if (FO_AUTH_CONFIG.redirectOnPages.includes(route.name)) {
+                    return route.redirect(FO_AUTH_CONFIG.pageAfterLogin);
                 }
             }
     
-            if (stateConstants.toState && stateConstants.toState.data) {
-                var isAuthorized = this.foTokenService.hasAnyAuthority(stateConstants.toState.data.authorities);
-                if (isAuthorized && (!stateConstants.toState.data.authorities || this.authenticated)) return;
-                if (!this.authenticated) {
-                    // user is not authenticated. stow the state they wanted before you
-                    // send them to the login service, so you can return them when you're done
-                    stateConstants.redirected = true;
-                    stateConstants.previousStateName = stateConstants.toState;
-                    stateConstants.previousStateNameParams = stateConstants.toStateParams;
-                    // now, send them to the signin state so they can log in
-                    stateConstants.toState.redirect(FO_AUTH_CONFIG.loginPage);
-                } else {
-                    //  redirect to page or default if not found
-                    var pageAfterLogin = this.determinePageAfterLogin();
-                    stateConstants.toState.redirect(pageAfterLogin);
-                }
+            if (route.data) {
+                var isAuthorized = this.foTokenService.hasAnyAuthority(route.data.authorities);
+                if (isAuthorized && (!route.data.authorities || this.authenticated)) return;
+                var redirectPage = !this.authenticated ? FO_AUTH_CONFIG.loginPage : this.determinePageAfterLogin();
+                route.redirect(redirectPage);
             }
         };
     
-        return this.identify(force).then(authAccount);
+        return this.identify(false).then(authAccount);
     };
     
     /**
@@ -96,7 +88,7 @@ export class FoAuthService {
     }
 
     identify(force) {
-        if (force) {
+        if (force){
             this.foTokenService.init(false);
         }
     
@@ -152,5 +144,17 @@ export class FoAuthService {
      */
     info() {
         return this.databaseService.core.api('/user/info');
-    };
+    }
+
+    getDevices(){
+        return this.databaseService.core.api('/user/devices');
+    }
+
+    removeDevice(deviceId){
+        return this.databaseService.core.api({path: '/user/device', method: 'DELETE', data: {deviceId}});
+    }
+
+    removeAllDevices(){
+        return this.databaseService.core.api({path: '/user/devices', method: 'DELETE'});
+    }
 }

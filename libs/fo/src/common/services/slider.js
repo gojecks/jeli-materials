@@ -34,7 +34,7 @@ export class SliderAbstract {
 
     init() {
         this.breakPointSubscription = registerQueryEvent(this.breakPoints, newValue => {
-            if (this.end && this.slidesPerView != newValue) {
+            if (this.slidesPerView != newValue) {
                 var diff = 0;
                 // hide items from visible slides
                 // this will cause start to move ++
@@ -51,18 +51,31 @@ export class SliderAbstract {
               }
               this.slidesPerView = newValue;
         });
+
+        var _mainInitProcess = () => {
+            this.hideOrShowSlides(this.end, this.totalItems);
+            this.intervalId = setInterval(() => {
+                if (this.end == this.totalItems) 
+                    this.end = 0;
+                else if (this.start == this.totalItems)
+                    this.start = 0;
+        
+                this.nextSlides();
+            }, Number(this.interval || 10000));
+        };
     
          // initial hidden slides
         this.end = this.slidesPerView;
-        this.hideOrShowSlides(this.end, this.totalItems);
-        this.intervalId = setInterval(() => {
-            if (this.end == this.totalItems) 
-                this.end = 0;
-            else if (this.start == this.totalItems)
-                this.start = 0;
-    
-            this.nextSlides();
-        }, Number(this.interval || 10000));
+        if(!this.totalItems.length) {
+            var checkForElements = setInterval(() => {
+                if(this.sliderContainer.children.length){
+                    clearInterval(checkForElements);
+                    _mainInitProcess();
+                }
+            }, 100);
+        } else {
+            _mainInitProcess()
+        }
     }
 
     nextSlides(){

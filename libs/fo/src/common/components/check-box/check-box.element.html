@@ -21,7 +21,7 @@
     <button class="btn" type="button" attr-id="editorsId +'_checkbox_'+idx"
       attr-class="'btn-'+ (size || 'sm') +' '+ (btnClass||'me-1 mb-1')"
       {:jClass}="(value.includes(opt.value || opt) ? 'btn-': 'btn-outline-')+(btnColor || 'primary')"
-      *for="opt in options; idx=index">
+      *for="opt of options; idx=index">
       ${:opt.label || opt}
     </button>
   </div>
@@ -29,8 +29,8 @@
 
 <j-template #multipleNativeTemplate>
   <j-place></j-place>
-  <div @click="badgeSelected(opt.value || opt)">
-    <div class="form-check" attr-class="cbClass" *for="opt in options; idx=index">
+  <div @change-delegate:input="badgeSelected(opt.value || opt)">
+    <div class="form-check" attr-class="cbClass" *for="opt of options; idx=index">
       <input class="form-check-input" type="checkbox" attr-id="editorsId +'_checkbox_'+idx">
       <label class="form-check-label" attr-for="editorsId +'_checkbox_'+idx">${:opt.label || opt}</label>
     </div>

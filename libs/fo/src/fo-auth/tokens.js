@@ -15,7 +15,7 @@ export var AUTH_STORAGE_PROVIDER = new ProviderToken('storageProvider', false, {
     value: {
         use: true,
         storage: true, //only set to true if you want manager to always handle your data on refresh
-        storageType: "sessionStorage" //supports only local and session storage
+        storageType: 0 //supports only local and session storage
     }
 });
 

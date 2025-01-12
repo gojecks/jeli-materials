@@ -1,6 +1,6 @@
 <div class="cameraView">
-  <div class="cameraContainer" {style}="_settings">
-    <div {class}="{'d-none':isCaptured}">
+  <div class="cameraContainer" {style}="_settings.style">
+    <div class="h-100 w-100" {class}="{'d-none':isCaptured}">
       <div class="closeContainer">
         <a class="btn-close float-end" arial-label="close" @click="onCameraAction.emit(null)"></a>
       </div>
@@ -9,7 +9,7 @@
         <button type="button" @click="takePicture()" class="captureButton "></button>
       </div>
     </div>
-    <div {class}="{ 'd-none':!isCaptured} ">
+    <div class="h-100 w-100" {class}="{ 'd-none':!isCaptured} ">
       <div class="closeContainer ">
         <a class="btn-close float-end " arial-label="close " @click="isCaptured=false "></a>
       </div>

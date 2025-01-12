@@ -1,6 +1,0 @@
-
-
-Service()
-export function FoPaymentMethodsService() {
-
-}

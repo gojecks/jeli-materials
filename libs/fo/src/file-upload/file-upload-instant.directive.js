@@ -23,6 +23,8 @@ export function FileInstantUploadDirective(uploadService, changeDetector) {
         maximumFileSize: 1048576, // 1MB in bytes,
         imageListPreview: true,
         scanDirs: false,
+        skipFileProcessing: false,
+        autoOpenAndClose: false,
         accepts: ['jpeg', 'jpg', 'png'],
         // Files starting with . will be removed
         ignoreDotFiles: true,
@@ -38,7 +40,8 @@ export function FileInstantUploadDirective(uploadService, changeDetector) {
 
 FileInstantUploadDirective.prototype.didInit = function () {
     if (!this.supportsFilePicker) {
-        this.fileElement = this.uploadService.htmlFilePicker(this._settings.multiple, this.id, files => this.uploadImage(files));
+        var filePickerConfig = Object.assign({id: this._id}, this._settings);
+        this.fileElement = this.uploadService.htmlFilePicker(filePickerConfig, files => this.uploadImage(files));
     }
 }
 
@@ -52,19 +55,19 @@ FileInstantUploadDirective.prototype.onClickAction = function (event) {
 }
 
 FileInstantUploadDirective.prototype.uploadImage = function (processed) {
-    if (processed.invalid.length && !processed.readyForUpload.length){
-        return this.onFileUpload.emit({ invalid: processed.invalid }); 
+    if (processed.invalid.length && !processed.readyForUpload.length) {
+        return this.onFileUpload.emit({ invalid: processed.invalid });
     }
 
     this.uploadService.multipartUpload(processed.readyForUpload, this._settings)
         .then(res => this.onFileUpload.emit({ source: res.result }), err => this.onFileUpload.emit({ err }));
 }
 
-FileInstantUploadDirective.prototype.viewDidDestroy = function(){
-    if (this.fileElement){
+FileInstantUploadDirective.prototype.viewDidDestroy = function () {
+    if (this.fileElement) {
         document.body.removeChild(this.fileElement.form);
         this.fileElement = null;
     }
-   
+
     this.onFileUpload.destroy();
 }

@@ -1,6 +1,7 @@
 <form class="uploadContainer">
   <j-fragment *if="_settings.multiple; else as singleFileTemplate">
-    <div class="box has-advanced-upload js mb-3" {:jClass}="dragClass" @:fileUploadDrag="fileDragDropEvent($event)">
+    <div class="box has-advanced-upload js mb-3" {:jClass}="dragClass" @:fileUploadDrag="fileDragDropEvent($event)"
+      *if="canUploadImages">
       <div class="box__input" {style.display}="!selectedFiles.length ? 'block':'none'">
         <input class="box__file" type="file" @input="onFileSelected($event)" name="files[]" id="file" multiple />
         <label for="file">${:label || 'Choose or drag photos here.'}</label>
@@ -21,11 +22,19 @@
     accepted formats are ${:_settings.accepts}
   </div>
   <fo-camera *if="showCamera" @onCameraAction="listenCameraAction($event)" {settings}="_settings.camera"></fo-camera>
-  <fo-image-preview {photos}="value" *if="value" canDelete="true" {formData}="_settings.formData"></fo-image-preview>
-  <div class="clearfix" *if="_settings.showUploadBtn && !_settings.autoUpload">
-    <button type="button" class="btn btn-primary float-end" @click="uploadImage()" {disabled}="!_uploadFiles.length">
+  <fo-image-preview {photos}="value" *if="value.files.length" {canDelete}="_settings.imagePreview.canDelete"
+    {formData}="_settings.formData" {size}="_settings.imagePreview.size" {gridClass}="_settings.imagePreview.gridClass"
+    {imgClass}="_settings.imagePreview.imgClass" {allowPreview}="_settings.imagePreview.allowPreview"
+    @onImagePreviewAction="onImagePreviewAction.emit($event)"></fo-image-preview>
+
+  <div class="clearfix" *if="canUploadImages && _settings.showUploadBtn && !_settings.autoUpload">
+    <div *if="totalFiles > _settings.maximumFilesToUpload" class="alert alert-warning">
+      Total files ${totalFiles} exceed maximum allowed files ${_settings.maximumFilesToUpload} please delete some images
+      before proceeding
+    </div>
+    <button type="button" class="btn btn-primary float-end" @click="uploadImage()" {disabled}="totalFiles > _settings.maximumFilesToUpload || !_uploadFiles.length">
       <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" *if="uploadInProgress"></span>
-      <i class="fa fa-upload"></i> ${:buttonText || 'Upload'} </button>
+      <i class="bi-upload"></i> ${:buttonText || 'Upload'} </button>
   </div>
 </form>
 
@@ -43,7 +52,8 @@
     <li class="list-group-item list-group-item-action clearfix" *for="file in selectedFiles; idx=index">
       <button class="btn btn-light btn-sm float-end" type="button"><i class="bi bi-x-lg"></i></button>
       <h6 class="col-10 mb-0 text-truncate">
-        <i class="bi me-2 fs-4" {:jClass}="uploadProgress >= 100 ? 'text-success bi-check2-all':'text-secondary bi-check2'"></i> ${file.name}
+        <i class="bi me-2 fs-4"
+          {:jClass}="uploadProgress >= 100 ? 'text-success bi-check2-all':'text-secondary bi-check2'"></i> ${file.name}
       </h6>
     </li>
   </ul>

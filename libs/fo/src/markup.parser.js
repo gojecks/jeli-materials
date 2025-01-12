@@ -192,45 +192,6 @@ function mapAttributes(attr, node, replacerData) {
  */
 
 var markupHandlers$ = {
-    if: (attrs, body, data) => {
-        if (!conditionParser$.parseAndEvaluate(parseValue(attrs.shift(), data), data)) return '';
-        var tagName = attrs.shift();
-        if (!!markupHandlers$[tagName])
-            return markupHandlers$[tagName](attrs, body, data);
-
-        return constructHtml(tagName || 'fo-if', attrs[0], renderBody(body, data));
-    },
-    /**
-     * 
-     * @param {*} attrs 
-     * @param {*} body 
-     * @param {*} data 
-     * @returns HTML string
-     */
-    for: (attrs, body, data) => {
-        var forRepeater = deepContext(attrs[0], data);
-        forRepeater = forRepeater || attrs[0];
-        // static data
-        if (!Array.isArray(forRepeater) && /\w+,+\w/g.test(forRepeater))
-            forRepeater = forRepeater.split(',').map(t => (t.includes(':') ? t.split(':') : t));
-        else if (forRepeater == '&' && Array.isArray(data))
-            forRepeater = data;
-
-        var content = '';
-        if (Array.isArray(forRepeater)) {
-            if (typeof forRepeater == 'string') forRepeater = forRepeater.split(',');
-            var tag = (attrs[1] || 'fo-for');
-            attrs = attrs.splice(2).join('|');
-            content = forRepeater.map(d => replaceArg(renderBody([[tag, attrs, body]], d), d)).join('');
-        }
-        return content;
-    },
-    number: (attrs, body, data) => {
-        var value = deepContext(attrs[0], data);
-        if (null == value) return "";
-        value = formatNumber(value, attrs[1]);
-        return constructHtml((attrs[2] || 'fo-number'), attrs[3], replaceArg(body, value));
-    },
     time: (attrs, body, data) => {
         var value = dateTimeService.timeConverter(deepContext(attrs[0], data)).timeago;
         return constructHtml((attrs[1] || 'fo-time-ago'), attrs[2], replaceArg(body, value));
@@ -240,13 +201,6 @@ var markupHandlers$ = {
         var value = deepContext(attrs[0], data);
         value = dateTimeService.format(value || origValue, attrs[1] || 'MMM DD, YYYY');
         return constructHtml((attrs[2] || 'fo-date-time'), attrs[3], replaceArg(body, value));
-    },
-    math: (attrs, body, data) => {
-        var value = parseMath(attrs, data);
-        if (null == value) return '';
-        if (attrs[5])
-            value = formatNumber(value, attrs[5], attrs[6]);
-        return constructHtml((attrs[3] || 'fo-math'), attrs[4], replaceArg(body, value));
     }
 };
 
@@ -300,7 +254,7 @@ export var markupRegistry = {
      * @param {*} markupName 
      * @param {*} handler 
      */
-    tag: function (markupName, handler) {
+    tag: (markupName, handler) => {
         if (markupHandlers$.hasOwnProperty(markupName))
             throw new Error(`${markupName} already exists please change tag name`);
         if (typeof handler !== 'function')
@@ -322,7 +276,8 @@ export var markupRegistry = {
         interPolators[filterName] = handler;
 
         return markupRegistry;
-    }
+    },
+    _keys: () => Object.keys(markupHandlers$)
 };
 
 

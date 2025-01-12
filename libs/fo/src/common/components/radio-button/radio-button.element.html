@@ -1,7 +1,7 @@
 <label class="d-block form-label">${:label}</label>
 <j-fragment {template}="type + 'Template'"></j-fragment>
 <j-template #buttonTemplate>
-  <div class="btn btn-group p-0 btn-group-${size}">
+  <div {class}="(groupBtn ?  'btn btn-group btn-group-'+size : '')" class="p-0">
     <j-place selector="radio-item"></j-place>
   </div>
 </j-template>

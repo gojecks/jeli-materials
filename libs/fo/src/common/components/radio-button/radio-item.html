@@ -1,6 +1,6 @@
 <j-fragment {template}="contentHostRef.type + 'Template'"></j-fragment>
 <j-template #buttonTemplate>
-    <button type="button" class="btn btn-${type}" {:jClass}="{'active':selected}" attr-id="_id" {disabled}="disabled">
+    <button type="button" class="btn " {class}="(cbClass || '') + ' btn-'+type" {:jClass}="{'active':selected}" attr-id="_id" {disabled}="disabled">
         <i {class}="iconClass"></i> ${label}
     </button>
 </j-template>

@@ -1,10 +1,13 @@
 import { SliderAbstract } from "../../services/slider"
 
 Element({
-    selector: 'fo-slider',
+    selector: 'fo-slider-native',
+    template: '<j-place/>',
     props: ['interval:Number', 'slidesPerView:Number','hiddenClass:Boolean','breakPoints:Array'],
     DI: ['HostElement?'],
-    asNative: true
+    asNative: {
+        selector: 'fo-slider'
+    }
 })
 export class FoSliderElement extends SliderAbstract{
     constructor(hostElement) {
@@ -19,7 +22,7 @@ export class FoSliderElement extends SliderAbstract{
             return this;
     }
 
-    didInit(){
+    viewDidLoad(){
         this.init();
     }
 
