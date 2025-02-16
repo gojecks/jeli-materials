@@ -100,6 +100,7 @@ export class FoPaymentMethodsService {
 
     initializeStripeForm(context) {
         if (!this.stripeCache) {
+            console.log('[Payment] Creating Stripe cache');
             var stripe = Stripe(context.token);
             var element = stripe.elements();
             var card = element.create('card', context.stripeConfig || {
@@ -128,7 +129,7 @@ export class FoPaymentMethodsService {
     }
 
     mountStripeView(stripeMountView){
-        if (stripeMountView) {
+        if (stripeMountView && this.stripeCache) {
             this.stripeCache.card.mount(stripeMountView);
         }
     }

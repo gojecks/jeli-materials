@@ -200,7 +200,7 @@ PopOverService.prototype.determinePosition = function () {
         arrowCenterPosition.left = (remWidthFromEle > eleRectX ? (style.left + eleHalfWidth) : (popoverWidth - remWidthFromEle + eleHalfWidth)) - arrowHeight;
     }
 
-    AttributeAppender(this.popOverElement, {
+    AttributeAppender.set(this.popOverElement, {
         style,
         data: {
             'popper-placement': arrowPosition
@@ -208,7 +208,7 @@ PopOverService.prototype.determinePosition = function () {
     });
 
     // style arrowPointer position 
-    AttributeAppender(this.popOverElement.querySelector('.popover-arrow'), {
+    AttributeAppender.set(this.popOverElement.querySelector('.popover-arrow'), {
         style: arrowCenterPosition
     });
 }

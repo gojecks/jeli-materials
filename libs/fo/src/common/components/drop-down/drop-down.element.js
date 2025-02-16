@@ -93,7 +93,7 @@ export class DropDownElement {
                 style.bottom = btnRect.height;
             }
 
-            AttributeAppender(dropDownMenu, { style });
+            AttributeAppender.set(dropDownMenu, { style });
         }
     }
     openDropDown(event) {

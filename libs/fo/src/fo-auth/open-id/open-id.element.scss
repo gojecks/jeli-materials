@@ -60,3 +60,13 @@
         right: -3rem;
     }
 }
+
+.frameContainer {
+    z-index: 1060;
+    top: 5vh;
+    .iframeHolder{
+        height: 95%;
+        width: 100%;
+        border: none;
+    }
+}

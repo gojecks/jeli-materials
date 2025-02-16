@@ -44,11 +44,7 @@ export class AuthSessionManager {
 
         // get the storageData
         if (storageProvider.storage) {
-            var sessionData = JSON.parse(window[this._storageType].getItem('auth-reload') || '{}');
-            Object.assign(this._sessionData, sessionData);
-            sessionData = null;
-            //remove the cache data
-            window[this._storageType].removeItem('auth-reload');
+            this._retrieveSessionFromStorage();
         }
 
         /**
@@ -97,6 +93,7 @@ export class AuthSessionManager {
     };
 
     destroy(stateIds) {
+        this._retrieveSessionFromStorage();
         if (Array.isArray(stateIds)){
             stateIds.forEach(id => { delete this._sessionData[id]});
         } else {
@@ -144,6 +141,11 @@ export class AuthSessionManager {
                         return sub.callback(value);
                 }
             });
+        }
+
+        // check for autoSave
+        if (this.storageProvider.autoSave){
+            this.saveSessionStack();
         }
     };
 
@@ -259,5 +261,13 @@ export class AuthSessionManager {
     _clone(value) {
         if ([null, undefined].includes(value) || typeof value !== 'object') return value;
         return JSON.parse(JSON.stringify(value));
+    }
+
+    _retrieveSessionFromStorage(){
+        var sessionData = JSON.parse(window[this._storageType].getItem('auth-reload') || '{}');
+        Object.assign(this._sessionData, sessionData);
+        sessionData = null;
+        //remove the cache data
+        window[this._storageType].removeItem('auth-reload');
     }
 }

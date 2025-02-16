@@ -1,6 +1,4 @@
 import { AUTH_DATABASE_SERIVCE } from '../fo-auth/tokens';
-import { DOMHelper } from '@jeli/core';
-import { readFile } from '../utils';
 Service({
     DI: [AUTH_DATABASE_SERIVCE]
 })
@@ -116,7 +114,8 @@ export class UploadService {
             invalid: [],
             readyForUpload: [],
             selectedFiles: [],
-            allImages: true
+            allImages: true,
+            totalFileSize: 0
         };
 
         var inc = 0;
@@ -128,11 +127,11 @@ export class UploadService {
          * @param {*} next
          */
         var scanFiles = (item, next) => {
-            directoryInProcess++;
             if (item.isDirectory) {
+                directoryInProcess--;
                 var directoryReader = item.createReader();
                 directoryReader.readEntries(entries => {
-                    directoryInProcess += entries.length - 1;
+                    directoryInProcess += entries.length;
                     entries.forEach(entry => scanFiles(entry, next));
                 });
             } else {
@@ -166,6 +165,7 @@ export class UploadService {
                 pushInvalid(item);
             } else {
                 response.readyForUpload.unshift(item);
+                response.totalFileSize += item.size;
                 if (!config.imageListPreview) {
                     pushSelected(item, path);
                 }
@@ -193,6 +193,7 @@ export class UploadService {
             var item = getFileEntry(file);
             if (config.scanDirs && item) {
                 // can files and only trigger next when all done
+                directoryInProcess++;
                 scanFiles(item, () => {
                     if (directoryInProcess <= 0) next();
                 });

@@ -8,7 +8,6 @@ input[type="file"] {
 
 .box {
     font-size: 1.25rem;
-    /* 20 */
     position: relative;
     padding: 20px;
     .box__input {
@@ -190,8 +189,6 @@ input[type="file"] {
 }
 
 .js .box__file+label * {
-    /* pointer-events: none; */
-    /* in case of FastClick lib use */
 }
 
 .no-js .box__file+label {

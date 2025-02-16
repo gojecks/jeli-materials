@@ -15,7 +15,8 @@ export var AUTH_STORAGE_PROVIDER = new ProviderToken('storageProvider', false, {
     value: {
         use: true,
         storage: true, //only set to true if you want manager to always handle your data on refresh
-        storageType: 0 //supports only local and session storage
+        storageType: 0, //supports only local and session storage,
+        autoSave: false
     }
 });
 
@@ -27,5 +28,6 @@ export var FO_AUTH_CONFIG = {
     redirectOnPages: [],
     loginPage: '',
     roles: ['ROLE_USER', 'ROLE_ADMIN'],
-    openIdURL: 'https://openid.frontendonly.com'
+    openIdURL: 'https://openid.frontendonly.com',
+    oauthConfigs: []
 };

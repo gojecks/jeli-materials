@@ -66,10 +66,8 @@ export class LoginService {
      *
      * @param {*} type
      */
-    withOpenId(type) {
-        var url = [FO_AUTH_CONFIG.openIdURL, FO_AUTH_CONFIG.organisation, FO_AUTH_CONFIG.name, type + '?referrer=' + window.location.origin].join('/');
-        var auth_window = window.open(url, "ExternalAuthentication", "top=200,left=200,width=500,height=400,location=yes,status=yes,resizable=yes", true);
-        auth_window.focus();
+    getOpenIdURI(type) {
+        return [FO_AUTH_CONFIG.openIdURL, FO_AUTH_CONFIG.organisation, FO_AUTH_CONFIG.name, type + '?referrer=' + window.location.origin].join('/');
     }
 
     sendEmailVerificationCode(){
