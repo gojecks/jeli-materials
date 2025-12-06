@@ -4,7 +4,10 @@
     border-bottom: 3px solid transparent;
     .close-btn {
         position: absolute;
-        right: 0px;
+        right: .2rem;
+        top: .2rem;
+        background-color: #ffffff;
+        border-radius: 50%;
     }
     
     img {

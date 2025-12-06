@@ -3,17 +3,53 @@ Service({
     DI: [AUTH_DATABASE_SERIVCE]
 })
 export class UploadService {
-    static createFormData(data){
+    static createFormData(data) {
         var formData = new FormData();
         // write the customData to the formData
         Object.keys(data).forEach(key => {
             if (!Array.isArray(data[key]))
                 formData.append(key, data[key]);
-            else 
-                data[key].forEach(cval =>  formData.append(`${key}[]`, cval)); 
+            else
+                data[key].forEach(cval => formData.append(`${key}[]`, cval));
         });
 
         return formData;
+    }
+
+    static extendObj(a, b) {
+        if (b && typeof b == 'object') {
+            for (var key in b) {
+                if (a[key] && typeof a[key] == 'object' && !Array.isArray(b[key])) {
+                    Object.assign(a[key], b[key]);
+                } else {
+                    a[key] = b[key]
+                }
+            }
+        }
+    }
+
+    static fileSizeToBytes(str){
+        if (typeof str == 'number') return str;
+
+        const sptFS = String(str || '1M').split(/(\d+)(\s|)+(K|M|B|T)/gi).filter(t => !!t );
+        let fileSize = Number(sptFS.shift());
+        switch(sptFS[0].toUpperCase()){
+            case('M'):
+                fileSize = fileSize * 1024 * 1024;
+            break;
+            case('G'):
+                fileSize = fileSize * 1024 * 1024 * 1024;
+            break;
+            case ('T'):
+                fileSize = fileSize * 1024 * 1024 * 1024 * 1024;
+            break;
+            case('K'):
+            default:
+                fileSize = fileSize * 1024;
+            break;
+        };
+
+        return fileSize;
     }
 
     constructor(databaseService) {
@@ -27,7 +63,7 @@ export class UploadService {
      * @param {*} sizes
      * @returns
      */
-    upload(data) { 
+    upload(data) {
         return this.databaseService.core.api({ path: '/v2/uploads', data, method: 'PUT' });
     }
     getFile(data) {
@@ -93,7 +129,7 @@ export class UploadService {
         filesToUpload.forEach(function (file) {
             data.append('files[]', file);
         });
-        
+
         return this.databaseService.core.api({ path: uploadSettings.url || '/v2/uploads', data, method: "POST" });
     }
     fromFilePicker(config) {
@@ -107,10 +143,10 @@ export class UploadService {
      * @returns
      */
     processFiles(files, config, checkExists) {
-        config = Object.assign({ accepts: ['jpeg', 'jpg', 'png'], maximumFileSize: 1048576 }, config || {});
+        config = Object.assign({ accepts: ['jpeg', 'jpg', 'png'] }, config || {});
         checkExists = checkExists || function () { return false; };
 
-        var response = {
+        const response = {
             invalid: [],
             readyForUpload: [],
             selectedFiles: [],
@@ -118,107 +154,98 @@ export class UploadService {
             totalFileSize: 0
         };
 
-        var inc = 0;
-        var imgRegExp = /^image/;
-        var directoryInProcess = 0;
+        let inc = 0;
+        let directoryInProcess = 0;
+        const imgRegExp = /^image/;
+        const maximumFileSize = UploadService.fileSizeToBytes(config.maximumFileSize);
 
-        /**
-         * @param {*} item
-         * @param {*} next
-         */
-        var scanFiles = (item, next) => {
-            if (item.isDirectory) {
-                directoryInProcess--;
-                var directoryReader = item.createReader();
-                directoryReader.readEntries(entries => {
-                    directoryInProcess += entries.length;
-                    entries.forEach(entry => scanFiles(entry, next));
-                });
-            } else {
-                item.file(file => {
+        const helpers = {
+            scanFiles: (item, next) => {
+                if (item.isDirectory) {
                     directoryInProcess--;
-                    pushItem(file, item.fullPath);
-                    next();
-                });
-            }
-        };
-
-        var pushInvalid = item => response.invalid[config.scanDirs ? 'push' : 'unshift']({ name: item.name, size: item.size });
-        var pushSelected = (item, path) => response.selectedFiles.push({ name: item.name, path, size: item.size });
-
-        /**
-         *
-         * @param {*} item
-         * @param {*} path
-         * @returns
-         */
-        var pushItem = (item, path) => {
-            // remove / from path if it starts with a /
-            path = path.startsWith('/') ? path.substr(1) : path;
-            if (config.ignoreDotFiles && item.name.startsWith('.') || checkExists(path)) {
-                return pushInvalid(item);
-            }
-
-            var ext = item.name.split('.').pop();
-            // validate image size and format
-            if ((config.accepts != '*' && !config.accepts.includes(ext)) || item.size > config.maximumFileSize) {
-                pushInvalid(item);
-            } else {
-                response.readyForUpload.unshift(item);
-                response.totalFileSize += item.size;
-                if (!config.imageListPreview) {
-                    pushSelected(item, path);
+                    var directoryReader = item.createReader();
+                    directoryReader.readEntries(entries => {
+                        directoryInProcess += entries.length;
+                        entries.forEach(entry => scanFiles(entry, next));
+                    });
+                } else {
+                    item.file(file => {
+                        directoryInProcess--;
+                        helpers.pushItem(file, item.fullPath);
+                        next();
+                    });
                 }
-            }
+            },
+            pushInvalid: item => response.invalid[config.scanDirs ? 'push' : 'unshift']({ name: item.name, size: item.size }),
+            pushSelected: (item, path) => response.selectedFiles.push({ name: item.name, path, size: item.size }),
+            pushItem: (item, path) => {
+                // remove / from path if it starts with a /
+                path = path.startsWith('/') ? path.substr(1) : path;
+                if (config.ignoreDotFiles && item.name.startsWith('.') || checkExists(path)) {
+                    return helpers.pushInvalid(item);
+                }
 
-            // set flag for allImages
-            if (!imgRegExp.test(item.type)) {
-                response.allImages = false;
-            }
-        };
+                const ext = item.name.split('.').pop();
+                // validate image size and format
+                if ((config.accepts != '*' && !config.accepts.includes(ext)) || item.size > maximumFileSize) {
+                    helpers.pushInvalid(item);
+                } else {
+                    response.readyForUpload.unshift(item);
+                    response.totalFileSize += item.size;
+                    if (!config.imageListPreview) {
+                        helpers.pushSelected(item, path);
+                    }
+                }
 
-        var getFileEntry = (file) => {
-            if (!!file.webkitGetAsEntry) return file.webkitGetAsEntry();
-            else if (!!file.getAsEntry) return file.getAsEntry();
+                // set flag for allImages
+                if (!imgRegExp.test(item.type)) {
+                    response.allImages = false;
+                }
+            },
+            getFileEntry: (file) => {
+                if (!!file.webkitGetAsEntry) return file.webkitGetAsEntry();
+                else if (!!file.getAsEntry) return file.getAsEntry();
 
-            return null;
-        };
-
-        /**
+                return null;
+            },
+            /**
          * @param {*} next
          */
-        function _process(next) {
-            var file = files[inc];
-            // get the file entry
-            var item = getFileEntry(file);
-            if (config.scanDirs && item) {
-                // can files and only trigger next when all done
-                directoryInProcess++;
-                scanFiles(item, () => {
-                    if (directoryInProcess <= 0) next();
-                });
-            } else if (file instanceof FileSystemFileHandle) {
-                file.getFile().then(file => {
-                    pushItem(file, '');
+            _process: next => {
+                const file = files[inc];
+                // get the file entry
+                const item = helpers.getFileEntry(file);
+                if (config.scanDirs && item) {
+                    // can files and only trigger next when all done
+                    directoryInProcess++;
+                    helpers.scanFiles(item, () => {
+                        if (directoryInProcess <= 0) next();
+                    });
+                } else if (file instanceof FileSystemFileHandle) {
+                    file.getFile().then(file => {
+                        helpers.pushItem(file, '');
+                        next();
+                    });
+                } else {
+                    helpers.pushItem(file, '');
                     next();
-                });
-            } else {
-                pushItem(file, '');
-                next();
-            }
-        }
+                }
+            },
+            start: callback => {
+                const next = () => {
+                    inc++;
+                    if (!files[inc]) callback(response);
+                    else helpers._process(next);
+                };
 
-        function start(callBack) {
-            function next() {
-                inc++;
-                if (!files[inc]) callBack();
-                else _process(next);
+                helpers._process(next);
             }
-            // start the process
-            _process(next);
-        }
+        };
 
-        return new Promise((resolve) => start(() => resolve(response)));
+
+
+
+        return new Promise((resolve) => helpers.start(resolve));
     }
     /**
      *
@@ -229,7 +256,7 @@ export class UploadService {
     htmlFilePicker(config, listener) {
         var formId = 'fo_html_file_picker';
         var formElement = document.querySelector(`form#${formId}`);
-        if (!formElement){
+        if (!formElement) {
             formElement = document.createElement('form');
             formElement.className = "d-none";
             formElement.id = formId;

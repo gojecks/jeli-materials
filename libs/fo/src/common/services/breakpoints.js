@@ -30,7 +30,9 @@ export function registerQueryEvent(breakPoints, callback){
     }, {});
 
     return MediaQueryEvent(Object.keys(breakPointValues), (mediaEvent, screenSize) => {
-        console.log(`Media breakpoint changed to size ${screenSize}`);
-        callback(Number(breakPointValues[screenSize]))
+        if (mediaEvent.matches) {
+            console.log(`Media breakpoint changed to size ${screenSize}`);
+            callback(Number(breakPointValues[screenSize]));
+        }
     });
 }

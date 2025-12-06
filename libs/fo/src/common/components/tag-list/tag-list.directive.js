@@ -5,22 +5,34 @@ Directive({
         'keyup focus blur:event=onEvent($event)',
         'inputListChange:emitter'
     ],
-    props: ['options=:inputList'],
-    DI: ['HostElement?']
+    props: [
+        'options=:inputList',
+        'selected',
+        'allowFreeText:Boolean'
+    ],
+    DI: ['HostElement?'],
+    modifiesDOM: true
 })
 export class FoTagListDirective {
+    isAttached = false;
+    isOptionFocused = false;
+    options = [];
+    value = null;
+    isVisible = false;
+    allowFreeText = false;
+
     constructor(hostElement) {
         this.hostElement = hostElement;
-        this.isOptionFocused = false;
         this.id = (hostElement.nativeElement.id || +new Date) + '-listElement';
         this.inputListChange = new EventEmitter();
-        this.options = [];
-        this.value = null;
-        this.isVisible = false;
         this.optionListContainer = DOMHelper.createElement('div', {
-            class: "position-fixed pb-1 text-bg-dark",
+            class: "fo-list-element",
             id: this.id,
             style: {
+                position: 'fixed',
+                padding: '.2em',
+                color: '#fff',
+                backgroundColor: '#000',
                 display: 'none',
                 zIndex: 15,
                 overflow: 'hidden',
@@ -31,8 +43,18 @@ export class FoTagListDirective {
                 ele.addEventListener('click', this.onOptionListEvent.bind(this));
                 ele.addEventListener('mouseenter', this.onOptionListEvent.bind(this));
                 ele.addEventListener('mouseleave', this.onOptionListEvent.bind(this));
-            }, hostElement.nativeElement.parentElement);
+            });
     }
+
+    set selected(value) {
+        this.value = value;
+        this.hostElement.nativeElement.value = value;
+    }
+
+    get selected() {
+        return this.value;
+    }
+
     onOptionListEvent(event) {
         return ({
             mouseenter: () => {
@@ -42,13 +64,9 @@ export class FoTagListDirective {
                 this.isOptionFocused = false;
             },
             click: () => {
-                var value = event.target.dataset.key;
                 // set the value
-                this.hostElement.nativeElement.value = value;
-                this.inputListChange.emit({
-                    value,
-                    idx: this.options.indexOf(value)
-                });
+                this.selected = event.target.dataset.key;
+                this._emit();
                 this.showBox(false);
                 this.isOptionFocused = false;
             }
@@ -60,17 +78,28 @@ export class FoTagListDirective {
             blur: () => {
                 if (!this.isOptionFocused) this.showBox(false);
             },
-            focus: () => this.generateView(value),
+            focus: () => {
+                if (!this.isAttached) {
+                    this.hostElement.nativeElement.parentElement.appendChild(this.optionListContainer);
+                    this.isAttached = true;
+                }
+
+                this.generateView(value)
+            },
             keyup: () => this.generateView(value)
         })[event.type]();
     }
     generateView(value) {
         var listItems = this.options || [];
-        if (this.value != value || (!listItems.options && this.isVisible)) {
+        if (this.value != value || (!listItems.length && this.isVisible)) {
             if (value) {
                 listItems = listItems.filter(item => item.startsWith(value));
+                if (!listItems.length && this.allowFreeText) {
+                    listItems = [value];
+                }
             }
-            this.optionListContainer.innerHTML = listItems.map(item => '<a class="px-2 pt-1 text-white d-block" data-key="' + item + '">' + item + '</a>').join('');
+
+            this.optionListContainer.innerHTML = listItems.map(item => `<a class="px-2 pt-1 text-white d-block" data-key="${item}"> ${item} </a>`).join('');
             this.isVisible = listItems.length > 0;
         }
 
@@ -78,11 +107,20 @@ export class FoTagListDirective {
         this.showBox(this.isVisible);
         listItems = null;
     }
+
     viewDidDestroy() {
         this.optionListContainer.remove();
         this.optionListContainer = null;
         this.hostElement = null;
     }
+
+    _emit() {
+        this.inputListChange.emit({
+            value: this.value,
+            idx: (this.options || []).indexOf(this.value)
+        });
+    }
+
     showBox(show) {
         this.optionListContainer.style.display = show ? 'block' : 'none';
         if (show) {

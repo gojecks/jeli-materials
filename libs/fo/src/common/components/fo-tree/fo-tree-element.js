@@ -23,23 +23,17 @@ export class FoTreeElement {
         };
         this.expandLevel = 3;
         this.currentSelection = null;
+    }
 
-        Object.defineProperty(this, 'treeData', {
-            set: function (value) {
-                this._treeData = value;
-                this._onTreeDataChanged();
-            }
-        });
+    set treeData(value){
+        this._treeData = value;
+        this._onTreeDataChanged();
     }
 
     onBranchSelected(branch) {
         if (this.currentSelection !== branch || branch.isDir) {
             this._branchSelected(branch);
         }
-    }
-
-    trackByFn(item) {
-        return item.uid;
     }
 
     didInit() {

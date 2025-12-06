@@ -8,6 +8,8 @@ var GOOGLE_API_URLS = [
 ];
 
 var cachedLocations = null;
+var mPendingLoading = [() => console.log("Google Map script loaded")];
+
 export var GOOGLE_SERVICE_APIS = {
     PLACES: 0,
     GEOCODE: 1,
@@ -72,17 +74,17 @@ export class GoogleMapService {
                 if (resource.configuration.buttons) {
                     resource.configuration.buttons.forEach(function (obj, idx) {
                         DOMHelper.createElement('button', Object.assign({
-                           data: {
-                            'ref-idx':idx
-                           } 
+                            data: {
+                                'ref-idx': idx
+                            }
                         }, obj.attr), obj.text, resource.element.buttonControl);
                     });
                     // attach event listener to the button control
                     resource.events.listener(resource.element.buildControl, 'click', e => {
                         var button = e.target.closest('button');
-                        if (button){
+                        if (button) {
                             var config = resource.configuration.buttons[button.dataset.refIdx];
-                            if (config && config.action){
+                            if (config && config.action) {
                                 config.action();
                             }
                         }
@@ -90,7 +92,7 @@ export class GoogleMapService {
                 }
             }
         };
-        
+
         this.events = {
             listener: function (ele, type, fn) {
                 ele.addEventListener(type, fn);
@@ -101,15 +103,27 @@ export class GoogleMapService {
     static setKey(key, ignoreLibrary) {
         _mapKey = key;
         if (_mapKey && !ignoreLibrary) {
-            LazyLoader.staticLoader(["https://maps.googleapis.com/maps/api/js?key=" + _mapKey + "&libraries=places"], function () {
-                console.log("Script loaded");
-            }, 'js');
+            LazyLoader.staticLoader([{
+                url: `https://maps.googleapis.com/maps/api/js?`,
+                params: {
+                    loading: 'async',
+                    libraries: ['places'],
+                    key,
+                    v: 'weekly',
+                    weekly: 'onGoogleMapLoaded'
+                }
+            }], () => setTimeout(() => {
+                while(mPendingLoading.length){
+                    mPendingLoading.shift()();
+                };
+            }, 1000), 'js');
         }
     }
+
     static getStaticImgUrl(address, size, zoom, setMarker) {
         if (typeof address == 'object')
             address = Object.values(address);
-        
+
         var params = {
             scale: 2,
             center: address,
@@ -126,7 +140,7 @@ export class GoogleMapService {
                 if (geoCode) {
                     GoogleMapService.geoCodeLocation(latlng)
                         .then(results => {
-                            resolve(Object.assign({latlng}, results));
+                            resolve(Object.assign({ latlng }, results));
                         }, reject);
                 } else {
                     resolve(cachedLocations);
@@ -196,37 +210,48 @@ export class GoogleMapService {
             navigator.geolocation.clearWatch(watchID);
         };
     }
+
+    static checkModuleLoaded(callback){
+        if (!mPendingLoading.length){
+            callback();
+        } else {
+            mPendingLoading.push(callback);
+        }
+    }
+
     startGeoPlaces(startAddress) {
         return new Promise((resolve, reject) => {
-            var container = this.element.get(this.configuration.ids.mapCanvas);
-            if (!container || !window.google) { return reject('Google maps not available or unable to locate map canvas'); }
-            var mapConfig = Object.assign({ center: (startAddress || this.coordinates).location }, this.configuration.mapConfig);
+            GoogleMapService.checkModuleLoaded(() => {
+                var container = this.element.get(this.configuration.ids.mapCanvas);
+                if (!container || !window.google) { return reject('Google maps not available or unable to locate map canvas'); }
+                var mapConfig = Object.assign({ center: (startAddress || this.coordinates).location }, this.configuration.mapConfig);
 
-            this.geocoder = new google.maps.Geocoder;
-            this.map = new google.maps.Map(container, mapConfig);
-            //set infoWindow
-            this.infoWindow = new google.maps.InfoWindow();
-            //set Marker
-            this.marker = new google.maps.Marker({
-                map: this.map,
-                anchor: new google.maps.Point(0, -29),
-                position: mapConfig.center,
-                draggable: this.configuration.marker.draggable,
-                animation: this.configuration.marker.bounce
-            });
-
-            // attach listener
-            if (this.configuration.marker.bounce) {
-                this.marker.addListener('click', () => {
-                    if (this.marker.getAnimation() !== null) {
-                        this.marker.setAnimation(null);
-                    } else {
-                        this.marker.setAnimation(google.maps.Animation.BOUNCE);
-                    }
+                this.geocoder = new google.maps.Geocoder;
+                this.map = new google.maps.Map(container, mapConfig);
+                //set infoWindow
+                this.infoWindow = new google.maps.InfoWindow();
+                //set Marker
+                this.marker = new google.maps.Marker({
+                    map: this.map,
+                    anchor: new google.maps.Point(0, -29),
+                    position: mapConfig.center,
+                    draggable: this.configuration.marker.draggable,
+                    animation: this.configuration.marker.bounce
                 });
-            }
 
-            resolve(true);
+                // attach listener
+                if (this.configuration.marker.bounce) {
+                    this.marker.addListener('click', () => {
+                        if (this.marker.getAnimation() !== null) {
+                            this.marker.setAnimation(null);
+                        } else {
+                            this.marker.setAnimation(google.maps.Animation.BOUNCE);
+                        }
+                    });
+                }
+
+                resolve(true);
+            });
         });
     }
     draggableMarker(callback) {
@@ -302,6 +327,24 @@ export class GoogleMapService {
 
         return this;
     }
+
+    /**
+     * 
+     * @param {*} containerElement 
+     * @param {*} callback 
+     */
+    static async buildAutoCompleteV2(containerElement, options, callback){
+        await google.maps.importLibrary('places');
+        const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement();
+            //@ts-ignore
+            containerElement.appendChild(placeAutocomplete);
+            placeAutocomplete.addEventListener('gmp-select', async ({ placePrediction }) => {
+                const place = placePrediction.toPlace();
+                await place.fetchFields(options);
+                callback(place.toJSON());
+            });
+    }
+
     buildControls() {
         if (this.configuration.searchBox) {
             this.element.buttonControl = this.element.get(this.configuration.ids.controls);
@@ -518,17 +561,21 @@ export class GoogleMapService {
     getPlacesNearBy(query) {
         var service = new google.maps.places.PlacesService(this.map);
         return new Promise((resolve, reject) => {
-            service.nearbySearch({
-                location: this.coordinates.location,
-                radius: this.configuration.nearbyPlaces.radius,
-                type: [query]
-            }, (results, status, pagination) => {
-                if (status !== google.maps.places.PlacesServiceStatus.OK) {
-                    return reject();
-                }
-    
-                resolve({ results: results, pagination: pagination });
-            });
+            try {
+                service.nearbySearch({
+                    location: this.coordinates.location,
+                    radius: this.configuration.nearbyPlaces.radius,
+                    types: [query]
+                }, (results, status, pagination) => {
+                    if (status !== google.maps.places.PlacesServiceStatus.OK) {
+                        return reject();
+                    }
+
+                    resolve({ results: results, pagination: pagination });
+                });
+            } catch (e) {
+                reject();
+            }
         });
     }
 }

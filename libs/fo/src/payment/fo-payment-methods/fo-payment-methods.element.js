@@ -50,6 +50,7 @@ export class FoPaymentMethodsElement {
         this.merchant = 'omise';
         this.selectedMethodType = null;
         this.customerDetails = {};
+        this.initializeCounter = 0;
         this._existingPaymentConfig = {
             enabled: false,
             header: 'Payment Methods',
@@ -101,6 +102,8 @@ export class FoPaymentMethodsElement {
             this.foPaymentMethodsService.getToken(this.merchant)
                 .then(res => {
                     this.token = res.result.token;
+                    // viewDidLoad already triggered before token was loaded;
+                    if (this.initializeCounter) this.initializePayment();
                     this.loadPaymentMethods();
                 }, () => {
                     this.errMsg = 'Card collection not possible at this time due to missing token.';
@@ -109,11 +112,7 @@ export class FoPaymentMethodsElement {
     }
 
     viewDidLoad() {
-        this.foPaymentMethodsService.loadPaymentScript(this.merchant, () => {
-            if (this.isStripePayment && this.token) {
-                this.foPaymentMethodsService.initializeStripeForm(this);
-            }
-        });
+        this.initializePayment();
     }
 
     viewDidDestroy(){
@@ -203,8 +202,8 @@ export class FoPaymentMethodsElement {
 
             this.openedModalInstance.close();
             this.changeDetector.detectChanges();
-        }, () => {
-            this.onAddError = true;
+        }, (err) => {
+            this.onAddError = err.message;
             this.changeDetector.detectChanges();
         });
     }
@@ -265,5 +264,19 @@ export class FoPaymentMethodsElement {
                 card: (card || this.customerDetails.cards.find(c => c.id === this.customerDetails.default_source || c.default))
             });
         }
+    }
+
+    initializePayment(){
+        this.foPaymentMethodsService.loadPaymentScript(this.merchant, () => {
+            if (this.isStripePayment && this.token) {
+                this.foPaymentMethodsService.initializeStripeForm(this);
+            }
+            
+            // set the initalizeCounter
+            if(!this.token){
+                this.initializeCounter++;
+                return;
+            }
+        });
     }
 }

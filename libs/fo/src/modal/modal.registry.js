@@ -1,4 +1,4 @@
 /**
  * modal registry token
  */
-export var modalRegistry = new Map();
+export const modalRegistry = new Map();

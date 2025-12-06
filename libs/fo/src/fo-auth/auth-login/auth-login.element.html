@@ -3,17 +3,20 @@
     <div class="alert alert-danger text-center" *if="errorLogin"> ${errMsg || "Invalid User name or Password"}</div>
     <div class="list-group mb-3">
       <div class="list-group-item">
-        <input type="email" placeholder="Email" class="form-control" :formField="email">
+        <input type="email" aria-label="Email Address" placeholder="Email" class="form-control" :formField="email"  {class}="{'form-control-lg': lgView}">
       </div>
       <div class="list-group-item">
-        <input type="password" {type}="isPasswordVisible ? 'text':'password'" placeholder="Password" class="form-control" :formField="password" autocomplete="off">
-        <span class="pwd-visible" @click="isPasswordVisible=!isPasswordVisible"><i {:jClass}="isPasswordVisible ? 'bi-eye':'bi-eye-slash'"></i></span>
+        <input type="password" aria-label="Password" {type}="isPasswordVisible ? 'text':'password'" placeholder="Password"
+          class="form-control" :formField="password" autocomplete="off" {class}="{'form-control-lg': lgView}">
+        <span class="pwd-visible" @click="isPasswordVisible=!isPasswordVisible"><i
+            {:jClass}="isPasswordVisible ? 'bi-eye':'bi-eye-slash'"></i></span>
       </div>
     </div>
     <div class="d-grid gap-2">
-      <button type="submit" class="btn btn-primary btn-block" {disabled}="loginForm.invalid || isProcessing">
+      <button type="submit" class="btn btn-primary btn-block" {class}="{'btn-lg': lgView}"
+        {disabled}="loginForm.invalid || isProcessing">
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" *if="isProcessing"></span>
-         Log in </button>
+        Log in </button>
     </div>
   </div>
 </form>

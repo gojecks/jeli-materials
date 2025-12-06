@@ -3,10 +3,14 @@ import { EventEmitter } from '@jeli/core';
 /**
  * Token static values
  */
-var ACCESS_TOKEN = 'accessToken';
-var USER_ACTIVE = "userIsActive";
-var USER_ID = 'userId';
-var USER_INFO = 'userInfo';
+const IDENTIFIERS = {
+    ACCESS_TOKEN: 'accessToken',
+    USER_ACTIVE: "userIsActive",
+    USER_ID: 'userId',
+    USER_INFO: 'userInfo',
+    PASSWORD_RESET: 'passwordReset'
+} 
+
 
 Service({
     DI: [AuthSessionManager]
@@ -16,41 +20,45 @@ export class FoTokenService {
         this.authManager = authManager;
         this._authenticated = false;
         this.onTokenUpdate = new EventEmitter();
-        this.init = function (isAuthenticated) {
-            this._authenticated = isAuthenticated == undefined ? true : isAuthenticated;
-        };
+    }
 
-        Object.defineProperties(this, {
-            isAuthenticated: {
-                get: () => this._authenticated
-            }
-        });
+    get isAuthenticated(){
+        return this._authenticated;
     }
-    decodeToken() {
-        var token = this.getAccessToken();
-        return token ? JSON.parse(atob((token.bearer || '').split('.')[1])) : null;
+
+    get isPasswordReset(){
+        return !!this.authManager.getData('passwordReset');
     }
-    getClaims() {
-        var claims = this.decodeToken();
-        return function (claim) {
-            return claims ? claims[claim] : null;
-        };
+
+    init(isAuthenticated) {
+        this._authenticated = isAuthenticated == undefined ? true : isAuthenticated;
     }
+
+    decodeToken(token) {
+        token = token || this.getAccessToken();
+        return token ? JSON.parse(atob((token.bearer || token.accessToken || '').split('.')[1])) : null;
+    }
+    
+    getClaims(token) {
+        var claims = this.decodeToken(token);
+        return claim => claims ? claims[claim] : null;
+    }
+
     saveAuthentication(response) {
-        var tokens = response.getTokens();
+        const tokens = response.getTokens();
         if (tokens) {
             this.setAccessToken(tokens);
-            this.authManager.storeData(USER_ACTIVE, true, true);
-            this.authManager.storeData(USER_ID, response.getUserId(), true);
+            this.authManager.storeData(IDENTIFIERS.USER_ACTIVE, !response.isPasswordReset(), true);
+            this.authManager.storeData(IDENTIFIERS.USER_ID, response.getUserId(), true);
+            this.authManager.storeData(IDENTIFIERS.PASSWORD_RESET, response.isPasswordReset(), true);
             this.putUserInfo(response.getUserInfo());
         }
-
-        tokens = null;
     }
+
     putUserInfo(userInfo) {
         if (userInfo) {
-            var currentUserInfo = this.authManager.getData(USER_INFO) || {};
-            this.authManager.storeData(USER_INFO, Object.assign(currentUserInfo, userInfo), true);
+            const currentUserInfo = this.authManager.getData(IDENTIFIERS.USER_INFO) || {};
+            this.authManager.storeData(IDENTIFIERS.USER_INFO, Object.assign(currentUserInfo, userInfo), true);
         }
     }
     /**
@@ -66,41 +74,46 @@ export class FoTokenService {
         return this.authManager.getData(name, true);
     }
     setAccessToken(value) {
-        this.authManager.storeData(ACCESS_TOKEN, value, true);
+        this.authManager.storeData(IDENTIFIERS.ACCESS_TOKEN, value, true);
         this.onTokenUpdate.emit(true);
     }
     getAccessToken() {
-        return this.authManager.getData(ACCESS_TOKEN);
+        return this.authManager.getData(IDENTIFIERS.ACCESS_TOKEN);
     }
     getPrincipal() {
-        return this.authManager.getData(USER_ID);
+        return this.authManager.getData(IDENTIFIERS.USER_ID);
     }
     getUserInfo() {
-        return (this.authManager.getData(USER_INFO) || { ROLES: ["USER_EMPTY", 'ROLE_EMPTY'] });
+        return (this.authManager.getData(IDENTIFIERS.USER_INFO) || { ROLES: ['USER_EMPTY', 'ROLE_EMPTY'] });
     }
     getUserRoles() {
-        var userInfo = this.getUserInfo();
+        const userInfo = this.getUserInfo();
         return userInfo && userInfo.ROLES;
     }
+    
     isUserActive() {
-        return (this.authManager.getData(USER_ACTIVE) || false);
+        return (this.authManager.getData(IDENTIFIERS.USER_ACTIVE) || false);
     }
+
     destroy() {
         this._authenticated = false;
-        this.authManager.destroy([USER_INFO, USER_ACTIVE, USER_ID, ACCESS_TOKEN]);
+        this.authManager.destroy(Object.values(IDENTIFIERS));
+        this.onTokenUpdate.emit(false);
     }
+
     hasAuthority(role) {
-        var userRoles = this.getUserRoles();
+        const userRoles = this.getUserRoles();
         if (!role && !userRoles) return true;
         return userRoles && userRoles.includes(role);
     }
+
     hasAnyAuthority(authorities) {
         // no role check required
         if (!authorities) return true;
         if (!Array.isArray(authorities)) return this.hasAuthority(authorities);
-        var userRoles = this.getUserRoles();
+        const userRoles = this.getUserRoles();
         // no userRoles and authorities check is not empty
         if ((!userRoles && authorities.length) || (userRoles && !authorities.length)) return false;
-        return authorities.some(function (authority) { return userRoles.includes(authority); });
+        return authorities.some((authority) => userRoles.includes(authority));
     }
 }

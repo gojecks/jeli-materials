@@ -43,7 +43,7 @@
   <div class="mt-5" @click-delegate:button="paymentMethodAction($event.target.id, card)">
     <h5 class="clearfix">
         ${:existingPaymentConfig.header} 
-        <button class="btn float-end" {class}="existingPaymentConfig.btnClass" id="addPaymentMethod">
+        <button class="btn float-end" {class}="existingPaymentConfig.btnClass" id="addPaymentMethod" {disabled}="!token">
             ${:existingPaymentConfig.btnLabel}
         </button>
     </h5>
@@ -78,7 +78,7 @@
     </div>
     <j-fragment {template}="selectedMethodType + 'View'"></j-fragment>
   </j-fragment>
-  <div class="alert alert-danger" *if="selectedMethodType && onAddError">Unable to add payment method.</div>
+  <div class="alert alert-danger" *if="onAddError">${onAddError || 'Unable to add payment method.'}</div>
 </j-template>
 
 <j-template #editCardDetailsView>

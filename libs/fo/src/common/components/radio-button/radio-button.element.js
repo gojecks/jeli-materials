@@ -102,19 +102,17 @@ export class RadioItemElement {
         this.selected = false;
         this._id = "radio_option_" + internal_counter++;
         this.type = "outline-primary";
-
-        Object.defineProperty(this, 'id', {
-            set: function (value) {
-                if (value) {
-                    this._id = value;
-                }
-            }
-        });
-
         contentHostRef.setRadioItem(this);
     }
+
+    set id(value){
+        if (value) {
+            this._id = value;
+        }
+    }
+
     didInit() {
-        this.selected = (this.value == this.contentHostRef.value);
+        this.selected = (this.value === this.contentHostRef.value);
     }
     itemChecked() {
         this.selected = true;

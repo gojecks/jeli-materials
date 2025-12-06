@@ -105,7 +105,7 @@ export class FileUploadElement {
     }
     
     set settings(value) {
-        this._settings = Object.assign(this._settings, value);
+        UploadService.extendObj(this._settings, value);
     }
 
     get canUploadImages(){

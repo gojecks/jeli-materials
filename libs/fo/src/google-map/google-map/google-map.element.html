@@ -1,26 +1,31 @@
 <div {class}="error ? 'd-none':'d-block'">
   <div class="d-lg-none d-block clearfix mb-2" *if="_config.nearbyPlaces">
     <div class="float-end btn-group btn-group-sm" @click-delegate:button="selectedAction=action">
-      <button class="btn" *for="action of actions" {:jClass}="(!selectedAction || selectedAction == action) ? 'btn-secondary':'btn-outline-secondary'">${:action|capitalize}</button>
+      <button class="btn" *for="action of actions"
+        {:jClass}="(!selectedAction || selectedAction == action) ? 'btn-secondary':'btn-outline-secondary'">${:action|capitalize}</button>
     </div>
   </div>
   <div class="row checkin-container border m-0" attr-style="_config.styles">
-    <div class="col p-0" {attr-style.display}="(!selectedAction || selectedAction =='map') ? 'block':'none'">
+    <div class="col p-0" {style.display}="(!selectedAction || selectedAction =='map') ? 'block':'none'">
       <div id="_gpControls" class="col-11 my-2 mx-3" {class}="{'d-none':readOnly}">
         <div class="input-group">
-          <input attr-value="address.formatted" type="search" attr-style="_config.searchBox.styles" class="form-control" {class}="{'d-none':!_config.searchBox}" autocomplete="true" attr-placeholder="_config.searchBox.placeHolder" id="_gpAutoComplete">
+          <input attr-value="address.formatted" type="search" attr-style="_config.searchBox.styles" class="form-control"
+            {class}="{'d-none':!_config.searchBox}" autocomplete="true" attr-placeholder="_config.searchBox.placeHolder"
+            id="_gpAutoComplete">
           <j-place></j-place>
         </div>
       </div>
       <div id="_mapCanvas"></div>
     </div>
-    <div class="col-md-3 col-sm-12 p-0 rightPanel border-start position-relative" *if="_config.nearbyPlaces" {attr-style.display}="(!selectedAction || selectedAction =='places') ? 'block':'none'">
+    <div class="col-md-3 col-sm-12 p-0 rightPanel border-start position-relative" *if="_config.nearbyPlaces"
+      {style.display}="(!selectedAction || selectedAction =='places') ? 'block':'none'">
       <div class="input-group input-group-sm p-2">
         <span class="input-group-text">${:_config.nearbyPlaces.title}</span>
-        <input class="form-control" list="datalistOptions" placeholder="Type to search..." @input="getPlacesNearBy($event.target.value)">
+        <input class="form-control" list="datalistOptions" placeholder="Type to search..."
+          @input="getPlacesNearBy($event.target.value)">
         <datalist id="datalistOptions">
-            <option attr-value="opt" *for="opt of _config.nearbyPlaces.options">
-          </datalist>
+          <option attr-value="opt" *for="opt of _config.nearbyPlaces.options">
+        </datalist>
       </div>
       <ul id="_resultPanel" class="position-absolute"></ul>
     </div>

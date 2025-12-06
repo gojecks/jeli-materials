@@ -34,14 +34,17 @@ export class GoogleMapElement {
                 height: "20vh"
             }
         };
-
-        Object.defineProperty(this, 'config', {
-            set: function (value) {
-                Object.assign(this._config, value);
-                this.geoService.setConfiguration(this._config);
-            }
-        });
     }
+
+    set config(value){
+        Object.assign(this._config, value);
+        this.geoService.setConfiguration(this._config);
+    }
+
+    get config(){
+        return this._config;
+    }
+
     viewDidLoad() {
         this.geoService.startGeoPlaces(this.address)
             .then(() => {
@@ -99,7 +102,8 @@ export class GoogleMapElement {
     }
     getPlacesNearBy(value) {
         this.geoService.getPlacesNearBy(value)
-            .then(response => this.geoService.updateResultPanel(response.results, response.pagination));
+            .then(response => this.geoService.updateResultPanel(response.results, response.pagination))
+            .catch(err => console.log(err));
     }
     viewDidDestroy() {
         this.geoService.destroy();

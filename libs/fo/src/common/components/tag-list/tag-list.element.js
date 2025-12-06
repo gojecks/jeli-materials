@@ -12,7 +12,8 @@ Element({
         'name',
         'minInputLength',
         'allowFreeText',
-        'cbClass'
+        'cbClass',
+        'showDefault:number'
     ],
     events: [
         'onTagSelected:emitter', 
@@ -38,6 +39,7 @@ export class FoTagListElement {
         this._minInputLength = 3;
         this.searchValue = '';
         this.allowFreeText = false;
+        this.showDefault = 0;
         this.changeDetector = changeDetector;
         this.onAutoCompleteValueChange = new EventDebounce(500, false);
     }
@@ -56,6 +58,11 @@ export class FoTagListElement {
 
     get minInputLength(){
         return this._minInputLength;
+    }
+
+    get defaultList(){
+        if (!this.showDefault || !this.searchData) return [];
+        return this.searchData.filter(item => !this._selectedTags.includes(item)).slice(0, this.showDefault);
     }
 
     didInit() {

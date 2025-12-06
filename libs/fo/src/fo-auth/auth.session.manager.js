@@ -4,10 +4,12 @@ import { AUTH_STORAGE_PROVIDER } from "./tokens";
 /**
  * list of accepted storage types
  */
-var STORAGE_TYPES = [
+const STORAGE_TYPES = [
     'sessionStorage', 
     'localStorage'
 ];
+
+const fromStorage = type => key => testOrParseJson(window[STORAGE_TYPES[type]].getItem(key))
 
 Service({
     DI: [AUTH_STORAGE_PROVIDER]
@@ -30,8 +32,17 @@ export class AuthSessionManager {
             now: {
                 get: () => Date.now()
             },
-            location: () => location
+            location: {
+                get: () => location
+            },
+            localStorage: {
+                get:() => fromStorage(1)
+            },
+            sessionStorage: {
+                get: () =>  fromStorage(0)
+            }
         });
+
         this._storageType = (STORAGE_TYPES[storageProvider.storageType || 0])
         this._observers = {};
         this._stack = {
@@ -50,22 +61,32 @@ export class AuthSessionManager {
         /**
          * register eventListener
          */
-        if (document && document.visibilityState) {
-            var isBeforeUnload = false;
+        if (document) {
+            let isBeforeUnload = false;
             window.addEventListener('beforeunload', () => {
                 isBeforeUnload = true;
                 this.saveSessionStack();
             }, false);
 
             // this is workaround for browser that don't trigger beforeunload
-            document.addEventListener('visibilitychange', e => {
-                if (!isBeforeUnload){
-                    this.saveSessionStack();
-                }                    
-            }, false);
+            if (document.visibilityState && storageProvider.useVisibilityChange){
+                document.addEventListener('visibilitychange', e => {
+                    if (!isBeforeUnload){
+                        this.saveSessionStack();
+                    }                    
+                }, false);
+            } 
         }
 
         console.log('[StateManager] Initialized..');
+    }
+
+    has(key){
+        return this._sessionData.hasOwnProperty(key);
+    }
+
+    isDefined(key){
+        return !!this.getData(key);
     }
 
     saveSessionStack() {
@@ -78,19 +99,19 @@ export class AuthSessionManager {
                 }
             }
         }
-    };
+    }
 
     addToStack(name, fn) {
         if (this._stack && !this._stack.hasOwnProperty(name) && typeof fn === 'function') {
             this._stack[name] = fn;
         }
-    };
+    }
 
     removeFromStack(stackName) {
         if (this._stack.hasOwnProperty(stackName)) {
             delete this._stack[stackName];
         }
-    };
+    }
 
     destroy(stateIds) {
         this._retrieveSessionFromStorage();
@@ -99,14 +120,14 @@ export class AuthSessionManager {
         } else {
             this._sessionData = {};
         }
-    };
+    }
 
     getData(key) {
         if (!key) return undefined;
         return deepContext(this._parseKey(key), this._sessionData);
-    };
+    }
 
-    storeData(key, value, preserve) {
+    storeData(key, value, preserve, saveNow) {
         if (!key) return;
         key = this._parseKey(key);
         var spltKeys = key.split('.');
@@ -144,10 +165,10 @@ export class AuthSessionManager {
         }
 
         // check for autoSave
-        if (this.storageProvider.autoSave){
+        if (this.storageProvider.autoSave || saveNow){
             this.saveSessionStack();
         }
-    };
+    }
 
     /**
      * 

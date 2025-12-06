@@ -4,7 +4,7 @@ import { MARKDOWN_REGEX, renderMarkupElements } from "./markup.parser";
 export var internal_counter = 0;
 export function base64ToFile(b64File, type) {
     if (typeof b64File != 'string') return b64File;
-    
+
     var split = b64File.split(',');
     type = type || split[0].replace('data:', '').replace(';base64', '');
     var byteString = atob(split[1]);
@@ -23,7 +23,7 @@ export function createBlobObject(byteString, type, withUrl) {
     for (var i = 0; i < byteString.length; i += 1) {
         ia[i] = byteString.charCodeAt(i);
     }
-    
+
     var blobObject = new Blob([ab], { type });
     // create a object URl for serving our blob content
     if (withUrl) blobObject = URL.createObjectURL(blobObject);
@@ -41,7 +41,7 @@ export function createBlobObject(byteString, type, withUrl) {
 export function blobURL(b64File, type) {
     try {
         return URL.createObjectURL(base64ToFile(b64File, type));
-    } catch(e) {
+    } catch (e) {
         return b64File;
     }
 }
@@ -105,10 +105,11 @@ export function deepContext(key, context) {
     key = key.split('.');
     if (!key[0]) key.unshift(key.splice(0, 2).join('.'));
     if (key[0].startsWith('@')) key[0] = key[0].substring(1);
-    
+
     return key.reduce((accum, key) => {
         if (key == '$0') return accum;
-        if (key && accum) { accum = accum[key] } return accum
+        if (key && accum) { accum = ((typeof accum == 'function') ? accum(key) : accum[key]); } 
+        return accum;
     }, context);
 }
 
@@ -125,7 +126,7 @@ export function checkConditions(conditions, context) {
         for (var key of conditionKeys) {
             var operator = null;
             var conditionValue = condition[key];
-            var value = isOptionalDeepContext ? context(key, true) : deepContext(key, context);
+            var value = (/^[0-9]/.test(key) ? parseInt(key) : isOptionalDeepContext ? context(key, true) : deepContext(key, context));
             if (typeof conditionValue === 'object') {
                 operator = (conditionValue.operator || conditionValue.type);
                 conditionValue = conditionValue.value;
@@ -224,8 +225,8 @@ export var debouncer = function (context, debounceTime) {
     }, debounceTime || 200);
 }
 
-export var conditionParser$ = {
-    toObject: (conditions, lbs) => {
+export class conditionParser$ {
+    static toObject(conditions, lbs) {
         return conditions.split(/\sOR\s/gi).map(str => str.split(/\sAND\s/gi).reduce((accum, key) => {
             var ks = key.split(/[\s:]/).filter(k => k);
             if (ks.length) {
@@ -241,8 +242,9 @@ export var conditionParser$ = {
             }
             return accum;
         }, {}));
-    },
-    toString: (conditions, simple) => {
+    }
+
+    static toString(conditions, simple) {
         if (Array.isArray(conditions)) {
             return conditions.map(condition => Object.keys(condition).map(key => {
                 var v = condition[key];
@@ -254,8 +256,9 @@ export var conditionParser$ = {
         }
 
         return conditions;
-    },
-    evaluate: (operator, value, check) => {
+    }
+
+    static evaluate(operator, value, check) {
         var operators = ({
             falsy: () => !value === check,
             truthy: () => !!value === check,
@@ -285,10 +288,11 @@ export var conditionParser$ = {
             not: () => value != check,
             isdefined: () => ((undefined != value) == check)
         });
-        
+
         return (operators[operator.toLowerCase()] || function () { return false; })();
-    },
-    simpleCondition: condition => {
+    }
+
+    static simpleCondition(condition) {
         return condition.split('|').map(entry => entry.split('&').reduce((accum, cEntry) => {
             var v = cEntry.split('-')
             accum[v[0]] = {
@@ -298,8 +302,9 @@ export var conditionParser$ = {
 
             return accum;
         }, {}));
-    },
-    idsToObject: value => {
+    }
+
+    static idsToObject(value) {
         var spId = value.split(':');
         if (spId[0]) {
             var ret = { id: spId.shift().trim() };
@@ -311,14 +316,14 @@ export var conditionParser$ = {
         }
 
         return conditionParser$.simpleCondition(spId.pop());
-    },
-    idsToString: (value, isIds) => {
+    }
+    static idsToString(value, isIds) {
         if (isIds)
             return (typeof value === 'object' ? (value.id + (value.conditions ? ':' + conditionParser$.toString(value.conditions, true) : '')) : value);
-        
+
         return ':' + conditionParser$.toString(value, true);
-    },
-    parseAndEvaluate: (condition, context) => {
+    }
+    static parseAndEvaluate(condition, context) {
         if (!condition) return true;
         var cachedConditions = conditionParser$.$cachedConditions.get(condition);
         if (!cachedConditions) {
@@ -326,8 +331,10 @@ export var conditionParser$ = {
             conditionParser$.$cachedConditions.set(condition, cachedConditions);
         }
         return checkConditions(cachedConditions, context);
-    },
-    evaluateConditionalValue: (condition, context) => {
+    }
+
+    static evaluateConditionalValue(condition, context) {
+        if (!condition) return '';
         var cachedConditions = conditionParser$.$cachedConditions.get(condition);
         if (!cachedConditions) {
             cachedConditions = condition.split(':').map(a => a.trim().split('='));
@@ -337,19 +344,19 @@ export var conditionParser$ = {
         var getValue = propValue => propValue.startsWith('@') ? deepContext(propValue, context) : testOrParseJson(propValue);
 
         // parse the value
-        for(var cond of cachedConditions) {
+        for (var cond of cachedConditions) {
             if (!cond[1]) {
                 var value = getValue(cond[0]);
                 if (![undefined, null].includes(value)) return value;
-            } else if (conditionParser$.parseAndEvaluate(cond[1], context)){
+            } else if (conditionParser$.parseAndEvaluate(cond[1], context)) {
                 return getValue(cond[0]);
-            }          
+            }
         }
 
         return '';
-    },
-    $cachedConditions: new Map()
+    }
 
+    static $cachedConditions = new Map()
 };
 
 function testOrParseJson(value) {
@@ -403,10 +410,10 @@ export function htmlAttrToJson(value, lbs, deep) {
     else value = value.match(/(\S+)=\s*?((?:.(?!["']?\s+(?:\S+)=|["']))+.)?./g);
     return (value || []).reduce((accum, key) => {
         if (key) {
-            var spt = key.split('=');
-            var kValue = spt[1].trim().replace(/["']/g, '');
-            var kProp = spt[0].trim();
-            var pType = /=(:|\w+:)/.test(key) ? 'json-id' : null;
+            const eqIndx = key.indexOf('=');
+            const kValue = key.substr(eqIndx + 1).trim().replace(/["']/g, '');
+            const kProp = key.substr(0, eqIndx);
+            const pType = (/:\w/.test(kValue) && !kValue.includes('//'))  ? 'json-id' : null;
             if (!deep) {
                 accum[kProp] = parseJson(kValue, pType, true);
             } else {
@@ -425,8 +432,8 @@ export var cryptoUtils = {
     generate: (content, algo) => {
         const utf8 = new TextEncoder().encode(content);
         return crypto.subtle.digest(algo || 'SHA-256', utf8).then((hashBuffer) => {
-          return Array.from(new Uint8Array(hashBuffer)).map((bytes) => bytes.toString(16).padStart(2, '0'))
-            .join('');
+            return Array.from(new Uint8Array(hashBuffer)).map((bytes) => bytes.toString(16).padStart(2, '0'))
+                .join('');
         });
     },
     generateMultiple: (values, algo) => {
@@ -456,10 +463,10 @@ export function vh2px(d) {
     return Math.round((document.documentElement.clientHeight * d) / 100);
 }
 
-export function convert2Number(value, dim){
-    if (typeof value == 'string'){
+export function convert2Number(value, dim) {
+    if (typeof value == 'string') {
         var match = value.match(/[vh%]/g);
-        if (match){
+        if (match) {
             value = (dim == 'h' ? vh2px : vw2px)(parseInt(value));
         } else {
             value = parseInt(value);

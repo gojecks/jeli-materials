@@ -11,9 +11,10 @@ Element({
     events: [
         "onAuthRegister:emitter"
     ],
-    props: ["buttonText", "regoForm"]
+    props: ["buttonText", "data", 'lgView']
 })
 export class AuthRegisterElement {
+    lgView = false;
     constructor(registerService, foTokenService, changeDetector) {
         /**
          * additional form to be rendered dynamically
@@ -45,6 +46,13 @@ export class AuthRegisterElement {
             }
         });
     }
+    
+    didInit(){
+        if (this.data) {
+            this.regoForm.patchValue( this.data );
+        }
+    }
+
     /**
      *
      * @param {*} field
@@ -80,11 +88,9 @@ export class AuthRegisterElement {
          * @param {*} state
          * @param {*} res
          */
-        var emit = (state, res) => {
+        const emit = (state, res) => {
             this.isProcessing = false;
             if (state) {
-                var postData = res.postData;
-                delete postData._data.password;
                 this.foTokenService.saveAuthentication(res);
                 this.onAuthRegister.emit(true);
             } else {
@@ -92,7 +98,6 @@ export class AuthRegisterElement {
             }
 
             this.changeDetector.detectChanges();
-            
         };
 
         this.registerService.createUser(this.regoForm.value)

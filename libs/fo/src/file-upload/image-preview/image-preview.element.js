@@ -8,12 +8,8 @@ Element({
     styleUrl: './image-preview.element.scss',
     props: [
         'photos', 
-        'formData', 
-        'canDelete', 
-        'allowPreview', 
-        'size', 
-        'gridClass', 
-        'imgClass'
+        'options',
+        'formData'
     ],
     DI: [UploadService, ImageTheatreService, 'changeDetector?'],
     events: ['onImagePreviewAction:emitter']
@@ -22,21 +18,25 @@ export class ImagePreviewElement {
     constructor(uploadService, imageTheatreService, changeDetector) {
         this.uploadService = uploadService;
         this.changeDetector = changeDetector;
-        this.allowPreview = false;
-        this.gridClass = null;
-        this.formData = null;
-        this.canDelete = false;
-        this.size = 'col';
+        this.options = {
+            allowPreview: false,
+            gridClass: null,
+            canDelete: false,
+            size: 'col'
+        };
+
         this.imageTheatreService = imageTheatreService;
-        this.loadedImages = 0;
+        this.loadedImages = [];
         this.selectedDragIdx = null;
         this.onImagePreviewAction = new EventEmitter();
     }
+
     removeImage(idx) {
-        if (this.canDelete) {
-            var file = this.photos.files[idx];
+        if (this.options.canDelete) {
+            const file = this.photos.files[idx];
             this.photos.files.splice(idx, 1);
-            if (!file.isLinked) {
+            this.loadedImages.splice(idx, 1);
+            if (!file.isLinked && this.formData) {
                 // remove image from server
                 this.uploadService.removeImage({
                     file: file,
@@ -46,10 +46,10 @@ export class ImagePreviewElement {
         }
     }
     openTheatre(idx) {
-        if (this.allowPreview) {
-            var theatreObject = Object.assign({ entry: idx }, this.photos);
+        if (this.options.allowPreview) {
+            const theatreObject = Object.assign({ entry: idx }, this.photos);
             this.imageTheatreService.startTheatreEvent.emit(theatreObject);
-        } else if (this.canDelete) {
+        } else if (this.options.canDelete) {
             if (this.selectedDragIdx == null) {
                 this.selectedDragIdx = idx;
                 return;
@@ -66,7 +66,7 @@ export class ImagePreviewElement {
     }
 
     onImageDrag(event, idx) {
-        if (!this.canDelete) return;
+        if (!this.options.canDelete) return;
         if (['drop', 'dragover'].includes(event.type)) {
             event.preventDefault();
             if (event.type == 'drop') {
@@ -79,11 +79,17 @@ export class ImagePreviewElement {
     }
 
     action(nodeName, idx){
-        var actions = {
+        const actions = {
             button: () => this.removeImage(idx),
             img: () => this.openTheatre(idx)
         };
 
         actions[nodeName]();
+    }
+
+    addLoaded(idx, success){
+        this.loadedImages[idx] = ({
+            success
+        });
     }
 }

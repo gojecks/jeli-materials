@@ -1,1 +1,1 @@
-export var stateConstants = {};
+export const stateConstants = {};

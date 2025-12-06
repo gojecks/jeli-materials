@@ -6,28 +6,31 @@ Element({
     styleUrl: './accordion.element.scss',
     props: ['items', 'alwaysOpen', 'flush']
 })
-export function FoAccordionElement() {
-    this.currentSelectedAccord = -1;
-    this.flush = false;
-    this.alwaysOpen = false;
-    this.items = [];
-    this._selected  = [];
-}
+export class FoAccordionElement {
+    constructor() {
+        this.currentSelectedAccord = -1;
+        this.flush = false;
+        this.alwaysOpen = false;
+        this.items = [];
+        this._selected = [];
+    }
+    parseMarkup(markup, data) {
+        return parseText(markup, data, true);
+    }
+    selected(idx) {
+        if (!this._selected.includes(idx)) {
+            if (this.alwaysOpen)
+                this._selected.push(idx);
 
-FoAccordionElement.prototype.parseMarkup = function(markup, data){
-    return parseText(markup, data, true);
-}
-
-FoAccordionElement.prototype.selected = function(idx){
-    if (!this._selected.includes(idx)){
-        if (this.alwaysOpen) 
-            this._selected.push(idx);
-        else 
-            this._selected = [idx];
-    } else {
-        this._selected.splice(this._selected.indexOf(idx), 1);
+            else
+                this._selected = [idx];
+        } else {
+            this._selected.splice(this._selected.indexOf(idx), 1);
+        }
     }
 }
+
+
 
 Element({
     selector: 'fo-accordion-item',

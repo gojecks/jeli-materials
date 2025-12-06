@@ -11,16 +11,24 @@ radio-item {
     flex: 1 1 auto;
 }
 
-radio-item:not(:last-child) .btn {
-    border-bottom-right-radius: 0;
-    border-top-right-radius: 0;
+.btn-group {
+    radio-item:not(:last-child) .btn {
+        border-bottom-right-radius: 0;
+        border-top-right-radius: 0;
+    }
+    
+    radio-item:nth-child(n+2) .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    radio-item:not(:first-child) {
+        margin-left: -1px;
+    }
 }
 
-radio-item:nth-child(n+2) .btn {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
-
-radio-item:not(:first-child) {
-    margin-left: -1px;
+.btn-non-group {
+    radio-item {
+        display: inline-block !important;
+    }
 }

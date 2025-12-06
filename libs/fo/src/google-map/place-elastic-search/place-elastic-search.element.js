@@ -22,14 +22,18 @@ export class PlaceElasticSearchElement {
             searchBox: true
         };
         this.autoCompleteInstance = null;
-        Object.defineProperty(this, 'options', {
-            set: function (value) {
-                if (value && typeof value === 'object') {
-                    Object.assign(this._options, value);
-                }
-            }
-        });
     }
+
+    set options(value) {
+        if (value && typeof value === 'object') {
+            Object.assign(this._options, value);
+        }
+    }
+
+    get options(){
+        return this._options;
+    }
+
     didInit() {
         this.googleMapService
             .setConfiguration(this._options)
@@ -65,5 +69,32 @@ export class FoPlaceElasticSearchDirective extends PlaceElasticSearchElement {
         this.googleMapService.buildAutoComplete(place => {
             this.onPlaceSelected.emit(place);
         }, this.Element.nativeElement);
+    }
+}
+
+Element({
+    selector: 'fo-place-elastic-search-v2',
+    template: `<div class="alert alert-danger" *if="!isGoogleAvailable">Google Place not available at this moment</div>`,
+    events: ['onPlaceSelected:emitter'],
+    props: ['options'],
+    DI: ['HostElement?']
+})
+export class PlaceElasticSearchV2Element{
+    onPlaceSelected = new EventEmitter();
+    constructor(hostElement){
+        this.hostElement = hostElement;
+        this.isGoogleAvailable = !!window.google;
+        this.options = { 
+            fields: ['displayName', 'formattedAddress', 'location'] 
+        };
+    }
+
+    didInit(){
+        GoogleMapService
+        .buildAutoCompleteV2(
+            this.hostElement.nativeElement, 
+            this.options, place => {
+            console.log(place);
+        });
     }
 }

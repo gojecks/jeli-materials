@@ -31,13 +31,16 @@ export class FileInstantUploadDirective {
             ignoreDotFiles: true,
             url: '/v2/uploads'
         };
-
-        Object.defineProperty(this, 'settings', {
-            set: value => {
-                Object.assign(this._settings, value || {});
-            }
-        });
     }
+
+    set settings(value){
+        UploadService.extendObj(this._settings, value);
+    }
+
+    get settings(){
+        return this._settings;
+    }
+
     didInit() {
         if (!this.supportsFilePicker) {
             var filePickerConfig = Object.assign({ id: this._id }, this._settings);
@@ -60,6 +63,7 @@ export class FileInstantUploadDirective {
         this.uploadService.multipartUpload(processed.readyForUpload, this._settings)
             .then(res => this.onFileUpload.emit({ source: res.result }), err => this.onFileUpload.emit({ err }));
     }
+
     viewDidDestroy() {
         if (this.fileElement) {
             document.body.removeChild(this.fileElement.form);

@@ -6,7 +6,14 @@ import { FoTokenService } from "../../fo-auth-token.service";
 Element({
     selector: 'fo-reset-password',
     DI: [LoginService, FoTokenService, 'changeDetector?'],
-    props: ['queryField', 'email', 'waitingTime', 'resetCodeInputAmount', 'message'],
+    props: [
+        'queryField', 
+        'email', 
+        'waitingTime', 
+        'resetCodeInputAmount', 
+        'message',
+        'size'
+    ],
     templateUrl: './reset-password.html',
     styleUrl: './reset-password-element.scss',
     events: ['onLoginEvent:emitter']
@@ -31,6 +38,7 @@ export class FoResetPasswordElement {
         this.onLoginEvent = new EventEmitter();
         this._waitingTime = 15;
         this._resetCodeInputAmount = 6;
+        this.size = 'md';
         this.resetControl = new FormControlService({
             code: {
                 validators: {

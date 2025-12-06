@@ -248,36 +248,47 @@ export function renderBody(astNodes, replacerData) {
 }
 
 
-export var markupRegistry = {
+export class markupRegistry {
     /**
      * 
      * @param {*} markupName 
      * @param {*} handler 
      */
-    tag: (markupName, handler) => {
+    static tag(markupName, handler){
         if (markupHandlers$.hasOwnProperty(markupName))
             throw new Error(`${markupName} already exists please change tag name`);
         if (typeof handler !== 'function')
             throw new Error(`${markupName} handler must be a function`);
         markupHandlers$[markupName] = handler;
 
-        return markupRegistry;
-    },
+        return this;
+    }
     /**
      * 
      * @param {*} filterName 
      * @param {*} handler 
      */
-    filter: (filterName, handler) => {
+    static filter(filterName, handler) {
         if (interPolators.hasOwnProperty(filterName))
             throw new Error(`${filterName} already exists please change tag name`);
         if (typeof handler !== 'function')
             throw new Error(`${filterName} handler must be a function`);
         interPolators[filterName] = handler;
 
-        return markupRegistry;
-    },
-    _keys: () => Object.keys(markupHandlers$)
+        return this;
+    }
+
+    static _keys(){
+        return Object.keys(markupHandlers$)
+    } 
+
+    static get(handler){
+        return markupHandlers$[handler];
+    }
+
+    static getFilter(filterName){
+        return interPolators[filterName]
+    }
 };
 
 

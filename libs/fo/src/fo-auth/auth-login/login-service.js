@@ -1,11 +1,13 @@
+import { FoAuthPkceService } from "../fo-auth-pkce.service";
 import { AUTH_DATABASE_SERIVCE, FO_AUTH_CONFIG } from "../tokens";
 
 
 Service({
-    DI: [AUTH_DATABASE_SERIVCE]
+    DI: [AUTH_DATABASE_SERIVCE, FoAuthPkceService]
 })
 export class LoginService {
-    constructor(databaseService) {
+    constructor(databaseService, foAuthPkceService) {
+        this.pkce = foAuthPkceService;
         this.databaseService = databaseService;
     }
     validateAndSendEmail(requestBody) {
@@ -22,7 +24,7 @@ export class LoginService {
     }
     resetPassword(requestBody, password) {
         return new Promise((resolve, reject) => {
-            var resetPassword = () => this.update(requestBody).then(resolve, reject);
+            const resetPassword = () => this.update(requestBody).then(resolve, reject);
             if (password) {
                 return this.validatePassword({ password }).then(resetPassword, reject);
             }
@@ -45,6 +47,7 @@ export class LoginService {
 
         return this.databaseService.userServices.update(requestBody);
     }
+    
     validateInput(field, value) {
         var request = {};
         request[field] = {
@@ -67,7 +70,7 @@ export class LoginService {
      * @param {*} type
      */
     getOpenIdURI(type) {
-        return [FO_AUTH_CONFIG.openIdURL, FO_AUTH_CONFIG.organisation, FO_AUTH_CONFIG.name, type + '?referrer=' + window.location.origin].join('/');
+        return (`${FO_AUTH_CONFIG.openIdURL}/${FO_AUTH_CONFIG.organisation}/${FO_AUTH_CONFIG.name}/${type}?referrer=${window.location.origin}`);
     }
 
     sendEmailVerificationCode(){

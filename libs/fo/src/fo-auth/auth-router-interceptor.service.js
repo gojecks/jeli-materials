@@ -4,8 +4,12 @@ import { FoAuthService } from "./fo-auth.service";
 Service({
     DI: [FoAuthService]
 })
-export function AuthRouterInterceptorService(foAuthService) {
-    this.resolve = function(route, next) {
-        foAuthService.checkAuthority(route).then(next);
-    };
+export class AuthRouterInterceptorService {
+    constructor(foAuthService) {
+        this.foAuthService = foAuthService;
+    }
+
+    resolve(route, next) {
+        this.foAuthService.checkAuthority(route).then(next);
+    }
 }

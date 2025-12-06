@@ -1,6 +1,6 @@
 <j-place selector="[header]"></j-place>
 <ul class="nav nav-pills flex-column fo-tree" @click-delegate:li="onBranchSelected(row)">
-  <li *for="row in tree_rows; trackBy as trackByFn; idx=index"
+  <li *for="row in tree_rows; trackBy as uid; idx=index"
     {:jClass}="'level-'+row.level  + ' '+ row.classes.join(' ')" class="fo-tree-row nav-item" draggable="true"
     @dragover="onDragOver($event, row)" @dragstart="onDragStart($event, row)" @drop="onDragDrop($event, row)" {id}="idx">
     <a class="nav-link" {:jClass}="{'active':row.selected, 'd-none':!row.visible}">

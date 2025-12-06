@@ -52,7 +52,7 @@ export class SliderAbstract {
               this.slidesPerView = newValue;
         });
 
-        var _mainInitProcess = () => {
+        const _mainInitProcess = () => {
             this.hideOrShowSlides(this.end, this.totalItems);
             this.intervalId = setInterval(() => {
                 if (this.end == this.totalItems) 
@@ -90,7 +90,7 @@ export class SliderAbstract {
 
     destroy(){
         clearInterval(this.intervalId);
-        this.breakPointSubscription();
+        this.breakPointSubscription && this.breakPointSubscription();
     }
 
     _toggle(idx) {

@@ -11,9 +11,11 @@ Element({
     DI: [AUTH_DATABASE_SERIVCE, FoTokenService, LoginService],
     events: [
         'onLoginEvent:emitter'
-    ]
+    ],
+    props: ['lgView:Boolean']
 })
 export class AuthLoginElement {
+    lgView = false;
     constructor(databaseService, foTokenService, loginService) {
         this.databaseService = databaseService;
         this.foTokenService = foTokenService;
@@ -41,14 +43,14 @@ export class AuthLoginElement {
     login() {
         this.errorLogin = false;
         this.isProcessing = true;
-        var success = res => {
+        const success = res => {
             this.isProcessing = false;
             res = (res.result || res);
             //set the authorities
             this.foTokenService.saveAuthentication(res);
             this.onLoginEvent.emit({
-                success: !res.disabled,
-                reset: res.forcePasswordReset || false
+                success: !res.isDisabled(),
+                reset: res.isPasswordReset()
             });
         };
 
@@ -59,7 +61,7 @@ export class AuthLoginElement {
             this.onLoginEvent.emit({
                 success: false,
                 data: (err || {}),
-                reset: err.forcePasswordReset || false,
+                reset: err.forcePasswordReset,
                 email: this.loginForm.value.email
             });
         };

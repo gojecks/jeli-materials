@@ -1,7 +1,7 @@
-<button class="btn" attr-class="'btn-'+btnStyle" @click="offCanvasAction(true)">
+<button class="btn" *if="!hideTrigger" attr-class="'btn-'+btnStyle" @click="offCanvasAction(true)">
     <i attr-class="iconClass"></i> ${:btnText}
 </button>
-<div class="offcanvas" attr-class="'offcanvas-'+position" {:jClass}="{'show': (isOpen)}" tabindex="-1" attr-id="id">
+<div class="offcanvas" attr-class="'offcanvas-'+position" {:jClass}="{'show': (_isOpen)}" tabindex="-1" attr-id="id">
   <div class="offcanvas-header">
     <h5 class="offcanvas-title">${:title}</h5>
     <button type="button" class="btn-close" aria-label="Close" @click="offCanvasAction(false)"></button>
@@ -10,4 +10,4 @@
     <j-place></j-place>
   </div>
 </div>
-<div class="offcanvas-backdrop fade show" *if="backDrop && isOpen" @click="offCanvasAction(false, true)"></div>
+<div class="offcanvas-backdrop fade show" *if="backDrop && _isOpen" @click="offCanvasAction(false, true)"></div>

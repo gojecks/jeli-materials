@@ -9,7 +9,9 @@ import { renderMarkupElements } from '../markup.parser';
 import { modalRegistry } from './modal.registry';
 
 export var MODAL_INSTANCE = new ProviderToken('modalInstance', false);
-export var MODAL_DATA = new ProviderToken('modalInstance', false)
+export var MODAL_DATA = new ProviderToken('modalInstance', false);
+
+const openedModalInstances = new Map();
 /**
  * 
  * @param {*} context 
@@ -41,7 +43,7 @@ function createModalElement(context) {
                                 class: 'btn-close',
                                 type: 'button'
                             }, null, modalHeader)
-                                .addEventListener('click', () => context.close());
+                                .addEventListener('click', () => context.close(false));
                         }
                     }, modalContent);
                 }
@@ -72,39 +74,39 @@ function createModalElement(context) {
                     }
                 }, modalContent);
 
-                if (context.options.buttons) {
+                const actions = context.options.buttons || context.options.actions;
+                if (actions) {
                     DOMHelper.createElement('div', {
                         class: `modal-footer ${context.options.customClass.footer || ''}`
                     }, modalFooter => {
                         // generate the buttons
-                        context.options.buttons.forEach((button, idx) => {
+                        actions.forEach((action, idx) => {
                             DOMHelper.createElement('button', {
-                                class: button.class,
+                                class: action.class,
                                 type: 'button',
-                                id: (button.id || 'modal_btn_' + idx),
+                                id: (action.id || 'modal_btn_' + idx),
                                 data: {
                                     'ref-idx': idx
                                 }
                             }, buttonEle => {
-                                if (button.iconClass) {
-                                    DOMHelper.creabuttonElement('i', { class: button.iconClass }, null, buttonEle);
+                                if (action.iconClass) {
+                                    DOMHelper.creabuttonElement('i', { class: action.iconClass }, null, buttonEle);
                                 }
-                                buttonEle.innerText = button.label;
+                                buttonEle.innerText = action.label;
                             }, modalFooter);
                         });
                     }, modalContent).addEventListener('click', event => {
-                        var clickBtn = event.target.closest('button');
+                        const clickBtn = event.target.closest('button');
                         if (clickBtn) {
-                            var buttonDefinition = context.options.buttons[clickBtn.dataset.refIdx];
-                            if (buttonDefinition) {
-                                if ('function' == typeof buttonDefinition.action)
-                                    buttonDefinition.action(event);
+                            const actionDefinition = actions[clickBtn.dataset.refIdx];
+                            let stopPropagation = false;
+                            if (actionDefinition) {
+                                if ('function' == typeof actionDefinition.action)
+                                    stopPropagation = actionDefinition.action(event);
                                 else
-                                    context.onButtonClicked.emit(buttonDefinition);
+                                    context.onButtonClicked.emit(actionDefinition);
 
-                                if (buttonDefinition.dismiss) context.close();
-
-                                buttonDefinition = null;
+                                if (actionDefinition.dismiss && !stopPropagation) context.close();
                             }
                         }
                     });
@@ -120,10 +122,8 @@ function createModalElement(context) {
  * @param {*} options 
  */
 class ModalInstance {
-    constructor(options) {
-        this.componentViewRef = null;
-        this.modalId = options.id || 'modal_' + +new Date;
-        this.options = Object.assign({
+    static buildOptions(options) {
+        return Object.assign({
             backDrop: true,
             backDropClose: true,
             customClass: {
@@ -137,7 +137,8 @@ class ModalInstance {
             position: 'center',
             component: null,
             static: null,
-            buttons: null,
+            actions: null,
+            buttons: null, // to be removed, use action instead
             hideCloseBtn: false,
             displayType: 'flex',
             modalStyle: '',
@@ -147,13 +148,18 @@ class ModalInstance {
             closeTimeOut: null,
             openTimeOut: null
         }, options);
+    }
+
+    constructor(options) {
+        this.componentViewRef = null;
+        this.closeTimeout = null;
+        this.modalId = options.id || 'modal_' + +new Date;
+        this.options = ModalInstance.buildOptions(options);
         this.componentInstance = null;
         this.isOpened = false;
         this.onModalOpened = new EventEmitter();
         this.onModalClosed = new EventEmitter();
         this.onButtonClicked = new EventEmitter();
-        // create overlay
-        this.nativeElement = createModalElement(this);
         if (this.options.backDrop) {
             this.overlay = document.createElement('div');
             this.overlay.classList.add('modal-backdrop', 'fade');
@@ -163,59 +169,93 @@ class ModalInstance {
         if (this.options.openTimeOut) {
             setTimeout(() => this.open(), this.options.openTimeOut);
         }
+
+        // set modal instance to map
+        openedModalInstances.set(this.modalId, this);
     }
+
     open() {
         if (this.isOpened) return;
 
+        this.nativeElement = createModalElement(this);
         if (this.overlay) {
             document.body.appendChild(this.overlay);
             this.overlay.classList.add('show');
         }
 
         this.nativeElement.classList.toggle('show');
-        this.onModalClosed.emit(true);
+        this.onModalOpened.emit(true);
         // activate timeout
         if ('number' === typeof this.options.closeTimeOut) {
-            setTimeout(() => this.close(false), this.options.closeTimeOut)
+            this.closeTimeout = setTimeout(() => this.close(false), this.options.closeTimeOut)
         }
 
         this.isOpened = false;
     }
 
-    close(fromOverlay) {
+    close(fromOverlay, data) {
         if (fromOverlay && !this.options.backDropClose) return;
-
+        clearTimeout(this.closeTimeout);
         if (this.options.backDrop) {
             this.overlay.classList.toggle('show');
             if (this.overlay.parentElement)
                 this.overlay.parentElement.removeChild(this.overlay);
         }
 
-        animate.fadeOut(this.nativeElement, 500, () => {
-            DOMHelper.remove(this.componentViewRef);
-            this.nativeElement && this.nativeElement.parentElement.removeChild(this.nativeElement);
-            this.cleanUp();
-        });
-
+        this.cleanUp(false);
         this.onModalClosed.emit({
             id: this.modalId,
-            fromOverlay
+            fromOverlay,
+            data
         });
     }
 
-    cleanUp() {
-        this.nativeElement = null;
-        this.options = null;
-        this.overlay = null;
-        this.onModalClosed.destroy();
-        this.onButtonClicked.destroy();
-        this.onModalOpened.destroy();
+    cleanUp(fromRefresh, callback) {
+        animate.fadeOut(this.nativeElement, 200, () => {
+            DOMHelper.remove(this.componentViewRef);
+            this.nativeElement && this.nativeElement.parentElement.removeChild(this.nativeElement);
+            if (!fromRefresh) {
+                this.nativeElement = null;
+                this.options = null;
+                this.overlay = null;
+                this.onModalClosed.destroy();
+                this.onButtonClicked.destroy();
+                this.onModalOpened.destroy();
+                openedModalInstances.delete(this.modalId);
+            }
+            if(typeof callback == 'function') callback();
+        });
+    }
+
+    refresh(options) {
+        Object.assign(this.options, options);
+        this.cleanUp(true, () => {
+            this.nativeElement = createModalElement(this);
+            this.nativeElement.classList.toggle('show');
+        });
+        return this;
+    }
+
+    update(options) {
+        Object.assign(this.options, options);
+        return this;
     }
 }
 
 
 Service()
 export class ModalService {
+    static destroyAllOpened() {
+        Array.from(openedModalInstances.values()).forEach(modal => modal.close());
+    }
+
+    static destroyById(id) {
+        const modalInstance = openedModalInstances.get(id);
+        if (modalInstance) {
+            modalInstance.close();
+        }
+    }
+
     constructor() { }
     createModal(modalOptions) {
         return new ModalInstance(modalOptions);
@@ -233,6 +273,7 @@ export class ModalService {
             title: "Alert",
             template,
             closeTimeOut: timer || 2000,
+            displayType: 'block',
             modalStyle: "modal-dialog-centered modal-sm",
             hideCloseBtn
         }).open();
@@ -241,16 +282,17 @@ export class ModalService {
     /**
      * 
      * @param {*} template 
-     * @param {*} buttons 
+     * @param {*} actions 
      * @param {*} hideCloseBtn 
      * @returns 
      */
-    confirm(template, buttons, hideCloseBtn) {
+    confirm(template, actions, hideCloseBtn) {
         return this.createModal({
             title: "Please confirm",
+            displayType: 'block',
             modalStyle: "modal-dialog-centered modal-sm",
             template,
-            buttons,
+            actions,
             hideCloseBtn
         }).open();
     }
@@ -258,16 +300,17 @@ export class ModalService {
     /**
      * 
      * @param {*} template 
-     * @param {*} buttons 
+     * @param {*} actions 
      * @returns 
      */
-    prompt(template, buttons) {
+    prompt(template, actions, hideCloseBtn = false) {
         return this.createModal({
             title: "Prompt",
+            displayType: 'block',
             modalStyle: "modal-dialog-centered modal-sm",
             template,
-            buttons,
-            hideCloseBtn: false
+            actions,
+            hideCloseBtn
         }).open();
     }
 }

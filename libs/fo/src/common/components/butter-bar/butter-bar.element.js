@@ -4,6 +4,8 @@ Element({
     styleUrl: './butter-bar.element.scss',
     props: ['active']
 })
-export function ButterBarElement() {
-    this.active = false;
+export class ButterBarElement {
+    constructor() {
+        this.active = false;
+    }
 }

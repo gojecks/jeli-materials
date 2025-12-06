@@ -6,21 +6,28 @@
  * @param {*} countDown 
  * @param {*} _currentTimer 
  */
-export function SessionEvent(eventName, expiresAt, expiresIn, keepAlive, countDown, _currentTimer) {
-    this.type = eventName;
-    this.currentTime = Date.now();
-    this.expiresAt = expiresAt;
-    this.expiresIn = expiresIn;
-    this.$current = _currentTimer;
-    this.isAlive = keepAlive;
-    this.idle = countDown;
-    this.canRevalidate = function(diff) {
-        if (diff) {
-            return ((this.expiresAt - this.currentTime) <= (diff * 1000));
-        }
+/**
+ *
+ * @param {*} expiresAt
+ * @param {*} expiresIn
+ * @param {*} keepAlive
+ * @param {*} countDown
+ * @param {*} _currentTimer
+ */
+export class SessionEvent {
+    constructor(eventName, expiresAt, expiresIn, keepAlive, countDown, _currentTimer) {
+        this.type = eventName;
+        this.currentTime = Date.now();
+        this.expiresAt = expiresAt;
+        this.expiresIn = expiresIn;
+        this.$current = _currentTimer;
+        this.isAlive = keepAlive;
+        this.idle = countDown;
+    }
 
-        return false;
-    };
+    canRevalidate(diff) {
+        return (diff ? ((this.expiresAt - this.currentTime) <= (diff * 1000)) : false);
+    }
 }
 
 /**

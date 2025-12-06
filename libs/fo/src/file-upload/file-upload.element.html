@@ -3,7 +3,7 @@
     <div class="box has-advanced-upload js mb-3" {:jClass}="dragClass" @:fileUploadDrag="fileDragDropEvent($event)"
       *if="canUploadImages">
       <div class="box__input" {style.display}="!selectedFiles.length ? 'block':'none'">
-        <input class="box__file" type="file" @input="onFileSelected($event)" name="files[]" id="file" multiple />
+        <input class="box__file" type="file" @input="onFileSelected($event)" name="files[]" id="file" multiple="true" />
         <label for="file">${:label || 'Choose or drag photos here.'}</label>
       </div>
       <div class="clearfix" @click-delegate:button="removeImage(idx)">
@@ -18,16 +18,15 @@
   </div>
   <div class="alert alert-danger mb-3" role="alert" *if="selectedFileErrors.length">
     <h6>Invalid file format or too large image</h6>
-    <p *for="file in selectedFileErrors" class="mb-1">${:file.name} - ${:file.size}bytes</p>
+    <p *for="file in selectedFileErrors" class="mb-1">${:file.name} - ${:file.size|conversion}</p>
     accepted formats are ${:_settings.accepts}
   </div>
   <fo-camera *if="showCamera" @onCameraAction="listenCameraAction($event)" {settings}="_settings.camera"></fo-camera>
-  <fo-image-preview {photos}="value" *if="value.files.length" {canDelete}="_settings.imagePreview.canDelete"
-    {formData}="_settings.formData" {size}="_settings.imagePreview.size" {gridClass}="_settings.imagePreview.gridClass"
-    {imgClass}="_settings.imagePreview.imgClass" {allowPreview}="_settings.imagePreview.allowPreview"
+  <fo-image-preview {photos}="value" *if="value.files.length" {options}="_settings.imagePreview"
+    {formData}="_settings.formData"
     @onImagePreviewAction="onImagePreviewAction.emit($event)"></fo-image-preview>
 
-  <div class="clearfix" *if="canUploadImages && _settings.showUploadBtn && !_settings.autoUpload">
+  <div class="clearfix border-top pt-2" *if="canUploadImages && _settings.showUploadBtn && !_settings.autoUpload">
     <div *if="totalFiles > _settings.maximumFilesToUpload" class="alert alert-warning">
       Total files ${totalFiles} exceed maximum allowed files ${_settings.maximumFilesToUpload} please delete some images
       before proceeding

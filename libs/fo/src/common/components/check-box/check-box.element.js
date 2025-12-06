@@ -18,7 +18,8 @@ Element({
         'btnColor',
         'options', 
         'label',
-        'disabled'
+        'disabled',
+        'switchMode'
     ],
     events: ['onOptionSelected:emitter'],
     DI: ['ParentRef?=formControl']
@@ -32,6 +33,7 @@ export class CheckBoxElement {
         this.size = 'sm';
         this.btnClass = 'me-1 mb-1';
         this.btnColor = 'primary';
+        this.switchMode = false;
         this._name = '';
         this.options = null;
         this.onOptionSelected = new EventEmitter();

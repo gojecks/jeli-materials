@@ -21,5 +21,11 @@ export class FoModalModule {
         }
     }
 
+    static registerMultiple(components){
+        if (Array.isArray(components)){
+            components.forEach(this.registerComponent);
+        }
+    };
+
     constructor(){}
 }

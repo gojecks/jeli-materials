@@ -16,6 +16,7 @@ import { AuthRegisterElement } from './auth-register/auth-register.element.js';
 import { FoPasswordTextSwitcherDirective } from './password-text-switcher.directive.js';
 import { FoOtpElement } from './otp/otp.element.js';
 import { FoDigitGroupElement } from './digit-group/digit-group.element.js';
+import { FoAuthPkceService } from './fo-auth-pkce.service.js';
 
 
 jModule({
@@ -39,10 +40,11 @@ jModule({
         FoAuthService,
         FoTokenService,
         AuthSessionManager,
+        FoAuthPkceService,
         {
             name: ROUTE_INTERCEPTOR,
             useClass: AuthRouterInterceptorService
-        },
+        }
     ]
 })
 export function FoAuthModule() {}

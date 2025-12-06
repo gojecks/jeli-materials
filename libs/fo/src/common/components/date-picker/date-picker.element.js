@@ -11,10 +11,10 @@ Element({
         'disabled',
         'maxAge',
         'minAge',
-        'minDate',
-        'maxDate',
-        'minYear',
-        'maxYear',
+        'minDate:string|number',
+        'maxDate:string|number',
+        'minYear:string|number',
+        'maxYear:string|number',
         'hintLabel',
         'isDT',
         'toTS',
@@ -97,12 +97,12 @@ export class DatePickerElement {
     }
 
     set minDate(value) {
-        this._minMaxValidator.min = this._getDateTimeStamp(value);
+        this._minMaxValidator.min = this.getTimeStampFromObject(value);
     }
 
     set maxDate(value) {
         this._maxDateSet = true;
-        this._minMaxValidator.max = this._getDateTimeStamp(value);
+        this._minMaxValidator.max = this.getTimeStampFromObject(value);
     }
 
     set minYear(value) {
@@ -151,7 +151,6 @@ export class DatePickerElement {
 
         // patch the value
         this._control.patchValue(value);
-
         this._control.valueChanges.subscribe((value) => {
             if (this._control.valid) {
                 value = (this.toTS ? this.getTimeStampFromObject(value) : value);
@@ -181,9 +180,13 @@ export class DatePickerElement {
     }
 
     getTimeStampFromObject(value) {
-        if (!value) { return Date.now(); }
-        if (typeof value === 'number') return value;
-        var dateValue = new Date([value.month, value.day, value.year]);
+        if(!value) return Date.now(); // value not defined
+        if ('string' == typeof value){
+            value = new Date(['now', 'today'].includes(value.toLowerCase()) ? Date.now() : value).getTime();
+            return isNaN(value) ? Date.now() : value;
+        }
+            
+        let dateValue = new Date([value.month, value.day, value.year]);
         if (this.isDT) {
             dateValue.setHours(value.hour);
             dateValue.setMinutes(value.min);
@@ -192,14 +195,15 @@ export class DatePickerElement {
     }
 
     _getDateTimeStamp(value) {
-        if (value && typeof value === 'string')
+        if (value && typeof value === 'string'){
             return new Date(value).getTime();
+        }
 
-        return this.getTimeStampFromObject(value);
+        return ;
     }
 
     getDateFromTimeStamp(timestamp){
-        var timeObject = this.dateTimeService.timeConverter(timestamp);
+        const timeObject = this.dateTimeService.timeConverter(timestamp);
         return {
             day: timeObject.flags.DD,
             month: timeObject.flags.MM,
