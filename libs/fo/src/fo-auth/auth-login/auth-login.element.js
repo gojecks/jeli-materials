@@ -12,10 +12,11 @@ Element({
     events: [
         'onLoginEvent:emitter'
     ],
-    props: ['lgView:Boolean']
+    props: ['lgView:Boolean', 'spinner:String']
 })
 export class AuthLoginElement {
     lgView = false;
+    spinner = 'spinner-border spinner-border-sm';
     constructor(databaseService, foTokenService, loginService) {
         this.databaseService = databaseService;
         this.foTokenService = foTokenService;

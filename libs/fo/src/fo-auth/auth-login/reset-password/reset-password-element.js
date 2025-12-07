@@ -12,7 +12,8 @@ Element({
         'waitingTime', 
         'resetCodeInputAmount', 
         'message',
-        'size'
+        'size', 
+        'spinner'
     ],
     templateUrl: './reset-password.html',
     styleUrl: './reset-password-element.scss',
@@ -25,6 +26,7 @@ Element({
  * @param {*} changeDetector
  */
 export class FoResetPasswordElement {
+    spinner = 'spinner-border spinner-border-sm';
     constructor(loginService, foTokenService, changeDetector) {
         this.changeDetector = changeDetector;
         this.foTokenService = foTokenService;
@@ -80,7 +82,7 @@ export class FoResetPasswordElement {
         this.reset();
         this.loginService.validateAndSendEmail({
             query: {
-                email: this.resetControl.value.email
+                email: this.resetControl.getAllValues().email
             },
             fields: this.queryField
         })

@@ -15,7 +15,7 @@
     <div class="d-grid gap-2">
       <button type="submit" class="btn btn-primary btn-block" {class}="{'btn-lg': lgView}"
         {disabled}="loginForm.invalid || isProcessing">
-        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" *if="isProcessing"></span>
+        <span {class}="spinner" role="status" aria-hidden="true" *if="spinner && isProcessing"></span>
         Log in </button>
     </div>
   </div>

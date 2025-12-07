@@ -11,10 +11,11 @@ Element({
     events: [
         "onAuthRegister:emitter"
     ],
-    props: ["buttonText", "data", 'lgView']
+    props: ["buttonText", "data", 'lgView', 'spinner']
 })
 export class AuthRegisterElement {
     lgView = false;
+    spinner = 'spinner-border spinner-border-sm';
     constructor(registerService, foTokenService, changeDetector) {
         /**
          * additional form to be rendered dynamically

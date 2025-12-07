@@ -25,6 +25,8 @@
   <j-place></j-place>
   <div class="d-grid gap-2">
     <button type="submit" class="btn btn-primary" {class}="{'btn-lg': lgView}" @click="registerAccount()"
-      {disabled}="regoForm.invalid || isProcessing"> ${:buttonText || 'Register'} </button>
+      {disabled}="regoForm.invalid || isProcessing"> 
+      <span {class}="spinner" role="status" aria-hidden="true" *if="spinner && isProcessing"></span>
+      ${:buttonText || 'Register'} </button>
   </div>
 </form>

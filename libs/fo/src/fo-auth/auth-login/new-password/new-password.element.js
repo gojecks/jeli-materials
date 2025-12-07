@@ -5,11 +5,12 @@ Element({
     selector: 'fo-new-password',
     DI: [LoginService, "changeDetector?"],
     templateUrl: './new-password.element.html',
-    props: ["hardReset", "userId", "smMode"],
+    props: ["hardReset", "userId", "smMode", 'spinner'],
     events: ["onPasswordUpdate:emitter"]
 })
 export class FoNewPassword {
     smMode = false;
+    spinner = 'spinner-border spinner-border-sm';
     constructor(loginService, changeDetector) {
         this.requestDone = false;
         this.error = false;
