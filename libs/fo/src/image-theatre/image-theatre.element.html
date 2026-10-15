@@ -1,24 +1,26 @@
 <div class="theaterContainer" *if="openTheatre">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Image preview">
     <div class="modal-dialog modal-fullscreen">
       <div class="modal-content">
         <div class="modal-body  row m-0 p-0">
-          <div class="col-md-${:openTheatre.comments ? '9':'12'} previewArea">
+          <div class="col-md-${:openTheatre.comments ? '9':'12'} previewArea" @touchstart="onTouchStart($event)" @touchmove="onTouchMove($event)" @touchend="onTouchEnd($event)">
             <div class='clearfix top-action-container'>
               <div class="progress rounded" *if="isPlaying" role="progressbar" aria-label="loading" aria-valuenow="${progress}" aria-valuemin="10" aria-valuemax="100">
                 <div class="progress-bar bg-warning text-dark" {style}="{width: progress+'%'}"></div>
               </div>
               <div class="float-end btn-group bg-black rounded-0" @click-delegate:button='theatreBtnAction($event.target.id)'>
-                <button class="btn" *for="t in ['out', 'in']; idx=index" attr-title="'Zoom '+ t" attr-id="'zoom-'+ t"><i attr-class="'bi-zoom-'+t"></i></button>
-                <button class="btn" *if="_config.autoPlay" id="playPause" {title}="isPlaying ? 'Pause':'Play'"><i {:jClass}="'bi-'+ (isPlaying ? 'pause':'play')"></i></button>
-                <button class="btn" id="fscrn" {title}="isFullScreen ? 'Fullscreen':'Exit Fullscreen'"><i {:jClass}="'bi-fullscreen'+ (isFullScreen ? '-exit':'')"></i></button>
-                <button class='btn' title="Close" id="close"><i class="bi-x-lg"></i></button>
+                <button class="btn" *for="t in ['out', 'in']; idx=index" attr-title="'Zoom '+ t" attr-aria-label="'Zoom '+ t" attr-id="'zoom-'+ t"><i attr-class="'bi-zoom-'+t"></i></button>
+                <button class="btn" *if="_config.autoPlay" id="playPause" {title}="isPlaying ? 'Pause':'Play'" {aria-label}="isPlaying ? 'Pause':'Play'"><i {:jClass}="'bi-'+ (isPlaying ? 'pause':'play')"></i></button>
+                <button class="btn" id="fscrn" {title}="isFullScreen ? 'Fullscreen':'Exit Fullscreen'" {aria-label}="isFullScreen ? 'Fullscreen':'Exit Fullscreen'"><i {:jClass}="'bi-fullscreen'+ (isFullScreen ? '-exit':'')"></i></button>
+                <button class='btn' title="Close" aria-label="Close" id="close"><i class="bi-x-lg"></i></button>
               </div>
             </div>
             <div class="clearfix nav-container" @click-delegate:button='prevNext(idx)'>
-              <button class="btn bg-black rounded-0" attr-class="'float-'+(idx ?'end':'start')" *for="t in ['prev','next']; idx=index"><i attr-class="'bi-arrow-'+(idx ?'right':'left')"></i></button>
+              <button class="btn bg-black rounded-0" attr-class="'float-'+(idx ?'end':'start')" attr-aria-label="idx ? 'Next image':'Previous image'" *for="t in ['prev','next']; idx=index"><i attr-class="'bi-arrow-'+(idx ?'right':'left')"></i></button>
             </div>
-            <img {src}="openTheatre.fileUrl + openTheatre.files[openTheatre.entry].name" {style}="{width:zoomScale+'%', display:imageLoading ? 'none':'block'}" @error="handleImageLoading(false)" @load="handleImageLoading(true)"/>
+            <img #theatreImage {src}="openTheatre.fileUrl + openTheatre.files[openTheatre.entry].name"
+              {style}="{width:zoomScale+'%', maxHeight: isZoomed ? 'none':'100%', opacity:imageLoading ? 0:1, transform:'translate('+panX+'px,'+panY+'px)', cursor: isZoomed ? (_isDragging?'grabbing':'grab') : 'default', transition: suppressZoomTransition ? 'opacity 300ms ease-in-out' : 'width 500ms ease-in-out, opacity 300ms ease-in-out'}"
+              @error="handleImageLoading(false)" @load="handleImageLoading(true)" @wheel="onWheel($event)" @dblclick="onDoubleClick()" @mousedown="onMouseDown($event)"/>
             <div class="text-white position-absolute" *if="errorLoadingImage">There was an error loading image, please try again.</div>
             <div class="text-white spinner-border" role="status" *if="imageLoading">
               <span class="visually-hidden">Loading...</span>
@@ -46,7 +48,7 @@
   </div>
   <div class="fo-imgp-container row" attr-class="_config.gridClass||'me-0 mb-3 g-0'" @click-delegate:img="startTheatre(idx)">
     <div class="position-relative clearfix fo-imgp-item" {class}="_config.size" *for="img of photos.files; idx=index;">
-      <img {src}="photos.fileUrl + (img.name || img)" class="img-fluid" {class}="_config.imgClass" {alt}="img.name||img">
+      <img loading="lazy" decoding="async" {src}="photos.fileUrl + (img.name || img)" class="img-fluid" {class}="_config.imgClass" {alt}="img.name||img">
     </div>
   </div>
 </div>

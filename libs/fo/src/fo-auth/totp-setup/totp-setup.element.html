@@ -1,0 +1,57 @@
+<j-fragment *if="step == 'init'; else as scanView">
+    <j-place selector="[totpIntroLabel]"></j-place>
+    <div class="d-grid gap-2">
+        <button class="btn btn-primary btn-block" @click="loadSetup()" {disabled}="isProcessing">
+            ${:btnText}
+        </button>
+    </div>
+    <div class="alert alert-danger mt-3 mtm" *if="error">
+        <p>${errMsg || 'Unable to initialise 2FA setup, please try again.'}</p>
+    </div>
+</j-fragment>
+
+<j-template #scanView>
+    <j-fragment *if="step == 'scan'; else as doneView">
+        <p class="fw-bold mb-1">Step 1 - Scan the QR code</p>
+        <p class="text-muted small">Open your authenticator app (Google Authenticator, Authy, etc.) and scan the code below.</p>
+        <div class="fo-totp-qr mb-3" {innerHTML}="qrCode" trust-html></div>
+
+        <j-fragment *if="showSecret">
+            <div class="input-group mb-2">
+                <span class="input-group-text">Secret</span>
+                <input type="{secretVisible ? 'text' : 'password'}" class="form-control font-monospace" readonly {value}="secret" />
+                <button class="btn btn-outline-secondary" type="button" @click="toggleSecretVisible()">
+                    ${secretVisible ? 'Hide' : 'Show'}
+                </button>
+            </div>
+            <small class="text-muted d-block mb-3">Can't scan? Enter this key manually in your authenticator app.</small>
+        </j-fragment>
+
+        <p class="fw-bold mb-1 mt-3">Step 2 - Enter the 6-digit code</p>
+        <p class="text-muted small">Enter the one-time code shown in your authenticator app to confirm setup.</p>
+        <fo-digit-group @onDigitGroupChange="onDigitGroupChange($event)"></fo-digit-group>
+
+        <div class="mt-3 mtm clearfix">
+            <button type="button" class="btn btn-success float-end pull-right" @click="enable()"
+                {disabled}="isProcessing || codeFormControl.getField('code').invalid">
+                Enable 2FA
+            </button>
+        </div>
+        <div class="mt-3 mtm" *if="error">
+            <div class="alert alert-danger">
+                <p>${errMsg || 'Invalid or expired code. Please try again.'}</p>
+            </div>
+        </div>
+    </j-fragment>
+</j-template>
+
+<j-template #doneView>
+    <div class="fo-totp-done py-3">
+        <p class="alert alert-success text-center">Two-factor authentication has been enabled for your account.</p>
+        <fo-recovery-codes *if="recoveryCodes.length" {codes}="recoveryCodes"></fo-recovery-codes>
+        <div class="d-grid mt-3" *if="recoveryCodes.length">
+            <button type="button" class="btn btn-primary" @click="finish()">I've saved my recovery codes</button>
+        </div>
+        <j-place selector="[totpDoneLabel]"></j-place>
+    </div>
+</j-template>

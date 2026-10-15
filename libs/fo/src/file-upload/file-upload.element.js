@@ -8,19 +8,52 @@ Element({
     styleUrl: './file-upload.element.scss',
     events: [
         'onImageSelected:emitter',
-        'onImagePreviewAction:emitter'
+        'onImagePreviewAction:emitter',
+        'onImageUploaded:emitter',
+        'onFileRemoved:emitter'
     ],
     props: ['label', 'settings', 'buttonText', 'value'],
     DI: ['changeDetector?', UploadService]
 })
 export class FileUploadElement {
+    static get defaultSettings() {
+        return {
+            multiple: true,
+            useCamera: false,
+            camera: {
+                width: 320,
+                height: 320
+            },
+            // only used when imageListPreview is on
+            previewPane: {
+                width: 100,
+                height: 100
+            },
+            allowSinglePreview: false,
+            imageListPreview: false,
+            autoUpload: false,
+            showUploadBtn: false,
+            imagePreview: {
+                size: 'col',
+                gridClass: '',
+                imgClass: '',
+                allowPreview: true,
+                canDelete: true
+            },
+            clearFilesAfterUpload: false,
+            maximumFilesToUpload: 1000
+        };
+    }
+
+    label = 'Choose or drag a file here.';
+    onFileRemoved = new EventEmitter();
+    onImageSelected = new EventEmitter();
+    onImageUploaded = new EventEmitter();
+    onImagePreviewAction = new EventEmitter();
     constructor(changeDetector, uploadService) {
         this.uploadService = uploadService;
         this.changeDetector = changeDetector;
         this.showCamera = false;
-        this.onImageSelected = new EventEmitter();
-        this.onImageUploaded = new EventEmitter();
-        this.onImagePreviewAction = new EventEmitter();
         this.id = +new Date;
         this.selectedFiles = [];
         this.dragClass = '';
@@ -30,78 +63,7 @@ export class FileUploadElement {
         this._uploadFiles = [];
         this.selectedFileErrors = null;
         this.value = null;
-        this._settings = {
-            /**
-             * allow multiple file upload
-             */
-            multiple: true,
-            /**
-             * allow camera usage
-             */
-            useCamera: false,
-            /**
-             * camera canvas dimension
-             */
-            camera: {
-                width: 320,
-                height: 320
-            },
-            /**
-             * preview pane dimension for selected images
-             * will be used for imageListPreview
-             */
-            previewPane: {
-                width: 100,
-                height: 100
-            },
-            /**
-             * allow imagePreview for Single Image
-             */
-            allowSinglePreview: false,
-            /**
-             * set to true to use imageListPreview
-             */
-            imageListPreview: false,
-            accepts: ['jpeg', 'jpg', 'png'],
-            /**
-             * set to true to auto upload images once selected
-             */
-            autoUpload: false,
-            /**
-             * show upload button if autoUpload is false
-             */
-            showUploadBtn: false,
-            /**
-             * formData that will passed along the selected images for uploading
-             */
-            formData: {
-                path: "",
-                sizes: [],
-                replaceIfExists: false,
-                allowDuplicate: false
-            },
-            maximumFileSize: 1048576, // 1MB in bytes
-
-            // default url for FO
-            url: '/v2/uploads',
-
-            // allow Dir Scanning when dragNdrop is used
-            scanDirs: false,
-
-            // Files starting with . will be removed
-            ignoreDotFiles: true,
-            // image editoPane after upload
-            imagePreview: {
-                size: 'col',
-                gridClass: '',
-                imgClass: '',
-                allowPreview: true,
-                canDelete: true
-            },
-            // remove all selected Files after upload done
-            clearFilesAfterUpload: false,
-            maximumFilesToUpload: 1000
-        };
+        this._settings = Object.assign(UploadService.defaultSettings, FileUploadElement.defaultSettings);
     }
     
     set settings(value) {
@@ -158,12 +120,14 @@ export class FileUploadElement {
     }
     
     removeImage(idx) {
-        if (this._settings.autoUpload) return;
+        if (this._settings.autoUpload && this.uploadInProgress) return;
+        this.onFileRemoved.emit({ index: idx });
         this.selectedFiles.splice(idx, 1);
         this._uploadFiles.splice(idx, 1);
-        if (!this.selectedFiles.length && this.errorMessages.length) {
+        if (!this.selectedFiles.length) {
             this.errorMessages = [];
             this.uploadError = false;
+            this.selectedFileErrors = null;
         }
     }
 
@@ -204,7 +168,8 @@ export class FileUploadElement {
         this.errorMessages = [];
         this.uploadError = false;
         this.uploadProgress = 10;
-        this.uploadService.multipartUpload(this._uploadFiles, this._settings)
+        const attemptedFiles = this._uploadFiles.slice();
+        this.uploadService.multipartUpload(attemptedFiles, this._settings)
             .progress(ev => {
                 this.uploadProgress = ev;
                 this.changeDetector.onlySelf();
@@ -212,6 +177,8 @@ export class FileUploadElement {
             .then(res => {
                 if (res.result.errors) {
                     this.errorMessages = res.result.errors;
+                    // don't resend files the server already confirmed - only retry the rest
+                    this._uploadFiles = UploadService.unmatchedFiles(attemptedFiles, res.result.files);
                     this.uploadDone(true);
                 } else {
                     this.onImageSelected.emit({
@@ -223,6 +190,7 @@ export class FileUploadElement {
                 this.uploadDone(true);
             });
     }
+
     uploadDone(hasError) {
         this.uploadError = hasError;
         this.uploadProgress = 100;

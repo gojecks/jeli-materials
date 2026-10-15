@@ -3,7 +3,8 @@ import {
     EventEmitter,
     animate,
     ProviderToken,
-    DOMHelper
+    DOMHelper,
+    AttributeAppender
 } from '@jeli/core';
 import { renderMarkupElements } from '../markup.parser';
 import { modalRegistry } from './modal.registry';
@@ -22,6 +23,9 @@ function createModalElement(context) {
         class: `modal fade ${context.options.backDropClose ? 'pe-none' : ''}`,
         style: {
             display: context.options.displayType || 'block'
+        },
+        data: {
+            'bs-theme': context.options.theme || 'light'
         }
     }, modalElement => {
         DOMHelper.createElement('div', {
@@ -35,7 +39,15 @@ function createModalElement(context) {
                         class: `modal-header ${context.options.customClass.header || ''}`
                     }, modalHeader => {
                         if (context.options.title) {
-                            DOMHelper.createElement('h5', { class: 'modal-title' }, parseValue(context.options.title, context.options.data, null, '-'), modalHeader);
+                            DOMHelper.createElement('h5', { class: 'modal-title' }, title => {
+                                const writeValue = (value) => (title.innerHTML = parseValue(value, context.options.data, null, '-'));
+                                if(typeof context.options.title === 'function'){
+                                    context._listeners.push([ () => writeValue(context.options.title()) ]);
+                                    writeValue(context.options.title());
+                                } else {
+                                    writeValue(context.options.title);
+                                }
+                            }, modalHeader);
                         }
 
                         if (!context.options.hideCloseBtn) {
@@ -80,6 +92,7 @@ function createModalElement(context) {
                         class: `modal-footer ${context.options.customClass.footer || ''}`
                     }, modalFooter => {
                         // generate the buttons
+                        const listeners = []
                         actions.forEach((action, idx) => {
                             DOMHelper.createElement('button', {
                                 class: action.class,
@@ -90,11 +103,31 @@ function createModalElement(context) {
                                 }
                             }, buttonEle => {
                                 if (action.iconClass) {
-                                    DOMHelper.creabuttonElement('i', { class: action.iconClass }, null, buttonEle);
+                                    DOMHelper.createElement('i', { class: action.iconClass }, null, buttonEle);
                                 }
-                                buttonEle.innerText = action.label;
+                                
+                                const spanEle =  DOMHelper.createElement('span', {}, null, buttonEle);
+                                if (typeof action.label === 'function') {
+                                    listeners.push(() => spanEle.innerHTML = action.label());
+                                    spanEle.innerHTML = action.label() || '....'; // write quick
+                                } else {
+                                    spanEle.innerHTML = action.label;
+                                }
+
+                                // attach event listener
+                                if (action.attrs) {
+                                    const attrKeys = Object.keys(action.attrs);
+                                    listeners.push(() => attrKeys.forEach(attr => {
+                                        AttributeAppender.setValue(buttonEle, attr, action.attrs[attr](), true);
+                                    }));
+                                }
                             }, modalFooter);
                         });
+
+                        // if listeners length
+                        if (listeners.length) {
+                            context._listeners.push(listeners);
+                        }
                     }, modalContent).addEventListener('click', event => {
                         const clickBtn = event.target.closest('button');
                         if (clickBtn) {
@@ -106,7 +139,12 @@ function createModalElement(context) {
                                 else
                                     context.onButtonClicked.emit(actionDefinition);
 
-                                if (actionDefinition.dismiss && !stopPropagation) context.close();
+                                if (actionDefinition.dismiss) {
+                                    if (!stopPropagation)
+                                        context.close();
+                                    else if (stopPropagation instanceof Promise)
+                                        stopPropagation.then(() => context.close())
+                                }
                             }
                         }
                     });
@@ -126,12 +164,14 @@ class ModalInstance {
         return Object.assign({
             backDrop: true,
             backDropClose: true,
+            bodyScrollable: false,
             customClass: {
                 content: '',
                 header: '',
                 body: '',
                 footer: ''
             },
+            theme: ModalService.defaultTheme,
             modalContentClass: '',
             showHeader: true,
             position: 'center',
@@ -150,6 +190,8 @@ class ModalInstance {
         }, options);
     }
 
+    _listeners = [];
+    _interval = null;
     constructor(options) {
         this.componentViewRef = null;
         this.closeTimeout = null;
@@ -175,7 +217,7 @@ class ModalInstance {
     }
 
     open() {
-        if (this.isOpened) return;
+        if (this.isOpened) return this;
 
         this.nativeElement = createModalElement(this);
         if (this.overlay) {
@@ -191,6 +233,24 @@ class ModalInstance {
         }
 
         this.isOpened = false;
+
+        // hide body scroll bar
+        if (!this.options.bodyScrollable) {
+            const parent = this.nativeElement.parentElement;
+            parent.setAttribute('data-fo-overflow', parent.style.overflow);
+            parent.style.overflow = 'hidden';
+        }
+
+        // attach interval
+        if (this._listeners.length) {
+            this._interval = setInterval(() => {
+                for (const listeners of this._listeners) {
+                    listeners.forEach(listener => listener());
+                }
+            }, 500);
+        }
+
+        return this;
     }
 
     close(fromOverlay, data) {
@@ -213,8 +273,15 @@ class ModalInstance {
     cleanUp(fromRefresh, callback) {
         animate.fadeOut(this.nativeElement, 200, () => {
             DOMHelper.remove(this.componentViewRef);
-            this.nativeElement && this.nativeElement.parentElement.removeChild(this.nativeElement);
+            const parentElement = this.nativeElement?.parentElement;
+            parentElement && parentElement.removeChild(this.nativeElement);
             if (!fromRefresh) {
+                // restore the old overflow mode
+                if (!this.options.bodyScrollable) {
+                    const oldValue = parentElement.dataset.foOverflow
+                    parentElement.style.overflow = oldValue;
+                    parentElement.removeAttribute('data-fo-overflow');
+                }
                 this.nativeElement = null;
                 this.options = null;
                 this.overlay = null;
@@ -222,8 +289,10 @@ class ModalInstance {
                 this.onButtonClicked.destroy();
                 this.onModalOpened.destroy();
                 openedModalInstances.delete(this.modalId);
+                this._listeners.length = 0;
+                clearInterval(this._interval); // clear interval
             }
-            if(typeof callback == 'function') callback();
+            if (typeof callback == 'function') callback();
         });
     }
 
@@ -245,6 +314,11 @@ class ModalInstance {
 
 Service()
 export class ModalService {
+    static defaultTheme = 'light';
+    static setTheme(theme) {
+        this.defaultTheme = theme;
+    }
+
     static destroyAllOpened() {
         Array.from(openedModalInstances.values()).forEach(modal => modal.close());
     }

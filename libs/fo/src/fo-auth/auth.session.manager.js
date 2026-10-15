@@ -127,6 +127,15 @@ export class AuthSessionManager {
         return deepContext(this._parseKey(key), this._sessionData);
     }
 
+    removeByMatch(delimeter){
+        const keys = Object.keys(this._sessionData);
+        keys.forEach(k => {
+            if(k.startsWith(delimeter)){
+               delete this._sessionData[k]; 
+            }
+        })
+    }
+
     storeData(key, value, preserve, saveNow) {
         if (!key) return;
         key = this._parseKey(key);

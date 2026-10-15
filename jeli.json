@@ -14,6 +14,29 @@
                     "MODULE"
                 ],
                 "folder": "dist/fo/",
+                "styles": [
+                    "libs/fo/src/global-styles/theme.scss",
+                    "libs/fo/src/global-styles/typography.scss",
+                    "libs/fo/src/global-styles/buttons.scss",
+                    "libs/fo/src/global-styles/forms.scss",
+                    "libs/fo/src/global-styles/alerts.scss",
+                    "libs/fo/src/global-styles/nav.scss",
+                    "libs/fo/src/global-styles/list-group.scss",
+                    "libs/fo/src/global-styles/modal.scss",
+                    "libs/fo/src/global-styles/dropdown.scss",
+                    "libs/fo/src/global-styles/table.scss",
+                    "libs/fo/src/global-styles/cards.scss",
+                    "libs/fo/src/global-styles/misc.scss",
+                    "libs/fo/src/global-styles/navbar.scss",
+                    "libs/fo/src/global-styles/accordion.scss",
+                    "libs/fo/src/global-styles/toast.scss",
+                    "libs/fo/src/global-styles/offcanvas.scss",
+                    "libs/fo/src/global-styles/carousel.scss",
+                    "libs/fo/src/global-styles/breadcrumb.scss",
+                    "libs/fo/src/global-styles/utilities.scss",
+                    "libs/fo/src/global-styles/advanced.scss",
+                    "libs/fo/src/global-styles/animations.scss"
+                ],
                 "files": {
                     "@jeli/materials": "index.js"
                 },
@@ -24,6 +47,10 @@
                         "name": "esdoc-standard-plugin"
                     }]
                 }
+            },
+            "buildOptions": {
+                "compiledBindings": true,
+                "sass": true
             },
             "resolve": {},
             "type": "library",

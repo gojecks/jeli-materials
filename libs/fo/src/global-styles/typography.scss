@@ -1,0 +1,172 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    margin-top: 0;
+    margin-bottom: .5rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+h1, .h1 { font-size: 2.5rem; }
+h2, .h2 { font-size: 2rem; }
+h3, .h3 { font-size: 1.75rem; }
+h4, .h4 { font-size: 1.5rem; }
+h5, .h5 { font-size: 1.25rem; }
+h6, .h6 { font-size: 1rem; }
+
+.display-1 { font-size: 5rem; font-weight: 300; line-height: 1.2; }
+.display-2 { font-size: 4.5rem; font-weight: 300; line-height: 1.2; }
+.display-3 { font-size: 4rem; font-weight: 300; line-height: 1.2; }
+.display-4 { font-size: 3.5rem; font-weight: 300; line-height: 1.2; }
+.display-5 { font-size: 3rem; font-weight: 300; line-height: 1.2; }
+.display-6 { font-size: 2.5rem; font-weight: 300; line-height: 1.2; }
+
+p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+hr {
+    margin: 1rem 0;
+    color: inherit;
+    border: 0;
+    border-top: 1px solid;
+    opacity: .25;
+}
+
+ul, ol {
+    padding-left: 2rem;
+}
+
+ul, ol, dl {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+ol ol,
+ul ul,
+ol ul,
+ul ol {
+    margin-bottom: 0;
+}
+
+dt {
+    font-weight: 700;
+}
+
+dd {
+    margin-bottom: .5rem;
+    margin-left: 0;
+}
+
+small {
+    font-size: .875em;
+}
+
+strong, b {
+    font-weight: bolder;
+}
+
+a {
+    color: var(--fsb-primary, #4f46e5);
+    text-decoration: underline;
+
+    &:hover {
+        color: color-mix(in srgb, var(--fsb-primary, #4f46e5) 85%, black);
+    }
+}
+
+code, kbd, pre, samp {
+    font-family: var(--fsb-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+    font-size: 1em;
+}
+
+pre {
+    display: block;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    overflow: auto;
+    font-size: .875em;
+
+    code {
+        font-size: inherit;
+        color: inherit;
+        word-break: normal;
+    }
+}
+
+kbd {
+    padding: .1875rem .375rem;
+    font-size: .875em;
+    color: #ffffff;
+    background-color: #212529;
+    border-radius: .25rem;
+
+    kbd {
+        padding: 0;
+        font-size: 1em;
+        font-weight: 700;
+    }
+}
+
+label {
+    display: inline-block;
+}
+
+img, svg {
+    vertical-align: middle;
+}
+
+textarea {
+    resize: vertical;
+}
+
+button, input, select, optgroup, textarea {
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+button {
+    border-radius: 0;
+    text-transform: none;
+}
+
+[role="button"] {
+    cursor: pointer;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+table {
+    caption-side: bottom;
+    border-collapse: collapse;
+}
+
+caption {
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    color: var(--fsb-text-muted, #6c757d);
+    text-align: left;
+}
+
+th {
+    text-align: inherit;
+}
+
+thead, tbody, tfoot, tr, td, th {
+    border-color: inherit;
+    border-style: solid;
+    border-width: 0;
+}

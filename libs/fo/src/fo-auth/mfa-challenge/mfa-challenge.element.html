@@ -1,0 +1,44 @@
+<p class="text-muted small text-center" *if="!isSetup && isCheckingDevice">Checking this device…</p>
+<div class="fo-mfa" *if="!isSetup && !isCheckingDevice">
+  <div class="fo-mfa-head">
+    <i class="bi bi-shield-lock" aria-hidden="true"></i>
+    <div>
+      <p class="fo-mfa-title">Two-step verification</p>
+      <p class="fo-mfa-desc" *if="!useRecoveryCode">Enter the 6-digit code from your authenticator app.</p>
+      <p class="fo-mfa-desc" *if="useRecoveryCode">Enter one of the recovery codes you saved when you set this up.</p>
+    </div>
+  </div>
+  <form @submit="verify()">
+    <fo-digit-group *if="!useRecoveryCode" @onDigitGroupChange="onDigitGroupChange($event)"></fo-digit-group>
+    <input *if="useRecoveryCode" type="text" class="form-control" placeholder="xxxxx-xxxxx" autocomplete="one-time-code"
+      aria-label="Recovery code" @input="onRecoveryInput($event)">
+    <div class="form-check mt-3" *if="trustDays > 0">
+      <input class="form-check-input" type="checkbox" id="foMfaRemember" {checked}="rememberDevice" @change="onRememberChange($event)">
+      <label class="form-check-label" for="foMfaRemember">Trust this device for ${trustDays} day${trustDays == 1 ? '' : 's'}</label>
+    </div>
+    <div class="alert alert-danger mt-3 mb-0" role="alert" *if="errMsg">${errMsg}</div>
+    <div class="d-grid gap-2 mt-3">
+      <button type="submit" class="btn btn-primary" {disabled}="!canVerify">
+        <span {class}="spinner" role="status" aria-hidden="true" *if="spinner && isProcessing"></span>
+        Verify
+      </button>
+      <button type="button" class="btn btn-link" @click="toggleRecoveryCode()">
+        ${useRecoveryCode ? 'Use your authenticator app' : 'Use a recovery code'}</button>
+      <button type="button" class="btn btn-link" @click="cancel()">Use a different account</button>
+    </div>
+  </form>
+</div>
+
+<div class="fo-mfa" *if="isSetup">
+  <div class="fo-mfa-head">
+    <i class="bi bi-shield-lock" aria-hidden="true"></i>
+    <div>
+      <p class="fo-mfa-title">Set up two-step verification</p>
+      <p class="fo-mfa-desc">This app requires an authenticator code at sign-in. Set it up now, then sign in again.</p>
+    </div>
+  </div>
+  <fo-totp-setup btnText="Start setup" @onSetupComplete="setupDone()"></fo-totp-setup>
+  <div class="d-grid mt-2">
+    <button type="button" class="btn btn-link" @click="cancel()">Cancel</button>
+  </div>
+</div>

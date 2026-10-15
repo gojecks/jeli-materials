@@ -8,7 +8,7 @@ Element({
     styleUrl: './otp.element.scss',
     events: ['onOTPVerified:emitter'],
     DI: [OtpService, 'changeDetector?'],
-    props: ['type', 'waitingTime', 'resetCodeInputAmount', 'message', 'countryCode', 'eventId']
+    props: ['type', 'waitingTime', 'resetCodeInputAmount', 'message', 'countryCode', 'eventId', 'provider']
 })
 export class FoOtpElement {
 
@@ -29,6 +29,8 @@ export class FoOtpElement {
         this.countryCode = '';
         this.timerId = null;
         this.eventId = null;
+        // optional { send(identifier, type), verify(identifier, code), resend?(identifier), resendAfter?, sentMessage?(identifier) }; defaults to /otp/create + /otp/validate
+        this.provider = null;
         this.otpFormControl = new FormControlService({
             code: {
                 validators: {
@@ -44,7 +46,7 @@ export class FoOtpElement {
                         if(this.type == 'email') 
                             return FormValidationStack.EMAILVALIDATION(val)
                         else
-                            return val.length > 8
+                            return /^\+?[0-9]{7,15}$/.test(String(val || '').replace(/[\s().-]/g, ''))
                     }
                 }
             }
@@ -69,6 +71,20 @@ export class FoOtpElement {
 
     didInit() { }
 
+    get codeProvider() {
+        return this.provider || {
+            send: (identifier, type) => this.otpService.sendCode(identifier, type).then(res => res.result),
+            verify: (identifier, code) => this.otpService.validateCode(identifier, code, this.eventId)
+        };
+    }
+
+    get sentMessage() {
+        const provider = this.codeProvider;
+        return provider.sentMessage
+            ? provider.sentMessage(this.otpFormControl.value.identifier)
+            : `Verification code sent to ${this.otpFormControl.value.identifier}. Please check your messages with ref: ${(this.response || {}).ref}.`;
+    }
+
     viewDidDestroy(){
         clearTimeout(this.timerId);
     }
@@ -81,30 +97,59 @@ export class FoOtpElement {
 
         this.reset();
         this.identifier = `${this.countryCode || ''}${this.otpFormControl.value.identifier}`;
-        this.otpService
-            .sendCode(this.identifier, this.type)
+        this.codeProvider
+            .send(this.identifier, this.type)
             .then((res) => {
-                this.response = res.result;
+                this.response = res;
                 this.success = true;
                 this.processCheck();
                 this.startExpiredCheck();
             }, err =>  this.errorHandler(err));
     }
 
+    resendCode() {
+        const provider = this.codeProvider;
+        if (!provider.resend) return this.sendCode();
+        if (!this.expired || this.isProcessing) return;
+        this.reset();
+        provider.resend(this.response.identifier).then(() => {
+            this.processCheck();
+            this.startExpiredCheck();
+        }, err => this.errorHandler(err));
+    }
+
+    // back to the identifier step
+    changeIdentifier() {
+        clearTimeout(this.timerId);
+        this.success = false;
+        this.error = false;
+        this.response = null;
+        this.otpFormControl.patchValue({ code: '' });
+        this.detectChanges();
+    }
+
     validateCode() {
         this.processCheck();
-        this.otpService.validateCode(this.response.identifier, this.otpFormControl.value.code, this.eventId)
-            .then(() => {
-                this.onOTPVerified.emit({ value: this.identifier, verified: true });
+        this.codeProvider.verify(this.response.identifier, this.otpFormControl.value.code)
+            .then(result => {
+                this.isProcessing = false;
+                this.onOTPVerified.emit({ value: this.identifier, verified: true, result });
             }, err => this.errorHandler(err));
     }
 
     startExpiredCheck(){
-        // set a timeout to enable the send resend button
+        // re-enables resend: after the provider's cooldown, else once the code expires
+        const provider = this.codeProvider;
+        this.expired = false;
+        clearTimeout(this.timerId);
         this.timerId = setTimeout(() => {
             this.expired = true;
-            this.changeDetector.onlySelf();
-        }, (this.response.expires - Date.now()))
+            this.detectChanges();
+        }, provider.resendAfter ? provider.resendAfter * 1000 : (this.response.expires - Date.now()))
+    }
+
+    detectChanges() {
+        if (this.changeDetector) this.changeDetector.detectChanges();
     }
 
     reset() {

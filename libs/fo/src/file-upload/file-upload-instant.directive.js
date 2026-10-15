@@ -8,29 +8,22 @@ Directive({
     DI: [UploadService, 'changeDetector?']
 })
 export class FileInstantUploadDirective {
+    static get defaultSettings() {
+        return {
+            multiple: true,
+            imageListPreview: true,
+            skipFileProcessing: false,
+            autoOpenAndClose: false
+        };
+    }
+
     constructor(uploadService, changeDetector) {
         this.uploadService = uploadService;
         this.changeDetector = changeDetector;
         this.supportsFilePicker = !!window.showOpenFilePicker;
         this.fileElement = null;
         this.onFileUpload = new EventEmitter();
-        this._settings = {
-            formData: {
-                path: "",
-                sizes: [],
-                replaceIfExists: false,
-                allowDuplicate: false
-            },
-            maximumFileSize: 1048576, // 1MB in bytes,
-            imageListPreview: true,
-            scanDirs: false,
-            skipFileProcessing: false,
-            autoOpenAndClose: false,
-            accepts: ['jpeg', 'jpg', 'png'],
-            // Files starting with . will be removed
-            ignoreDotFiles: true,
-            url: '/v2/uploads'
-        };
+        this._settings = Object.assign(UploadService.defaultSettings, FileInstantUploadDirective.defaultSettings);
     }
 
     set settings(value){

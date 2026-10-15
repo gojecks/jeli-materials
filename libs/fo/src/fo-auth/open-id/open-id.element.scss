@@ -1,37 +1,41 @@
-.btn-group {
-    .bg-google{
-        --bs-btn-bg: #d44637 !important;
-        --bs-btn-border-color: #d44637 !important;
-    } 
-    .bg-microsoft{
-        --bs-btn-bg: #515bc1 !important;
-        --bs-btn-border-color: #515bc1 !important;
-    } 
-    .bg-github{
-        --bs-btn-bg: #292929 !important;
-        --bs-btn-border-color: #292929 !important;
-    } 
-    .bg-yahoo {
-        --bs-btn-bg: #720e9e !important;
-        --bs-btn-border-color: #720e9e !important;
-    }
-    .bg-facebook {
-        --bs-btn-bg: #4267B2 !important;
-        --bs-btn-border-color: #4267B2 !important;
-    }
-    .bg-instagram {
-        --bs-btn-bg: linear-gradient(360deg, #d12798 19.18%, #881962 96.29%) !important;
-        --bs-btn-border-color: linear-gradient(360deg, #d12798 19.18%, #881962 96.29%) !important
-    }
-
-    .bg-twitter {
-        --bs-btn-bg: #292929 !important;
-        --bs-btn-border-color: #292929 !important;
-    }
-    .bg-linkedin {
-        --bs-btn-bg: #0e76a8 !important;
-        --bs-btn-border-color: #0e76a8 !important;
-    }
+.bg-google, .bg-microsoft, .bg-github, .bg-yahoo, .bg-facebook, .bg-instagram, .bg-twitter, .bg-linkedin, .bg-apple {
+    color: #fff !important;
+    border-color: transparent !important;
+}
+.bg-google {
+    background-color: #d44637 !important;
+    &:hover { background-color: color-mix(in srgb, #d44637 85%, black) !important; }
+}
+.bg-microsoft {
+    background-color: #515bc1 !important;
+    &:hover { background-color: color-mix(in srgb, #515bc1 85%, black) !important; }
+}
+.bg-github {
+    background-color: #292929 !important;
+    &:hover { background-color: color-mix(in srgb, #292929 85%, white) !important; }
+}
+.bg-yahoo {
+    background-color: #720e9e !important;
+    &:hover { background-color: color-mix(in srgb, #720e9e 85%, black) !important; }
+}
+.bg-facebook {
+    background-color: #4267B2 !important;
+    &:hover { background-color: color-mix(in srgb, #4267B2 85%, black) !important; }
+}
+.bg-instagram {
+    background-image: linear-gradient(360deg, #d12798 19.18%, #881962 96.29%) !important;
+}
+.bg-twitter {
+    background-color: #292929 !important;
+    &:hover { background-color: color-mix(in srgb, #292929 85%, white) !important; }
+}
+.bg-apple {
+    background-color: #000 !important;
+    &:hover { background-color: color-mix(in srgb, #000 85%, white) !important; }
+}
+.bg-linkedin {
+    background-color: #0e76a8 !important;
+    &:hover { background-color: color-mix(in srgb, #0e76a8 85%, black) !important; }
 }
 
 .divider {

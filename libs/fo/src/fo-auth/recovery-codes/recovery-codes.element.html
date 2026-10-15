@@ -1,0 +1,17 @@
+<div class="fo-recovery">
+  <p class="fo-recovery-intro">
+    <i class="bi bi-key" aria-hidden="true"></i>
+    Save these recovery codes somewhere safe. Each one signs you in once if you lose your authenticator. They won't be shown again.
+  </p>
+  <ul class="fo-recovery-list">
+    <li *for="code of codes"><code>${code}</code></li>
+  </ul>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-sm" @click="copy()">
+      <i class="bi" {class}="{'bi-clipboard-check': copied, 'bi-clipboard': !copied}"></i> ${copied ? 'Copied' : 'Copy'}
+    </button>
+    <button type="button" class="btn btn-outline-secondary btn-sm" @click="download()">
+      <i class="bi bi-download"></i> Download
+    </button>
+  </div>
+</div>

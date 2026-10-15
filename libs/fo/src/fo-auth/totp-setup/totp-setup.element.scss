@@ -1,0 +1,13 @@
+.fo-totp-qr {
+    width: 180px;
+    max-width: 100%;
+    margin: 0 auto;
+
+    // the QR markup arrives through innerHTML, so it never gets the jeli scope attribute
+    :global(svg),
+    :global(img) {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+}

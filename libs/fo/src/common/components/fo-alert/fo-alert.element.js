@@ -6,13 +6,16 @@ Element({
     props: ['type', 'dismissable', 'text', 'iconClass'],
     events: ['onAlertClose:emitter']
 })
-export function FoAlertElement() {
-    this.dismissable = false;
-    this.type = 'danger';
-    this.text = '';
-    this.onAlertClose = new EventEmitter();
+export class FoAlertElement {
+    constructor() {
+        this.dismissable = false;
+        this.type = 'danger';
+        this.text = '';
+        this.onAlertClose = new EventEmitter();
+    }
+    
+    closeAlert() {
+        this.onAlertClose.emit(true);
+    }
 }
 
-FoAlertElement.prototype.closeAlert = function() {
-    this.onAlertClose.emit(true);
-}

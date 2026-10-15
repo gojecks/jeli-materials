@@ -16,6 +16,7 @@ export class FoPasswordTextSwitcherDirective {
                 position: 'absolute',
                 display: 'none',
                 right: '.5em',
+                transform: 'translateY(-50%)',
                 cursor: 'pointer',
                 background: '#ffffff',
                 padding: '0.1rem'
@@ -26,12 +27,13 @@ export class FoPasswordTextSwitcherDirective {
     onFocus() {
         if (!this.isFocused) {
             this.isFocused = true;
-            var rect = this.hostElement.nativeElement.getBoundingClientRect();
-            if (!this.hostElement.nativeElement.parentElement.classList.contains('position-relative')) {
-                this.hostElement.nativeElement.parentElement.classList.toggle('position-relative');
+            var input = this.hostElement.nativeElement;
+            if (!input.parentElement.classList.contains('position-relative')) {
+                input.parentElement.classList.toggle('position-relative');
             }
+            // center on the input's own vertical midpoint, not the parent's, since a <label> can sit above it
+            this.iconElement.style.top = (input.offsetTop + input.offsetHeight / 2) + 'px';
             this.iconElement.style.display = 'block';
-            this.iconElement.style.top = rect.height + 'px';
         }
     }
     viewDidDestroy() {

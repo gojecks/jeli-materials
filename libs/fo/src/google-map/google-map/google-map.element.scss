@@ -44,7 +44,9 @@
             position: absolute;
             width: 100%;
             overflow-y: scroll;
-            li {
+            // li elements are created dynamically (DOMHelper.createElement in geo-service.js)
+            // and never get the jeli scope attribute, so these rules must stay unscoped.
+            :global(li) {
                 background-color: #ced4da;
                 padding: 0.5rem 1rem;
                 text-overflow: ellipsis;
@@ -52,10 +54,9 @@
                 overflow: hidden;
                 cursor: pointer;
             }
-            li:nth-child(odd) {
+            :global(li:nth-child(odd)) {
                 background-color: #f8f9fa;
             }
-            li:focus {}
         }
         button {
             width: 100%;

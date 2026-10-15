@@ -1,8 +1,11 @@
-<div class="mt-2 mb-2 d-grid gap-2" *if="_openIds.length">
+<fo-mfa-challenge *if="pendingStep" {step}="pendingStep" {withClient}="withClient"
+  @onComplete="handleAuthResult($event)" @onCancel="clearPendingStep()" @onSetupDone="clearPendingStep()"></fo-mfa-challenge>
+
+<div class="mt-2 mb-2 d-grid gap-2" *if="!pendingStep && _openIds.length">
   <div class="divider" *if="divider"><span>${:divider}</span></div>
-  <div class="btn-group btn-group-justified" @click-delegate:a="authenticate(id)">
-    <a attr-class="'btn btn-'+customClass + ' bg-'+id" *for="id in _openIds"><i attr-class="'bi-'+id"></i> <span
-        class="d-lg-inline ms-1">${:id | capitalize}</span></a>
+  <div class="d-flex flex-wrap gap-2" @click-delegate:a="authenticate(id)">
+    <a attr-class="'btn btn-'+customClass + ' bg-'+providerKey(id) + ' flex-fill'" *for="id in _openIds"><i attr-class="iconClass(id)"></i> <span
+        class="d-lg-inline ms-1">${providerLabel(id)}</span></a>
   </div>
 </div>
 

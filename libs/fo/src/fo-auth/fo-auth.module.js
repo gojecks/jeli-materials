@@ -17,6 +17,11 @@ import { FoPasswordTextSwitcherDirective } from './password-text-switcher.direct
 import { FoOtpElement } from './otp/otp.element.js';
 import { FoDigitGroupElement } from './digit-group/digit-group.element.js';
 import { FoAuthPkceService } from './fo-auth-pkce.service.js';
+import { TotpSetupElement } from './totp-setup/totp-setup.element.js';
+import { TotpSetupService } from './totp-setup/totp-setup.service.js';
+import { FoMfaChallengeElement } from './mfa-challenge/mfa-challenge.element.js';
+import { FoRecoveryCodesElement } from './recovery-codes/recovery-codes.element.js';
+import { FoTwoStepSettingsElement } from './two-step-settings/two-step-settings.element.js';
 
 
 jModule({
@@ -34,20 +39,26 @@ jModule({
         AuthRegisterElement,
         FoPasswordTextSwitcherDirective,
         FoOtpElement,
-        FoDigitGroupElement
+        FoDigitGroupElement,
+        TotpSetupElement,
+        FoMfaChallengeElement,
+        FoRecoveryCodesElement,
+        FoTwoStepSettingsElement
     ],
     services: [
         FoAuthService,
         FoTokenService,
         AuthSessionManager,
         FoAuthPkceService,
+        TotpSetupService,
         {
             name: ROUTE_INTERCEPTOR,
             useClass: AuthRouterInterceptorService
         }
     ]
 })
-export function FoAuthModule() {}
-FoAuthModule.setConfig = function(config) {
-    Object.assign(FO_AUTH_CONFIG, config);
+export class FoAuthModule {
+    static setConfig(config) {
+        Object.assign(FO_AUTH_CONFIG, config);
+    }
 }

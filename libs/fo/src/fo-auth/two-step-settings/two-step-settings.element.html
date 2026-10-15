@@ -1,0 +1,70 @@
+<div class="fo-2sv">
+  <div class="fo-2sv-head">
+    <i class="bi bi-shield-lock" aria-hidden="true"></i>
+    <div class="flex-fill">
+      <p class="fo-2sv-title">
+        Two-step verification
+        <span class="fo-2sv-badge" *if="status" {class}="{'fo-2sv-badge--on': status.enabled}">${status.enabled ? 'On' : 'Off'}</span>
+      </p>
+      <p class="fo-2sv-desc">After your password, enter a code from an authenticator app (Google Authenticator, Authy, 1Password).</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info py-2 small" *if="status && !isAskedAtSignIn">
+    This app doesn't ask for a second step at sign-in yet. You can still set it up now.
+  </div>
+  <div class="alert alert-danger py-2 small" role="alert" *if="errMsg">${errMsg}</div>
+  <p class="text-muted small" *if="!status && !errMsg">Loading…</p>
+
+  <fo-totp-setup *if="status && !status.enabled" btnText="Turn on two-step verification" @onSetupComplete="refresh()"></fo-totp-setup>
+
+  <j-fragment *if="status && status.enabled">
+    <j-fragment *if="!action">
+      <p class="fo-2sv-codes" {class}="{'fo-2sv-codes--low': isLowOnCodes}">
+        <i class="bi bi-key" aria-hidden="true"></i>
+        ${status.recoveryCodesRemaining} recovery code${status.recoveryCodesRemaining == 1 ? '' : 's'} left
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-primary btn-sm" @click="start('regenerate')">New recovery codes</button>
+        <button type="button" class="btn btn-outline-danger btn-sm" *if="!isRequired" @click="start('disable')">Turn off</button>
+      </div>
+      <p class="text-muted small mt-2 mb-0" *if="isRequired">This app requires two-step verification, so it can't be turned off.</p>
+
+      <div class="fo-2sv-devices" *if="isTrustOffered || devices.length">
+        <p class="fo-2sv-devices-title">Trusted devices</p>
+        <p class="text-muted small mb-2" *if="!devices.length">No trusted devices. Tick "Trust this device" when you sign in to skip the code on that device.</p>
+        <ul class="list-unstyled mb-2" *if="devices.length">
+          <li class="fo-2sv-device" *for="device of devices">
+            <div class="flex-fill">
+              <span class="fo-2sv-device-label">${device.label || 'Unknown device'}</span>
+              <span class="fo-2sv-device-meta">Last used ${deviceDate(device.lastUsedAt)} · trusted until ${deviceDate(device.expiresAt)}</span>
+            </div>
+            <button type="button" class="btn btn-link btn-sm text-danger" @click="revokeDevice(device.id)">Remove</button>
+          </li>
+        </ul>
+        <button type="button" class="btn btn-outline-danger btn-sm" *if="devices.length > 1" @click="revokeDevice()">Remove all</button>
+      </div>
+    </j-fragment>
+
+    <form *if="action == 'regenerate' || action == 'disable'" @submit="confirm()">
+      <p class="small mb-2">
+        ${action == 'disable' ? 'To turn off two-step verification' : 'To replace your recovery codes'}, enter a code from your authenticator app.
+      </p>
+      <fo-digit-group @onDigitGroupChange="onDigitGroupChange($event)"></fo-digit-group>
+      <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-sm" {class}="{'btn-danger': action == 'disable', 'btn-primary': action != 'disable'}"
+          {disabled}="code.length < 6 || isProcessing">
+          ${action == 'disable' ? 'Turn off' : 'Get new codes'}
+        </button>
+        <button type="button" class="btn btn-link btn-sm" @click="cancel()">Cancel</button>
+      </div>
+    </form>
+
+    <j-fragment *if="action == 'codes'">
+      <fo-recovery-codes {codes}="newCodes"></fo-recovery-codes>
+      <div class="d-grid mt-3">
+        <button type="button" class="btn btn-primary btn-sm" @click="doneWithCodes()">I've saved my recovery codes</button>
+      </div>
+    </j-fragment>
+  </j-fragment>
+</div>

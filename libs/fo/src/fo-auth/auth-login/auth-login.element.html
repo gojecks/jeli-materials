@@ -1,22 +1,52 @@
-<form @submit="login()">
+<div class="alert alert-success" role="status" *if="infoMsg">${infoMsg}</div>
+
+<j-fragment *if="activeView == 'password'">
+<form @submit="onSubmit()">
   <div class="form-validation mb-3" {:formControl}="loginForm">
     <div class="alert alert-danger text-center" *if="errorLogin"> ${errMsg || "Invalid User name or Password"}</div>
+    <div class="alert alert-warning small d-flex align-items-center gap-2" role="status" *if="showPolicyRetry">
+      <span class="flex-fill">Some sign-in options couldn't be loaded, so this form may not be the one this app uses.</span>
+      <button type="button" class="btn btn-sm btn-outline-secondary" @click="retryPolicy()">Retry</button>
+    </div>
     <div class="list-group mb-3">
-      <div class="list-group-item">
-        <input type="email" aria-label="Email Address" placeholder="Email" class="form-control" :formField="email"  {class}="{'form-control-lg': lgView}">
+      <div class="list-group-item" {class}="{'fo-login-hidden': isEmailFirst && !isEmailStep}">
+        <input type="email" name="email" aria-label="Email Address" placeholder="Email" class="form-control" autocomplete="username" :formField="email" {class}="{'form-control-lg': lgView}">
       </div>
-      <div class="list-group-item">
-        <input type="password" aria-label="Password" {type}="isPasswordVisible ? 'text':'password'" placeholder="Password"
-          class="form-control" :formField="password" autocomplete="off" {class}="{'form-control-lg': lgView}">
+      <div class="list-group-item d-flex align-items-center fo-login-email" *if="isEmailFirst && !isEmailStep">
+        <span class="text-truncate flex-fill">${loginForm.value.email}</span>
+        <button type="button" class="btn btn-link btn-sm" @click="changeEmail()">Change</button>
+      </div>
+      <div class="list-group-item" {class}="{'fo-login-hidden': isEmailStep}">
+        <input type="password" name="password" aria-label="Password" {type}="isPasswordVisible ? 'text':'password'" placeholder="Password"
+          class="form-control" :formField="password" autocomplete="current-password" {class}="{'form-control-lg': lgView}">
         <span class="pwd-visible" @click="isPasswordVisible=!isPasswordVisible"><i
             {:jClass}="isPasswordVisible ? 'bi-eye':'bi-eye-slash'"></i></span>
       </div>
     </div>
     <div class="d-grid gap-2">
       <button type="submit" class="btn btn-primary btn-block" {class}="{'btn-lg': lgView}"
-        {disabled}="loginForm.invalid || isProcessing">
+        {disabled}="isSubmitDisabled">
         <span {class}="spinner" role="status" aria-hidden="true" *if="spinner && isProcessing"></span>
-        Log in </button>
+        ${isEmailStep ? 'Continue' : 'Log in'} </button>
     </div>
   </div>
 </form>
+<div class="text-center" *if="isOtpEnabled">
+  <button type="button" class="btn btn-link" *if="isEmailCodeEnabled" @click="useOtp('email')">Email me a sign-in code instead</button>
+  <button type="button" class="btn btn-link" *if="isSmsCodeEnabled" @click="useOtp('sms')">Text me a code instead</button>
+</div>
+</j-fragment>
+
+<j-fragment *if="activeView == 'otp'">
+  <div class="alert alert-danger text-center" role="alert" *if="errorLogin">${errMsg || "Unable to sign in with that code."}</div>
+  <fo-otp *if="otpChannel == 'email'" {type}="'email'" {provider}="signInCodeProvider" @onOTPVerified="onCodeVerified($event)"></fo-otp>
+  <fo-otp *if="otpChannel == 'sms'" {type}="'sms'" {provider}="signInCodeProvider" @onOTPVerified="onCodeVerified($event)"></fo-otp>
+  <div class="d-grid gap-2 mt-2">
+    <button type="button" class="btn btn-link" *if="otpChannel == 'sms' && isEmailCodeEnabled" @click="useOtp('email')">Email me a code instead</button>
+    <button type="button" class="btn btn-link" *if="otpChannel == 'email' && isSmsCodeEnabled" @click="useOtp('sms')">Text me a code instead</button>
+    <button type="button" class="btn btn-link" *if="isPasswordEnabled" @click="usePassword()">Sign in with password instead</button>
+  </div>
+</j-fragment>
+
+<fo-mfa-challenge *if="activeView == 'second-factor'" {step}="pendingStep" {withClient}="withClient" {spinner}="spinner"
+  @onComplete="handleAuthResult($event)" @onCancel="backToStart()" @onSetupDone="onSecondFactorSetupDone()"></fo-mfa-challenge>

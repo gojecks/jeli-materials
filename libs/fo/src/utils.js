@@ -53,12 +53,13 @@ export function blobURL(b64File, type) {
  * @param {*} asObject 
  * @returns 
  */
-export function readFile(file, regEx, asObject) {
+export function readFile(file, regEx, asObject = false, readAs=1) {
     return new Promise(function (resolve, reject) {
-        var fileReader = new FileReader();
+        const fileReader = new FileReader();
+        const methods = ['readAsText', 'readAsDataURL', 'readAsArrayBuffer'];
         try {
             if (file && regEx.test(file.type)) {
-                fileReader.readAsDataURL(file);
+                fileReader[methods[readAs]](file);
             } else {
                 reject(null);
             }
@@ -66,7 +67,7 @@ export function readFile(file, regEx, asObject) {
             reject(null);
         }
 
-        fileReader.onload = function (content) {
+        fileReader.onload = (content) => {
             if (asObject) {
                 resolve({
                     name: file.name,
@@ -474,4 +475,22 @@ export function convert2Number(value, dim) {
     }
 
     return value;
+}
+// only the platform image service understands ?s=WxH (see jeli.web.svc ImageResizer::resolveRequestedSize) - other URLs pass through
+var IMAGE_SERVICE_URL = /^(https?:)?\/\/image\.|\/image\//;
+
+export function isImageServiceUrl(url) {
+    return typeof url === 'string' && IMAGE_SERVICE_URL.test(url);
+}
+
+// size: 'WxH' crops to exactly that box, 'Wx0' / '0xH' scale keeping the aspect ratio
+export function resizedImageUrl(url, size) {
+    if (!size || !isImageServiceUrl(url)) return url;
+    return url + (url.includes('?') ? '&' : '?') + 's=' + size;
+}
+
+// width-only variants for <img srcset>; null for URLs the image service can't resize
+export function imageSrcset(url, widths) {
+    if (!isImageServiceUrl(url) || !widths || !widths.length) return null;
+    return widths.map(width => resizedImageUrl(url, width + 'x0') + ' ' + width + 'w').join(', ');
 }

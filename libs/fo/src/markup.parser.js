@@ -308,7 +308,12 @@ export function renderMarkupElements(markupLanguage, replacerData) {
  * @returns 
  */
 function parseMarkupLanguage(markupLanguage) {
+    if (!markupLanguage) return markupLanguage;
+
     var tokens = markupLanguage.split(/(@[\w-]+\[.*?\])/g);
+    // no "@tag[...]" pattern found anywhere - this isn't markup at all, treat as plain text
+    if (tokens.length === 1) return markupLanguage;
+
     var currentElem = null;
     var manyNested = [];
     var astNodes = [];
@@ -334,6 +339,9 @@ function parseMarkupLanguage(markupLanguage) {
                 currentElem.push([]);
                 manyNested.push(currentElem)
             }
+        } else if (!currentElem) {
+            // text with no active element context (leading/trailing/standalone copy) - render as its own text node
+            astNodes.push(item);
         } else {
             var isFnBrace = item.match(/\((.*?)\)$/);
             if (isFnBrace) {
@@ -383,9 +391,15 @@ function parseMarkupLanguage(markupLanguage) {
                     }
                 }
 
-                // attach text content to child if any found
-                if (textContent && Array.isArray(currentElem[2]))
-                    currentElem[2].push(textContent);
+                // attach text content to child if any found; if there's no active element context left
+                // (e.g. trailing text after an element that inline-closed earlier in this same token),
+                // render it as its own top-level text node instead of dropping it / crashing on null
+                if (textContent) {
+                    if (currentElem && Array.isArray(currentElem[2]))
+                        currentElem[2].push(textContent);
+                    else if (!manyNested.length)
+                        astNodes.push(textContent);
+                }
             }
 
         }

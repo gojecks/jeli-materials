@@ -7,4 +7,6 @@ jModule({
         ConversionPipe 
     ]
 })
-export function FilterModule(){}
+export class FilterModule{
+    
+}

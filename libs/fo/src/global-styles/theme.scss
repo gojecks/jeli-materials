@@ -1,0 +1,75 @@
+$fsb-dark-tokens: (
+    surface: #0f172a,
+    surface-alt: #1e293b,
+    surface-hover: #334155,
+    surface-stripe: rgba(255, 255, 255, .04),
+    text: #e2e8f0,
+    text-muted: #94a3b8,
+    border: rgba(255, 255, 255, .12)
+);
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        @each $name, $val in $fsb-dark-tokens {
+            --fsb-#{$name}: #{$val};
+        }
+    }
+}
+
+:root[data-theme="dark"] {
+    @each $name, $val in $fsb-dark-tokens {
+        --fsb-#{$name}: #{$val};
+    }
+}
+
+$fsb-presets: (
+    "indigo": (#4f46e5, #818cf8, #06b6d4, #22d3ee),
+    emerald: (#059669, #34d399, #0d9488, #2dd4bf),
+    rose: (#e11d48, #fb7185, #db2777, #f472b6),
+    amber: (#d97706, #fbbf24, #ea580c, #fb923c),
+    slate: (#475569, #94a3b8, #64748b, #cbd5e1)
+);
+
+// minimally-darkened companions of $fsb-presets so white text on a solid bg passes WCAG AA (4.5:1)
+$fsb-presets-on: (
+    "indigo": (#4f46e5, #666fc4, #048197, #158191),
+    emerald: (#04875e, #218560, #0c857a, #1c8376),
+    rose: (#e11d48, #bc5564, #db2777, #b55487),
+    amber: (#b26205, #947115, #cc4d0a, #ab6329),
+    slate: (#475569, #6c7786, #64748b, #72777e)
+);
+
+@each $name, $vals in $fsb-presets {
+    $p-light: nth($vals, 1);
+    $p-dark: nth($vals, 2);
+    $s-light: nth($vals, 3);
+    $s-dark: nth($vals, 4);
+    $on-vals: map-get($fsb-presets-on, $name);
+    $p-on-light: nth($on-vals, 1);
+    $p-on-dark: nth($on-vals, 2);
+    $s-on-light: nth($on-vals, 3);
+    $s-on-dark: nth($on-vals, 4);
+
+    :root[data-theme-preset="#{$name}"] {
+        --fsb-primary: #{$p-light};
+        --fsb-secondary: #{$s-light};
+        --fsb-primary-on: #{$p-on-light};
+        --fsb-secondary-on: #{$s-on-light};
+    }
+
+    :root[data-theme-preset="#{$name}"][data-theme="dark"] {
+        --fsb-primary: #{$p-dark};
+        --fsb-secondary: #{$s-dark};
+        --fsb-primary-on: #{$p-on-dark};
+        --fsb-secondary-on: #{$s-on-dark};
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root[data-theme-preset="#{$name}"]:not([data-theme="light"]) {
+            --fsb-primary: #{$p-dark};
+            --fsb-secondary: #{$s-dark};
+            --fsb-primary-on: #{$p-on-dark};
+            --fsb-secondary-on: #{$s-on-dark};
+        }
+    }
+}

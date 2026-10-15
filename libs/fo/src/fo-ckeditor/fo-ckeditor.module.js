@@ -18,4 +18,4 @@ jModule({
         FoCkeditorElement
     ]
 })
-export function FoCkeditorModule() {}
+export class FoCkeditorModule {}

@@ -1,5 +1,9 @@
 import {AttributeAppender, EventEmitter} from '@jeli/core';
 var dropDownCountIndex = 0;
+// tracks the single fo-drop-down currently open across the page, so opening
+// one closes any other that was left open (stopPropagation in openDropDown
+// keeps that click from ever reaching the other instance's document listener)
+var activeDropDown = null;
 
 Element({
     selector: 'fo-drop-down',
@@ -12,10 +16,12 @@ Element({
         "size", 
         "color", 
         'value', 
-        'iconClass'
+        'iconClass',
+        'boundary'
     ],
     events: [
         'document.click:event=registerDocumentClick()',
+        'window.resize:event=onWindowResize()',
         'click-delegate:a=onItemClicked($event.target.id)',
         'foDropDownChange:emitter'
     ],
@@ -32,6 +38,7 @@ export class DropDownElement {
         this.isDropDownOpen = false;
         this.iconClass = 'dropdown-toggle';
         this.position = "start";
+        this.boundary = '';
         this.size = "lg";
         this.color = "";
         this.dropDownMenuStyle = {};
@@ -46,14 +53,25 @@ export class DropDownElement {
     }
     registerDocumentClick() {
         if (this.isDropDownOpen) {
-            this.isDropDownOpen = false;
-            this.dropDownMenuStyle = {};
-            this.changeDetector.onlySelf();
+            this.closeDropDown();
         }
+    }
+    onWindowResize() {
+        if (this.isDropDownOpen) {
+            this.calculateStyle();
+        }
+    }
+    closeDropDown() {
+        this.isDropDownOpen = false;
+        this.dropDownMenuStyle = {};
+        if (activeDropDown === this) {
+            activeDropDown = null;
+        }
+        this.changeDetector.onlySelf();
     }
     onItemClicked(id) {
         var dropdownItem = this.dropDownItems.get(id);
-        this.isDropDownOpen = false;
+        this.closeDropDown();
         if (dropdownItem) {
             this.setActive(dropdownItem._id);
             this.foDropDownChange.emit(dropdownItem.value);
@@ -76,16 +94,31 @@ export class DropDownElement {
     }
     viewDidDestroy() {
         this.dropDownItems.clear();
+        if (activeDropDown === this) {
+            activeDropDown = null;
+        }
     }
     calculateStyle() {
         if (this.dropDown) {
-            var style = {};
-            var windowWidth = window.innerWidth;
-            var windowHeight = window.innerHeight;
-            var dropDownMenu = this.dropDown.querySelector('.dropdown-menu');
-            var dropDownRect = dropDownMenu.getBoundingClientRect();
-            var btnRect = this.dropDown.querySelector('button').getBoundingClientRect();
-            if (this.position === 'end' || (windowWidth === (btnRect.left + btnRect.width) && dropDownRect.width > btnRect.width)) {
+            const style = {};
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const dropDownMenu = this.dropDown.querySelector('.dropdown-menu');
+            // clear any placement from a previous calculation (e.g. on window
+            // resize) so the rect below reflects the menu's natural flow
+            // position instead of compounding on top of the last placement
+            dropDownMenu.style.cssText = '';
+            const dropDownRect = dropDownMenu.getBoundingClientRect();
+            const btnRect = this.dropDown.querySelector('button').getBoundingClientRect();
+            const isEndPosition = (windowWidth === (btnRect.left + btnRect.width) && dropDownRect.width > btnRect.width);
+            // attach the dropdown element to the body using fixed position
+            // calculate the require position placement
+            if (this.boundary === 'viewport'){
+                style.position = 'fixed';
+                if(this.position === 'end' || isEndPosition){
+                    style.left = btnRect.right - dropDownRect.width;
+                }
+            } else if (this.position === 'end' || isEndPosition) {
                 style.right = 0;
             }
 
@@ -98,7 +131,15 @@ export class DropDownElement {
     }
     openDropDown(event) {
         event.stopPropagation();
-        this.isDropDownOpen = !this.isDropDownOpen;
+        if (this.isDropDownOpen) {
+            this.closeDropDown();
+            return;
+        }
+        if (activeDropDown && activeDropDown !== this) {
+            activeDropDown.closeDropDown();
+        }
+        activeDropDown = this;
+        this.isDropDownOpen = true;
         requestAnimationFrame(() => this.calculateStyle());
     }
 }

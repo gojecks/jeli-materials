@@ -1,0 +1,129 @@
+.nav {
+    display: flex;
+    flex-wrap: wrap;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
+
+.nav-link {
+    display: block;
+    padding: .5rem 1rem;
+    color: var(--fsb-primary, #4f46e5);
+    text-decoration: none;
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out;
+
+    &:hover,
+    &:focus {
+        color: color-mix(in srgb, var(--fsb-primary, #4f46e5) 85%, black);
+    }
+
+    &.disabled {
+        color: var(--fsb-text-muted, #6c757d);
+        pointer-events: none;
+        cursor: default;
+    }
+}
+
+.nav-tabs {
+    border-bottom: 1px solid var(--fsb-border, #dee2e6);
+
+    .nav-link {
+        margin-bottom: -1px;
+        background: none;
+        border: 1px solid transparent;
+        border-top-left-radius: var(--fsb-radius-sm, .375rem);
+        border-top-right-radius: var(--fsb-radius-sm, .375rem);
+
+        &:hover,
+        &:focus {
+            border-color: var(--fsb-surface-hover, #e9ecef) var(--fsb-surface-hover, #e9ecef) var(--fsb-border, #dee2e6);
+            isolation: isolate;
+        }
+
+        &.active {
+            color: var(--fsb-text, #495057);
+            background-color: var(--fsb-surface, #ffffff);
+            border-color: var(--fsb-border, #dee2e6) var(--fsb-border, #dee2e6) var(--fsb-surface, #ffffff);
+        }
+    }
+
+    .nav-item.show .nav-link {
+        color: var(--fsb-text, #495057);
+        background-color: var(--fsb-surface, #ffffff);
+        border-color: var(--fsb-border, #dee2e6) var(--fsb-border, #dee2e6) var(--fsb-surface, #ffffff);
+    }
+}
+
+.nav-pills {
+    .nav-link {
+        background: none;
+        border: 0;
+        border-radius: var(--fsb-radius-sm, .375rem);
+
+        &.active {
+            color: #ffffff;
+            background-color: var(--fsb-primary-on, var(--fsb-primary, #4f46e5));
+        }
+    }
+
+    .nav-item.show .nav-link {
+        color: #ffffff;
+        background-color: var(--fsb-primary-on, var(--fsb-primary, #4f46e5));
+    }
+}
+
+.nav-fill {
+    .nav-item, .nav-link {
+        flex: 1 1 auto;
+        text-align: center;
+    }
+}
+
+.nav-justified {
+    .nav-item, .nav-link {
+        flex-basis: 0;
+        flex-grow: 1;
+        text-align: center;
+    }
+}
+
+// top app navbar's nav.styleType values (app.element.html's <ul class="navbar-nav" attr-class="appConfig.nav.styleType || 'b-border'">) -
+// .active is toggled correctly there via currentSelectedPage, but had no matching visual style at all for either value
+.highlight {
+    .nav-link.active {
+        color: var(--fsb-primary, #4f46e5);
+        font-weight: 700;
+    }
+}
+
+.b-border {
+    .nav-link {
+        border-bottom: .125rem solid transparent;
+    }
+
+    .nav-link.active {
+        color: var(--fsb-primary, #4f46e5);
+        border-bottom-color: var(--fsb-primary, #4f46e5);
+    }
+}
+
+.nav-underline {
+    gap: 1rem;
+
+    .nav-link {
+        padding-right: 0;
+        padding-left: 0;
+        border-bottom: .125rem solid transparent;
+
+        &:hover, &:focus {
+            border-bottom-color: var(--fsb-border, #dee2e6);
+        }
+
+        &.active {
+            font-weight: 700;
+            color: var(--fsb-text, #212529);
+            border-bottom-color: var(--fsb-primary, #4f46e5);
+        }
+    }
+}

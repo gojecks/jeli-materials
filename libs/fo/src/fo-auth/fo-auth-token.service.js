@@ -49,7 +49,15 @@ export class FoTokenService {
         if (tokens) {
             this.setAccessToken(tokens);
             this.authManager.storeData(IDENTIFIERS.USER_ACTIVE, !response.isPasswordReset(), true);
-            this.authManager.storeData(IDENTIFIERS.USER_ID, response.getUserId(), true);
+            // chheck if no userId in the case of reset or forgot password
+            let userId = response.getUserId();
+            if (!userId){
+                // decode token to extract userId
+                const claims = this.getClaims();
+                userId = claims('userId');
+            }
+            
+            this.authManager.storeData(IDENTIFIERS.USER_ID, userId, true);
             this.authManager.storeData(IDENTIFIERS.PASSWORD_RESET, response.isPasswordReset(), true);
             this.putUserInfo(response.getUserInfo());
         }
@@ -67,8 +75,8 @@ export class FoTokenService {
      * @param {*} value
      * @returns
      */
-    setSessionData(name, value) {
-        return this.authManager.storeData(name, value);
+    setSessionData(name, value, persists = false) {
+        return this.authManager.storeData(name, value, persists);
     }
     getSessionData(name) {
         return this.authManager.getData(name, true);
@@ -77,9 +85,16 @@ export class FoTokenService {
         this.authManager.storeData(IDENTIFIERS.ACCESS_TOKEN, value, true);
         this.onTokenUpdate.emit(true);
     }
-    getAccessToken() {
-        return this.authManager.getData(IDENTIFIERS.ACCESS_TOKEN);
+
+    getAccessToken(organisation, application) {
+        let token = null;
+        if (organisation && application) {
+            token = this.getAssumedToken(`${organisation}:${application}`);
+        }
+
+        return token ? token :   this.authManager.getData(IDENTIFIERS.ACCESS_TOKEN);
     }
+
     getPrincipal() {
         return this.authManager.getData(IDENTIFIERS.USER_ID);
     }
@@ -115,5 +130,17 @@ export class FoTokenService {
         // no userRoles and authorities check is not empty
         if ((!userRoles && authorities.length) || (userRoles && !authorities.length)) return false;
         return authorities.some((authority) => userRoles.includes(authority));
+    }
+
+    getAssumedToken(name){
+        return this.getSessionData(`tkn_${name}`);
+    }
+
+    setAssumedToken(name, token, preserve = true){
+        this.setSessionData(`tkn_${name}`, token, preserve);
+    }
+    
+    destroyAllAssumedToken(){
+        this.authManager.removeByMatch('tkn_');
     }
 }

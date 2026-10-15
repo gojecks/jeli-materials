@@ -9,6 +9,8 @@ var GOOGLE_API_URLS = [
 
 var cachedLocations = null;
 var mPendingLoading = [() => console.log("Google Map script loaded")];
+var IP_INFO_CACHE_KEY = 'fo-geo-info';
+var IP_INFO_CACHE_TTL = 24 * 60 * 60 * 1000;
 
 export var GOOGLE_SERVICE_APIS = {
     PLACES: 0,
@@ -209,6 +211,36 @@ export class GoogleMapService {
         return function () {
             navigator.geolocation.clearWatch(watchID);
         };
+    }
+
+    /**
+     * detect the visitor's country from their IP address
+     * result is cached to localStoragINFO_CACHE_TTL
+     */
+    static getIpInfo() {
+        try {
+            const cached = JSON.parse(localStorage.getItem(IP_INFO_CACHE_KEY) || 'null');
+            if (cached) {
+                if (Date.now() < cached.expiresAt) {
+                    return Promise.resolve(cached.data);
+                }
+            }
+        } catch (e) { }
+
+        return fetch('https://ipapi.co/json/')
+            .then(res => res.json())
+            .then(data => {
+                if (data) {
+                    try {
+                        localStorage.setItem(IP_INFO_CACHE_KEY, JSON.stringify({
+                            data,
+                            expiresAt: Date.now() + IP_INFO_CACHE_TTL
+                        }));
+                    } catch (e) { }
+                }
+                return data;
+            })
+            .catch(() => null);
     }
 
     static checkModuleLoaded(callback){

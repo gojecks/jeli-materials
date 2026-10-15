@@ -33,7 +33,14 @@ export class SliderAbstract {
     }
 
     init() {
+        // first callback fires synchronously with no prior state to adjust from - just set slidesPerView
+        var isFirstMatch = true;
         this.breakPointSubscription = registerQueryEvent(this.breakPoints, newValue => {
+            if (isFirstMatch) {
+                isFirstMatch = false;
+                this.slidesPerView = newValue;
+                return;
+            }
             if (this.slidesPerView != newValue) {
                 var diff = 0;
                 // hide items from visible slides
@@ -41,12 +48,12 @@ export class SliderAbstract {
                 if (this.slidesPerView > newValue) {
                   diff = (this.end - (this.slidesPerView - newValue));
                   this.hideOrShowSlides(diff, this.end);
-                } else { 
+                } else {
                   // show more items from hidden slides
                   // this will cause end to ++ and start remains same
                   diff = (this.end + (newValue - this.slidesPerView));
                   this.hideOrShowSlides(this.end, diff);
-                } 
+                }
                 this.end = diff;
               }
               this.slidesPerView = newValue;
@@ -55,18 +62,18 @@ export class SliderAbstract {
         const _mainInitProcess = () => {
             this.hideOrShowSlides(this.end, this.totalItems);
             this.intervalId = setInterval(() => {
-                if (this.end == this.totalItems) 
+                if (this.end == this.totalItems)
                     this.end = 0;
                 else if (this.start == this.totalItems)
                     this.start = 0;
-        
+
                 this.nextSlides();
             }, Number(this.interval || 10000));
         };
-    
+
          // initial hidden slides
         this.end = this.slidesPerView;
-        if(!this.totalItems.length) {
+        if(!this.totalItems) {
             var checkForElements = setInterval(() => {
                 if(this.sliderContainer.children.length){
                     clearInterval(checkForElements);
@@ -95,6 +102,13 @@ export class SliderAbstract {
 
     _toggle(idx) {
         var item = this.getSlide(idx);
-        if (item) item.classList.toggle(this.hiddenClass || 'd-none')
+        if (!item) return;
+        item.classList.toggle(this.hiddenClass || 'd-none');
+        // inline !important guards against a base "d-flex"-style class out-ranking the hidden class
+        if (item.classList.contains(this.hiddenClass || 'd-none')) {
+            item.style.setProperty('display', 'none', 'important');
+        } else {
+            item.style.removeProperty('display');
+        }
     }
 }

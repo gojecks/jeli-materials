@@ -7,9 +7,9 @@ Element({
     props: [
         'containerClass:String', 
         'autoClose:Number', 
-        'showToast', 
-        'bgClass',
-        'hideBody'
+        'showToast:Boolean', 
+        'bgClass:String',
+        'hideBody:Boolean'
     ],
     events: [
         'onCloseToast:emitter'

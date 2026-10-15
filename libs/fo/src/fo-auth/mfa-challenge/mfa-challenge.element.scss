@@ -1,0 +1,23 @@
+.fo-mfa-head {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+
+    > i {
+        font-size: 1.5rem;
+        line-height: 1;
+        color: var(--fsb-primary, #0d6efd);
+    }
+}
+
+.fo-mfa-title {
+    font-weight: 600;
+    margin: 0;
+}
+
+.fo-mfa-desc {
+    margin: 0.125rem 0 0;
+    font-size: 0.875rem;
+    opacity: 0.75;
+}

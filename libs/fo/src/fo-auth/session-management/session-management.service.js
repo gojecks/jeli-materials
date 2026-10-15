@@ -15,7 +15,7 @@ export class SessionManagementService {
     constructor(sessionConfig) {
         this.session = sessionConfig;
         this.userSession = {
-            expires_at: new Date().setSeconds(1500),
+            expires_at: Date.now() + 1500 * 1000,
             expires_in: 1500
         };
         this.watchInterval = null;
@@ -25,7 +25,7 @@ export class SessionManagementService {
         this.handler = {};
         this.started = false;
         this._lastTriggered = null;
-        this.eventsName = ['isAlive', 'isIdleEnd', 'isIdle', 'isTimedOut', 'isTimeOutWarn'];
+        this.eventsName = ['isAlive', 'isIdleEnd', 'isIdle', 'isTimedOut', 'isTimeOutWarn', 'isDestroyed'];
         this.actualExpiresIn = 0;
         this.timeOutWarnInitialized = false;
         this.emitter = new EventEmitter();
@@ -33,7 +33,7 @@ export class SessionManagementService {
     }
 
     get timeOutWarning() {
-        return Math.round((this.userSession.expires_at - new Date()) / 1000) <= (this.session.timeOutWarn || 100);
+        return Math.round((this.userSession.expires_at - Date.now()) / 1000) <= (this.session.timeOutWarn || 100);
     }
 
     /**
@@ -94,7 +94,7 @@ export class SessionManagementService {
     }
 
     _watchManInterval() {
-        if (Date.now() >= this.userSession.expires_at) {
+        if (Date.now() >= this.userSession?.expires_at) {
             this.keepAlive = false;
             this._trigger('isTimedOut');
             this.destroy();
@@ -138,6 +138,7 @@ export class SessionManagementService {
 
             this.emitter.emit(event);
             event = null;
+            this._lastTriggered = eventName;
         }
     }
 
@@ -145,12 +146,3 @@ export class SessionManagementService {
         return this._lastTriggered === eventName;
     }
 }
-
-
-
-
-
-
-
-
-

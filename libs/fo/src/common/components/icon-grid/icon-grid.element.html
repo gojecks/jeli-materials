@@ -1,8 +1,8 @@
 <div class="row" {class}="gridClass || ''" @click-delegate:a="onGridItemClicked.emit(item)">
   <div {class}="colClass || 'col d-flex align-items-start'" *for="item in items;">
     <div {class}="colWrapperClass || ''">
-      <div {class}="iconContainerClass||'bg-light text-dark flex-shrink-0 me-3'">
-        <img {src}="item.imgSrc" {class}="item.iconClass || 'img-fluid'" {alt}="item.title" *if="item.imgSrc" />
+      <div class="icon-square" {class}="iconContainerClass||'bg-light text-dark flex-shrink-0 me-3'">
+        <img loading="lazy" decoding="async" {src}="item.imgSrc" {class}="item.iconClass || 'img-fluid'" {alt}="item.title" *if="item.imgSrc" />
         <i {class}="item.iconClass" *if="!item.imgSrc"></i>
       </div>
       <div>

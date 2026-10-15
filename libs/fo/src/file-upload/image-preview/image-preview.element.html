@@ -4,7 +4,7 @@
       <div class="spinner-border text-secondary" role="status" *if="!loadedImages[idx]">
         <span class="visually-hidden">Loading...</span>
       </div>
-      <img @load="addLoaded(idx, true)" @error="addLoaded(idx, false)" {src}="photos.fileUrl + (img.name || img)" {id}="'pv_'+idx" class="img-fluid" attr-class="options.imgClass || ''" {alt}="img.name||img" draggable="false">
+      <img loading="lazy" decoding="async" @load="addLoaded(idx, true)" @error="addLoaded(idx, false)" {src}="photos.fileUrl + (img.name || img)" {id}="'pv_'+idx" class="img-fluid" attr-class="options.imgClass || ''" {alt}="img.name||img" draggable="false">
       <button type="button" class="btn-close close-btn" {id}="'rm_'+idx" aria-label="Remove image" *if="options.canDelete && loadedImages[idx]"></button>
     </div>
   </div>

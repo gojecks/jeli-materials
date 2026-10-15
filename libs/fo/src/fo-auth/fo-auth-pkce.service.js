@@ -173,8 +173,8 @@ export class FoAuthPkceService {
         }).then(response => response.json())
     }
 
-    _performRedirection(redirectUrl, popup) {
-        return new Promise((resolve) => {
+    _performRedirection(redirectUrl, popup, expectedOrigin = location.origin) {
+        return new Promise((resolve, reject) => {
             if (popup) {
                 const popupConfig = Object.assign({
                     top: 200,
@@ -197,6 +197,7 @@ export class FoAuthPkceService {
                 let eventReceived = false;
                 // register event
                 const messageHandler = event => {
+                    if (event.origin !== expectedOrigin) return;
                     eventReceived = true;
                     if (!event.data) {
                         reject({ message: 'Invalid openId response' });

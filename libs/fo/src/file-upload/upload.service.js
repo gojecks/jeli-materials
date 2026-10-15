@@ -3,6 +3,26 @@ Service({
     DI: [AUTH_DATABASE_SERIVCE]
 })
 export class UploadService {
+    // shared across FileUploadElement and FileInstantUploadDirective - keep both in sync with this
+    static get defaultSettings() {
+        return {
+            formData: {
+                path: "",
+                sizes: [],
+                replaceIfExists: false,
+                allowDuplicate: false
+            },
+            maximumFileSize: 1048576, // 1MB in bytes
+            accepts: ['jpeg', 'jpg', 'png'],
+            // Files starting with . will be removed
+            ignoreDotFiles: true,
+            scanDirs: false,
+            url: '/v2/uploads',
+            // context for the organisation and application
+            withClient: null
+        };
+    }
+
     static createFormData(data) {
         var formData = new FormData();
         // write the customData to the formData
@@ -26,6 +46,18 @@ export class UploadService {
                 }
             }
         }
+    }
+
+    // matches sent files against succeeded ones by size (no per-file identity in the
+    // response); anything unmatched is treated as failed for retry purposes
+    static unmatchedFiles(sentFiles, succeededFiles) {
+        succeededFiles = (succeededFiles || []).slice();
+        return sentFiles.filter(file => {
+            const idx = succeededFiles.findIndex(succeeded => succeeded && succeeded.size === file.size);
+            if (idx === -1) return true;
+            succeededFiles.splice(idx, 1);
+            return false;
+        });
     }
 
     static fileSizeToBytes(str){
@@ -130,8 +162,14 @@ export class UploadService {
             data.append('files[]', file);
         });
 
-        return this.databaseService.core.api({ path: uploadSettings.url || '/v2/uploads', data, method: "POST" });
+        return this.databaseService.core.api({ 
+            path: uploadSettings.url || '/v2/uploads', 
+            data, 
+            method: "POST", 
+            withClient: uploadSettings.withClient 
+        });
     }
+    
     fromFilePicker(config) {
         return window.showOpenFilePicker()
             .then(files => this.processFiles(Array.from(files), config));

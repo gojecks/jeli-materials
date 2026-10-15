@@ -142,15 +142,15 @@ export class FoPaymentMethodsService {
         this.stripeCache && this.stripeCache.card.unmount();
     }
 
-    paymentMethods(data, method, cache) {
+    paymentMethods(merchant, data, method, cache) {
         if (!this.databaseService) return Promise.reject('No databaseService defined');
-        return this.databaseService.core.api({ path: '/v2/payment/customer/card', method, data, cache });
+        return this.databaseService.core.api({ path: `/v2/payment/${merchant}/customer/card`, method, data, cache });
     }
 
-    searchCustomers(query, merchant) {
+    searchCustomers(merchant, query) {
         if (!this.databaseService) return Promise.reject('No databaseService defined');
         return this.databaseService.core.api({
-            path: '/v2/payment/search', data: {
+            path: `/v2/payment/${merchant}/search`, data: {
                 query,
                 scope: 'customers',
                 merchant,
@@ -162,7 +162,7 @@ export class FoPaymentMethodsService {
 
     getToken(merchant) {
         if (!this.databaseService) return Promise.reject('No databaseService defined');
-        return this.databaseService.core.api({ path: '/v2/payment/token', data: { merchant } })
+        return this.databaseService.core.api(`/v2/payment/${merchant}/token`)
     }
 
     isCreditCardValid(value) {

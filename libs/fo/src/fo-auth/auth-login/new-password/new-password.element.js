@@ -5,12 +5,13 @@ Element({
     selector: 'fo-new-password',
     DI: [LoginService, "changeDetector?"],
     templateUrl: './new-password.element.html',
-    props: ["hardReset", "userId", "smMode", 'spinner'],
+    props: ["hardReset", "userId", "smMode", 'spinner', 'client'],
     events: ["onPasswordUpdate:emitter"]
 })
 export class FoNewPassword {
     smMode = false;
     spinner = 'spinner-border spinner-border-sm';
+    client = null;
     constructor(loginService, changeDetector) {
         this.requestDone = false;
         this.error = false;
@@ -55,7 +56,8 @@ export class FoNewPassword {
     }
 
     process() {
-        if (this.postData.invalid) return;
+        const postData = this.postData.value;
+        if (this.postData.invalid || !this.userId || postData.newPasswd !== postData.confPasswd) return;
         this.isProcessing = true;
         this.requestDone = false;
         this.error = this.success = false;
@@ -69,7 +71,7 @@ export class FoNewPassword {
         };
 
         this.loginService.
-            resetPassword({ password: this.postData.value.newPasswd }, this.postData.value.current)
+            resetPassword(this.userId, postData.newPasswd, postData.current, this.client)
             .then(() => allDone(true), (err) => allDone(false, err.message));
     }
 

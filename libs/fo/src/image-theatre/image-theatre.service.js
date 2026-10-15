@@ -1,6 +1,8 @@
 import { EventEmitter } from '@jeli/core';
 
 Service()
-export function ImageTheatreService() {
-    this.startTheatreEvent = new EventEmitter();
+export class ImageTheatreService {
+    constructor() {
+        this.startTheatreEvent = new EventEmitter();
+    }
 }

@@ -4,7 +4,11 @@
       *if="canUploadImages">
       <div class="box__input" {style.display}="!selectedFiles.length ? 'block':'none'">
         <input class="box__file" type="file" @input="onFileSelected($event)" name="files[]" id="file" multiple="true" />
-        <label for="file">${:label || 'Choose or drag photos here.'}</label>
+        <label for="file">
+          ${:label}
+          <j-place #content></j-place>
+        </label>
+        
       </div>
       <div class="clearfix" @click-delegate:button="removeImage(idx)">
         <j-fragment template="listPreview" *if="!_settings.imageListPreview; else as imageListPreview"></j-fragment>
@@ -39,39 +43,72 @@
 </form>
 
 <j-template #singleFileTemplate>
-  <input type="file" @input="onFileSelected($event)" name="files[]" id="file" />
-  <label for="file"><j-place selector="[fileInput]"></j-place></label>
-  <label *if="_settings.useCamera" @click="showCamera=!showCamera"><j-place selector="[camera]"></j-place></label>
+  <div class="fo-dropzone" {:jClass}="dragClass" @:fileUploadDrag="fileDragDropEvent($event)">
+    <div class="fo-dropzone__input" {style.display}="!selectedFiles.length ? 'block':'none'">
+      <input class="box__file" type="file" @input="onFileSelected($event)" name="files[]" id="file" />
+      <label for="file" class="fo-dropzone__label">
+        <i class="bi bi-cloud-arrow-up fo-dropzone__icon"></i>
+        <j-place selector="[fileInput]"></j-place>
+        <span>${:label}</span>
+        <j-place #content></j-place>
+      </label>
+      <small class="fo-dropzone__hint text-muted d-block" *if="_settings.accepts">
+        Accepts ${:_settings.accepts} &middot; up to ${:_settings.maximumFileSize|conversion}
+      </small>
+      <button type="button" class="btn btn-sm btn-outline-secondary fo-camera-toggle" *if="_settings.useCamera"
+        @click="showCamera=!showCamera">
+        <i class="bi bi-camera"></i> Use Camera
+        <j-place selector="[camera]"></j-place>
+      </button>
+    </div>
+  </div>
   <div class="clearfix mt-2 mb-2" *if="_settings.allowSinglePreview" @click-delegate:button="removeImage(idx)">
     <j-fragment template="listPreview" *if="!_settings.imageListPreview; else as imageListPreview"></j-fragment>
   </div>
 </j-template>
 
 <j-template #listPreview>
-  <ul class="list-group">
-    <li class="list-group-item list-group-item-action clearfix" *for="file in selectedFiles; idx=index">
-      <button class="btn btn-light btn-sm float-end" type="button"><i class="bi bi-x-lg"></i></button>
-      <h6 class="col-10 mb-0 text-truncate">
-        <i class="bi me-2 fs-4"
-          {:jClass}="uploadProgress >= 100 ? 'text-success bi-check2-all':'text-secondary bi-check2'"></i> ${file.name}
-      </h6>
+  <ul class="list-group fo-upload-list">
+    <li class="list-group-item d-flex align-items-center gap-2 fo-upload-item" *for="file in selectedFiles; idx=index">
+      <i class="bi bi-file-earmark-image fs-4 text-secondary flex-shrink-0"></i>
+      <div class="flex-grow-1 text-truncate">
+        <div class="text-truncate">${file.name}</div>
+        <small class="text-muted" *if="file.size">${:file.size|conversion}</small>
+      </div>
+      <button class="btn btn-sm btn-outline-danger" type="button" *if="uploadError" aria-label="Retry upload" title="Retry upload"
+        {disabled}="uploadInProgress" @click="uploadImage()">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+      <i class="bi bi-check-circle-fill text-success fs-5" *if="!uploadError && uploadProgress >= 100" title="Uploaded"></i>
+      <i class="bi bi-arrow-repeat fo-spin text-primary fs-5" *if="uploadInProgress && uploadProgress < 100" title="Uploading"></i>
+      <i class="bi bi-hourglass-split text-secondary fs-5" *if="!uploadInProgress && !uploadError && uploadProgress < 100" title="Pending"></i>
+      <button class="btn btn-sm btn-outline-danger" type="button" aria-label="Remove file" title="Remove file"
+        {disabled}="_settings.autoUpload && uploadInProgress">
+        <i class="bi bi-trash3"></i>
+      </button>
     </li>
   </ul>
+  <div class="progress fo-upload-progress mt-2" *if="uploadInProgress">
+    <div class="progress-bar bg-${uploadError ? 'danger':'success'}" role="progressbar" aria-label="upload progress"
+      {style.width}="uploadProgress + '%'" aria-valuenow="uploadProgress" aria-valuemin="0" aria-valuemax="100"></div>
+  </div>
 </j-template>
 
 <j-template #imageListPreview>
-  <div class="_duCon" attr-style="_settings.previewPane" *for="file in selectedFiles; idx=index">
-    <div class="_imC">
-      <img {src}="file.blobURL" attr-height="_settings.previewPane.width">
+  <div class="fo-thumb" attr-style="_settings.previewPane" *for="file in selectedFiles; idx=index">
+    <img decoding="async" class="fo-thumb__img" {src}="file.blobURL" {alt}="file.name" attr-height="_settings.previewPane.height" draggable="false">
+    <div class="fo-thumb__overlay">
+      <span class="fo-thumb__name" {title}="file.name">${file.name}</span>
     </div>
-    <div class="_lnd"></div>
-    <div class="_pCN" {style.width}="(_settings.previewPane.width - 5)">
+    <div class="fo-thumb__progress" *if="uploadInProgress">
       <div class="progress">
-        <div class="progress-bar bg-${uploadError ?'danger':'success'}" role="progressbar" aria-label="upload progress"
-          {style.width}="(uploadProgress) + '%'" aria-valuenow="uploadProgress" aria-valuemin="0" aria-valuemax="100">
-        </div>
+        <div class="progress-bar bg-${uploadError ? 'danger':'success'}" role="progressbar" aria-label="upload progress"
+          {style.width}="uploadProgress + '%'" aria-valuenow="uploadProgress" aria-valuemin="0" aria-valuemax="100"></div>
       </div>
     </div>
-    <button type="button" class="btn-close"></button>
+    <i class="bi bi-check-circle-fill fo-thumb__status text-success" *if="!uploadInProgress && !uploadError && uploadProgress >= 100" title="Uploaded"></i>
+    <i class="bi bi-exclamation-circle-fill fo-thumb__status text-danger" *if="uploadError" title="Upload failed"></i>
+    <button type="button" class="btn-close fo-thumb__remove" aria-label="Remove image" title="Remove"
+      {disabled}="_settings.autoUpload && uploadInProgress"></button>
   </div>
 </j-template>

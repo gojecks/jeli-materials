@@ -9,27 +9,29 @@ Directive({
     props: ['config=:foInfoIcon'],
     DI: ['HostElement?']
 })
-export function InfoIconElement(hostElement) {
-    this.config = {
-        text:'My info icon text',
-        display:'popover',
-        title:'PopOver Title',
-        position:'right'
-    };
-    this.infoIconElement = null;
-    this.popoverService = new PopOverService(hostElement.nativeElement);
+export class InfoIconElement {
+    constructor(hostElement) {
+        this.config = {
+            text: 'My info icon text',
+            display: 'popover',
+            title: 'PopOver Title',
+            position: 'right'
+        };
+        this.infoIconElement = null;
+        this.popoverService = new PopOverService(hostElement.nativeElement);
+    }
+    didInit() {
+        this.popoverService.create(this.config);
+    }
+    onWindowResize() {
+        if (this.popoverService.isVisible) {
+            this.popoverService.determinePosition();
+        }
+    }
+    viewDidDestroy() {
+        this.popoverService.destroy();
+    }
 }
 
-InfoIconElement.prototype.didInit = function(){
-    this.popoverService.create(this.config);
-}
 
-InfoIconElement.prototype.onWindowResize = function(){
-   if (this.popoverService.isVisible){
-        this.popoverService.determinePosition()
-   }
-}
 
-InfoIconElement.prototype.viewDidDestroy = function(){
-    this.popoverService.destroy();
-}

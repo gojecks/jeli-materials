@@ -3,7 +3,7 @@
     <div class="modal-content">
       <div class="modal-header" *if="!hideHeader">
         <j-place #modalHeader></j-place>
-        <button type="button" class="btn-close" @click="closeModal(false)"></button>
+        <button type="button" class="btn-close" aria-label="Close" @click="closeModal(false)"></button>
       </div>
       <j-place #modalBody></j-place>
       <j-place #modalFooter></j-place>

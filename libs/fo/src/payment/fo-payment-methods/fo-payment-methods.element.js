@@ -186,9 +186,8 @@ export class FoPaymentMethodsElement {
         }
 
         this.onAddError = false;
-        this.foPaymentMethodsService.paymentMethods({
+        this.foPaymentMethodsService.paymentMethods(this.merchant, {
             cid: this.customerDetails.id,
-            merchant: this.merchant,
             payload
         }, 'POST').then(res => {
             // pusht the card details to list
@@ -211,8 +210,8 @@ export class FoPaymentMethodsElement {
     loadPaymentMethods() {
         if (!this._existingPaymentConfig.enabled) return;
         this.foPaymentMethodsService.searchCustomers(
-            this._existingPaymentConfig.query,
-            this.merchant
+            this.merchant,
+            this._existingPaymentConfig.query
         ).then(res => {
             this.customerDetails = res.result || {};
             // payment method already assigned to customer
@@ -230,10 +229,9 @@ export class FoPaymentMethodsElement {
                     class: 'btn btn-danger',
                     dismiss: true,
                     action: () => {
-                        this.foPaymentMethodsService.paymentMethods({ 
+                        this.foPaymentMethodsService.paymentMethods(this.merchant, { 
                             cardId: card.id, 
-                            cid: this.customerDetails.id, 
-                            merchant: this.merchant
+                            cid: this.customerDetails.id
                         }, 'DELETE')
                             .then(() => {
                                 this.customerDetails.cards.splice(this.customerDetails.cards.indexOf(card), 1);

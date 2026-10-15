@@ -1,0 +1,34 @@
+// height:100% needs a definite-height ancestor to resolve against - fine inside a fixed-height
+// app shell, but collapses to ~0 in normal document flow (e.g. a page builder canvas). min-height
+// is a floor, not an override, so it's a no-op wherever the 100% chain already resolves.
+:host {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 24rem;
+}
+
+.fo-pane-manager {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.fo-pane-manager-horizontal {
+    flex-direction: row;
+}
+
+.fo-pane-manager-vertical {
+    flex-direction: column;
+
+    fo-pane-content .fo-pane-content-root {
+        flex-direction: column;
+    }
+
+    fo-pane-content .fo-pane-gutter {
+        width: auto;
+        height: 6px;
+        cursor: row-resize;
+    }
+}

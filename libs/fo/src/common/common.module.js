@@ -12,6 +12,7 @@ import { FoCarouselElement } from './components/fo-carousel/fo-carousel.element'
 import { FoTreeElement } from './components/fo-tree/fo-tree-element';
 import { FoMiniLoadingElement } from './components/miniloading';
 import { OffCanvasElement } from './components/off-canvas/off-canvas.element';
+import { FoPaneManagerElement } from './components/pane-manager/pane-manager.element';
 import { PricingCardElement } from './components/pricing-card/pricing-card.element';
 import { ProgressBarElement } from './components/progress-bar/progress-bar.element';
 import { RadioButtonElement, RadioItemElement } from './components/radio-button/radio-button.element';
@@ -28,6 +29,9 @@ import { InfoIconElement } from './components/info-icon/info-icon.element';
 import { PrettyPrintElement } from './components/pretty-print/pretty-print.element';
 import { FoSliderElement } from './components/slider/slider.element';
 import { ToastElement } from './components/toast/toast.element';
+import { FoChartElement } from './components/fo-chart/fo-chart.element';
+import { ToastService } from './components/toast/toast.service';
+import { FoPaneContentElement } from './components/pane-manager/pane-content/pane-content.element';
 
 
 jModule({
@@ -47,6 +51,9 @@ jModule({
         RouterModule,
         FoCommonDirectivesModule
     ],
+    services: [
+        ToastService
+    ],
     selectors: [
         DatePickerElement,
         CheckBoxElement,
@@ -63,6 +70,8 @@ jModule({
         FoCarouselElement,
         FoAccordionElement,
         OffCanvasElement,
+        FoPaneManagerElement,
+        FoPaneContentElement,
         IconGridElement,
         RatingElement,
         FoHeaderElement,
@@ -73,7 +82,8 @@ jModule({
         DropDownItemElement,
         PrettyPrintElement,
         FoSliderElement,
-        ToastElement
+        ToastElement,
+        FoChartElement
     ]
 })
-export function FoCommonModule() {}
+export class FoCommonModule {}

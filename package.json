@@ -18,9 +18,9 @@
     "@jeli/form": "~1.0.3"
   },
   "devDependencies": {
-    "@jeli/cli": "1.0.3",
-    "@jeli/compiler-cli": "^1.0.3",
-    "@jeli/dev-cli": "^1.0.3",
+    "@jeli/cli": "file:../jeli-cli/packages/cli",
+    "@jeli/compiler-cli": "file:../jeli-cli/packages/compiler-cli",
+    "@jeli/dev-cli": "file:../jeli-cli/packages/dev-cli",
     "esdoc": "^1.1.0",
     "esdoc-standard-plugin": "^1.0.0",
     "eslint": "^6.8.0",
@@ -30,6 +30,7 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
     "jest": "^29.5.0",
-    "request-promise-native": "^1.0.9"
+    "request-promise-native": "^1.0.9",
+    "sass": "^1.69.5"
   }
 }

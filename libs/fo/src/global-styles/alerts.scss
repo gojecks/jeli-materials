@@ -1,0 +1,54 @@
+$alert-colors: (
+    primary: var(--fsb-primary, #4f46e5),
+    secondary: var(--fsb-secondary, #06b6d4),
+    success: var(--fsb-success, #198754),
+    danger: var(--fsb-danger, #dc3545),
+    warning: var(--fsb-warning, #ffc107),
+    info: var(--fsb-info, #0dcaf0),
+    light: var(--fsb-light, #f8f9fa),
+    dark: var(--fsb-dark, #212529),
+    "teal": var(--fsb-teal, #20c997),
+    "purple": var(--fsb-purple, #6f42c1),
+    "pink": var(--fsb-pink, #d63384),
+    "orange": var(--fsb-orange, #fd7e14)
+);
+
+.alert {
+    position: relative;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: var(--fsb-radius-md, .5rem);
+}
+
+.alert-heading {
+    color: inherit;
+}
+
+.alert-link {
+    font-weight: 700;
+}
+
+.alert-dismissible {
+    padding-right: 3rem;
+
+    .btn-close {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 2;
+        padding: 1.25rem 1rem;
+    }
+}
+
+@each $name, $val in $alert-colors {
+    .alert-#{$name} {
+        color: color-mix(in srgb, #{$val} 60%, black);
+        background-color: color-mix(in srgb, #{$val} 15%, white);
+        border-color: color-mix(in srgb, #{$val} 40%, white);
+
+        .alert-link {
+            color: color-mix(in srgb, #{$val} 60%, black);
+        }
+    }
+}

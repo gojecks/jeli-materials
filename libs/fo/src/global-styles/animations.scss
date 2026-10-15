@@ -1,0 +1,39 @@
+// Entrance presets: initial (hidden/offset) state + transition; .fo-anim-in (added by
+// dynamic-view.element.js's IntersectionObserver once the element scrolls into view) triggers
+// it. Plain transitions, not @keyframes - simpler to combine with duration/delay modifiers.
+.fo-anim-fade, .fo-anim-fade-up, .fo-anim-fade-down, .fo-anim-fade-left, .fo-anim-fade-right, .fo-anim-zoom-in, .fo-anim-slide-up {
+    opacity: 0;
+    transition-property: opacity, transform;
+    transition-duration: .6s;
+    transition-timing-function: cubic-bezier(.25, .1, .25, 1);
+}
+
+.fo-anim-fade-up { transform: translateY(24px); }
+.fo-anim-fade-down { transform: translateY(-24px); }
+.fo-anim-fade-left { transform: translateX(24px); }
+.fo-anim-fade-right { transform: translateX(-24px); }
+.fo-anim-zoom-in { transform: scale(.92); }
+.fo-anim-slide-up { opacity: 1; transform: translateY(48px); }
+
+.fo-anim-fade.fo-anim-in, .fo-anim-fade-up.fo-anim-in, .fo-anim-fade-down.fo-anim-in,
+.fo-anim-fade-left.fo-anim-in, .fo-anim-fade-right.fo-anim-in, .fo-anim-zoom-in.fo-anim-in, .fo-anim-slide-up.fo-anim-in {
+    opacity: 1;
+    transform: none;
+}
+
+.fo-anim-fast { transition-duration: .3s !important; }
+.fo-anim-slow { transition-duration: 1s !important; }
+
+.fo-anim-delay-sm { transition-delay: .15s !important; }
+.fo-anim-delay-md { transition-delay: .3s !important; }
+.fo-anim-delay-lg { transition-delay: .6s !important; }
+
+// Hover effects - pure CSS, no runtime involvement.
+.fo-anim-hover-scale { transition: transform .2s ease; }
+.fo-anim-hover-scale:hover { transform: scale(1.03); }
+
+.fo-anim-hover-lift { transition: transform .2s ease; }
+.fo-anim-hover-lift:hover { transform: translateY(-4px); }
+
+.fo-anim-hover-glow { transition: box-shadow .2s ease; }
+.fo-anim-hover-glow:hover { box-shadow: 0 0 24px rgba(0, 0, 0, .15); }

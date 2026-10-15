@@ -1,0 +1,6 @@
+<div class="fo-pane-content-root">
+  <div class="fo-pane-content-inner">
+    <j-place></j-place>
+  </div>
+  <div *if="resizable && !isLast" class="fo-pane-gutter" {style}="{flexBasis: manager.gutterSize+'px'}" @mousedown="onGutterActivate($event)"></div>
+</div>
