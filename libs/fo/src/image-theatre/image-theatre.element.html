@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-fullscreen">
       <div class="modal-content">
         <div class="modal-body  row m-0 p-0">
-          <div class="col-md-${:openTheatre.comments ? '9':'12'} previewArea" @touchstart="onTouchStart($event)" @touchmove="onTouchMove($event)" @touchend="onTouchEnd($event)">
+          <div class="col-md-${:openTheatre.comments ? '9':'12'} previewArea">
             <div class='clearfix top-action-container'>
               <div class="progress rounded" *if="isPlaying" role="progressbar" aria-label="loading" aria-valuenow="${progress}" aria-valuemin="10" aria-valuemax="100">
                 <div class="progress-bar bg-warning text-dark" {style}="{width: progress+'%'}"></div>
@@ -11,7 +11,7 @@
               <div class="float-end btn-group bg-black rounded-0" @click-delegate:button='theatreBtnAction($event.target.id)'>
                 <button class="btn" *for="t in ['out', 'in']; idx=index" attr-title="'Zoom '+ t" attr-aria-label="'Zoom '+ t" attr-id="'zoom-'+ t"><i attr-class="'bi-zoom-'+t"></i></button>
                 <button class="btn" *if="_config.autoPlay" id="playPause" {title}="isPlaying ? 'Pause':'Play'" {aria-label}="isPlaying ? 'Pause':'Play'"><i {:jClass}="'bi-'+ (isPlaying ? 'pause':'play')"></i></button>
-                <button class="btn" id="fscrn" {title}="isFullScreen ? 'Fullscreen':'Exit Fullscreen'" {aria-label}="isFullScreen ? 'Fullscreen':'Exit Fullscreen'"><i {:jClass}="'bi-fullscreen'+ (isFullScreen ? '-exit':'')"></i></button>
+                <button class="btn" *if="canFullScreen" id="fscrn" {title}="isFullScreen ? 'Fullscreen':'Exit Fullscreen'" {aria-label}="isFullScreen ? 'Fullscreen':'Exit Fullscreen'"><i {:jClass}="'bi-fullscreen'+ (isFullScreen ? '-exit':'')"></i></button>
                 <button class='btn' title="Close" aria-label="Close" id="close"><i class="bi-x-lg"></i></button>
               </div>
             </div>
@@ -20,7 +20,8 @@
             </div>
             <img #theatreImage {src}="openTheatre.fileUrl + openTheatre.files[openTheatre.entry].name"
               {style}="{width:zoomScale+'%', maxHeight: isZoomed ? 'none':'100%', opacity:imageLoading ? 0:1, transform:'translate('+panX+'px,'+panY+'px)', cursor: isZoomed ? (_isDragging?'grabbing':'grab') : 'default', transition: suppressZoomTransition ? 'opacity 300ms ease-in-out' : 'width 500ms ease-in-out, opacity 300ms ease-in-out'}"
-              @error="handleImageLoading(false)" @load="handleImageLoading(true)" @wheel="onWheel($event)" @dblclick="onDoubleClick()" @mousedown="onMouseDown($event)"/>
+              @error="handleImageLoading(false)" @load="handleImageLoading(true)" @wheel="onWheel($event)" @dblclick="onDoubleClick()" @mousedown="onMouseDown($event)"
+              @touchstart="onTouchStart($event)" @touchmove="onTouchMove($event)" @touchend="onTouchEnd($event)"/>
             <div class="text-white position-absolute" *if="errorLoadingImage">There was an error loading image, please try again.</div>
             <div class="text-white spinner-border" role="status" *if="imageLoading">
               <span class="visually-hidden">Loading...</span>

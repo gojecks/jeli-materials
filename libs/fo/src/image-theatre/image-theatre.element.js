@@ -196,6 +196,9 @@ export class ImageTheatreElement {
         this.panY = 0;
         this.stop();
     }
+    get canFullScreen() {
+        return !!(this.hostElement && this.hostElement.nativeElement.requestFullscreen);
+    }
     get isZoomed() {
         return this.zoomScale > ImageTheatreElement.FIT_SCALE;
     }
