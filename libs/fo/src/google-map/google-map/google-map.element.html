@@ -15,7 +15,7 @@
           <j-place></j-place>
         </div>
       </div>
-      <div id="_mapCanvas"></div>
+      <div id="_mapCanvas" #mapCanvas></div>
     </div>
     <div class="col-md-3 col-sm-12 p-0 rightPanel border-start position-relative" *if="_config.nearbyPlaces"
       {style.display}="(!selectedAction || selectedAction =='places') ? 'block':'none'">

@@ -251,38 +251,61 @@ export class GoogleMapService {
         }
     }
 
-    startGeoPlaces(startAddress) {
+    /**
+     * Resolves once the canvas is attached and has a size; rejects after maxFrames.
+     */
+    static waitForCanvas(getCanvas, maxFrames = 60) {
+        return new Promise((resolve, reject) => {
+            let frames = 0;
+            const check = () => {
+                const canvas = getCanvas();
+                if (canvas && canvas.isConnected && canvas.offsetWidth && canvas.offsetHeight) {
+                    return resolve(canvas);
+                }
+                if (++frames > maxFrames) {
+                    return reject('Map canvas not attached or not visible');
+                }
+                requestAnimationFrame(check);
+            };
+            check();
+        });
+    }
+
+    startGeoPlaces(startAddress, canvas) {
         return new Promise((resolve, reject) => {
             GoogleMapService.checkModuleLoaded(() => {
-                var container = this.element.get(this.configuration.ids.mapCanvas);
-                if (!container || !window.google) { return reject('Google maps not available or unable to locate map canvas'); }
-                var mapConfig = Object.assign({ center: (startAddress || this.coordinates).location }, this.configuration.mapConfig);
+                GoogleMapService.waitForCanvas(() => canvas || this.element.get(this.configuration.ids.mapCanvas))
+                    .then(container => {
+                        if (!window.google) { return reject('Google maps not available'); }
+                        var mapConfig = Object.assign({ center: (startAddress || this.coordinates).location }, this.configuration.mapConfig);
 
-                this.geocoder = new google.maps.Geocoder;
-                this.map = new google.maps.Map(container, mapConfig);
-                //set infoWindow
-                this.infoWindow = new google.maps.InfoWindow();
-                //set Marker
-                this.marker = new google.maps.Marker({
-                    map: this.map,
-                    anchor: new google.maps.Point(0, -29),
-                    position: mapConfig.center,
-                    draggable: this.configuration.marker.draggable,
-                    animation: this.configuration.marker.bounce
-                });
+                        this.geocoder = new google.maps.Geocoder;
+                        this.map = new google.maps.Map(container, mapConfig);
+                        //set infoWindow
+                        this.infoWindow = new google.maps.InfoWindow();
+                        //set Marker
+                        this.marker = new google.maps.Marker({
+                            map: this.map,
+                            anchor: new google.maps.Point(0, -29),
+                            position: mapConfig.center,
+                            draggable: this.configuration.marker.draggable,
+                            animation: this.configuration.marker.bounce
+                        });
 
-                // attach listener
-                if (this.configuration.marker.bounce) {
-                    this.marker.addListener('click', () => {
-                        if (this.marker.getAnimation() !== null) {
-                            this.marker.setAnimation(null);
-                        } else {
-                            this.marker.setAnimation(google.maps.Animation.BOUNCE);
+                        // attach listener
+                        if (this.configuration.marker.bounce) {
+                            this.marker.addListener('click', () => {
+                                if (this.marker.getAnimation() !== null) {
+                                    this.marker.setAnimation(null);
+                                } else {
+                                    this.marker.setAnimation(google.maps.Animation.BOUNCE);
+                                }
+                            });
                         }
-                    });
-                }
 
-                resolve(true);
+                        resolve(true);
+                    })
+                    .catch(reject);
             });
         });
     }

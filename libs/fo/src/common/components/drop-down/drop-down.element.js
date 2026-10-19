@@ -22,6 +22,7 @@ Element({
     events: [
         'document.click:event=registerDocumentClick()',
         'window.resize:event=onWindowResize()',
+        'window.scroll:event=onWindowScroll()',
         'click-delegate:a=onItemClicked($event.target.id)',
         'foDropDownChange:emitter'
     ],
@@ -57,6 +58,11 @@ export class DropDownElement {
         }
     }
     onWindowResize() {
+        if (this.isDropDownOpen) {
+            this.calculateStyle();
+        }
+    }
+    onWindowScroll() {
         if (this.isDropDownOpen) {
             this.calculateStyle();
         }
@@ -113,8 +119,10 @@ export class DropDownElement {
             const isEndPosition = (windowWidth === (btnRect.left + btnRect.width) && dropDownRect.width > btnRect.width);
             // attach the dropdown element to the body using fixed position
             // calculate the require position placement
+            const flipUp = dropDownRect.bottom > windowHeight;
             if (this.boundary === 'viewport'){
                 style.position = 'fixed';
+                style.top = flipUp ? btnRect.top - dropDownRect.height : btnRect.bottom;
                 if(this.position === 'end' || isEndPosition){
                     style.left = btnRect.right - dropDownRect.width;
                 }
@@ -122,7 +130,7 @@ export class DropDownElement {
                 style.right = 0;
             }
 
-            if (dropDownRect.bottom > windowHeight) {
+            if (flipUp && this.boundary !== 'viewport') {
                 style.bottom = btnRect.height;
             }
 

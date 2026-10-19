@@ -6,12 +6,14 @@ Element({
     templateUrl: './google-map.element.html',
     styleUrl: './google-map.element.scss',
     props: ['config', 'address', 'readOnly', 'emitCurrentLocation'],
+    viewChild: ['mapCanvas:HTMLElement'],
     events: ['onPlaceSelected:emitter']
 })
 export class GoogleMapElement {
     constructor() {
         this.geoService = new GoogleMapService();
         this.onPlaceSelected = new EventEmitter();
+        this.mapCanvas = null;
         this.actions = ['map', 'places'];
         this.selectedAction = '';
         this.address = null;
@@ -46,7 +48,7 @@ export class GoogleMapElement {
     }
 
     viewDidLoad() {
-        this.geoService.startGeoPlaces(this.address)
+        this.geoService.startGeoPlaces(this.address, this.mapCanvas)
             .then(() => {
                 this.geoService
                     .buildControls()
