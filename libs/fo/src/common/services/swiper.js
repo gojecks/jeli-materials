@@ -28,8 +28,9 @@ export class SwiperService {
         this._init(onInitialize);
     }
 
+    // -1 when empty: the old "length - 1 || 0" made an empty list look like -1 forever and the 1ms start-up poll never stopped
     get total(){
-        return this.parentElement?.children.length - 1 || 0;
+        return (this.parentElement ? this.parentElement.children.length : 0) - 1;
     }
 
     getChildElement(index) {
@@ -82,17 +83,27 @@ export class SwiperService {
             });
         }
 
-        // kick off initial
-        this.initialInterVal = setInterval(() => {
-            if (-1 < this.total) {
-                onInitialize && onInitialize();
-                clearInterval(this.initialInterVal);
-                if (this.config.carousel.enabled) {
-                    this.toggle(this.itemPerPage, this.total, 'hide');
-                    this.playOrPause();
-                }
+        // start once the container has items; next tick, since callers use the instance right after constructing it
+        var start = () => {
+            if (!this.config || this.total < 0) return false;
+            this._stopWatching();
+            onInitialize && onInitialize();
+            if (this.config.carousel.enabled) {
+                this.toggle(this.itemPerPage, this.total, 'hide');
+                this.playOrPause();
             }
-        }, 1);
+            return true;
+        };
+        this.initialInterVal = setTimeout(() => {
+            if (start() || !this.parentElement || typeof MutationObserver === 'undefined') return;
+            this._childWatcher = new MutationObserver(start);
+            this._childWatcher.observe(this.parentElement, { childList: true });
+        }, 0);
+    }
+
+    _stopWatching() {
+        if (this._childWatcher) this._childWatcher.disconnect();
+        this._childWatcher = null;
     }
 
     next() {
@@ -124,7 +135,8 @@ export class SwiperService {
         // destroy the listener
         this.queryListeners();
         clearInterval(this.interval);
-        clearInterval(this.initialInterVal);
+        clearTimeout(this.initialInterVal);
+        this._stopWatching();
     }
 }
 

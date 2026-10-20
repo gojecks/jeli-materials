@@ -28,7 +28,7 @@ export class FoCarouselElement {
         this.indicator = false;
         this.control = false;
         this.darkVariant = false;
-        this.touch = false;
+        this.touch = true;
         this.crossFade = false;
         this.carouselItems = [];
         this.timer = 3000;
@@ -68,7 +68,14 @@ export class FoCarouselElement {
         }
         this.startTimer();
     }
-    // '' not null - a null srcset property becomes the literal URL "null"
+    // swiping is on unless the view sets touch: false
+    onSwipe(direction) {
+        if (this.touch === false || !this.carouselItems || this.carouselItems.length < 2) return;
+        direction === 'left' ? this.next() : this.previous();
+        this.changeDetector && this.changeDetector.onlySelf();
+    }
+
+        // '' not null - a null srcset property becomes the literal URL "null"
     getSrcset(image) {
         return imageSrcset(image, [640, 1024, 1600, 2400]) || '';
     }

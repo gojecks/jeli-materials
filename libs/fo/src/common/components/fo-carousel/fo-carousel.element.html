@@ -1,4 +1,5 @@
-<div attr-id="id" class="carousel slide" {:jClass}="{'carousel-dark': darkVariant, 'carousel-fade': crossFade}">
+<div attr-id="id" class="carousel slide" {:jClass}="{'carousel-dark': darkVariant, 'carousel-fade': crossFade}"
+  :foSwipe="left,right" @swipe="onSwipe($event)">
   <j-fragment *if="indicator" template="indicatorControl"></j-fragment>
   <div class="carousel-inner">
     <div class="carousel-item" attr-id="id +'-item-'+idx" {:jClass}="currentIndex == idx ? 'active':''" *for="item of carouselItems; idx=index">

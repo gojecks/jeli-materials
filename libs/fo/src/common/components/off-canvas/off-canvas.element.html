@@ -1,7 +1,8 @@
 <button class="btn" *if="!hideTrigger" attr-class="'btn-'+btnStyle" @click="offCanvasAction(true)">
     <i attr-class="iconClass"></i> ${:btnText}
 </button>
-<div class="offcanvas" attr-class="'offcanvas-'+position" {:jClass}="{'show': (_isOpen)}" tabindex="-1" attr-id="id">
+<div class="offcanvas" attr-class="'offcanvas-'+position" {:jClass}="{'show': (_isOpen)}" tabindex="-1" attr-id="id"
+  :foSwipe @swipe="onSwipe($event)">
   <div class="offcanvas-header">
     <h5 class="offcanvas-title">${:title}</h5>
     <button type="button" class="btn-close" aria-label="Close" @click="offCanvasAction(false)"></button>

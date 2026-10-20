@@ -15,4 +15,5 @@ export * from './src/cookies-policy/cookies-policy.module';
 export * from './src/fo-analytics/fo-analytics.module';
 export * from './src/common/filters/filters.module';
 export * from './src/common/services/swiper';
+export * from './src/common/services/swipe-gesture';
 export * from './src/common/services/breakpoints';

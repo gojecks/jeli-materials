@@ -36,7 +36,13 @@ export class OffCanvasElement {
         this._isOpen = value;
     }
 
-    offCanvasAction(state, fromBackdrop) {
+    // swiping toward the edge it slides in from closes it
+    onSwipe(direction) {
+        var closing = { start: 'left', end: 'right', top: 'up', bottom: 'down' }[this.position || 'start'];
+        if (this._isOpen && direction === closing) this.offCanvasAction(false);
+    }
+
+        offCanvasAction(state, fromBackdrop) {
         if (fromBackdrop && !this.backDropClose) return;
         this._isOpen = state;
         this.onCanvasAction.emit(state);

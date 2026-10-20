@@ -24,6 +24,7 @@ import { SpinnerElement } from './components/spinner.element';
 import { FoTagListElement } from './components/tag-list/tag-list.element';
 import { FoMaskDirective } from './directives/mask.directive';
 import { LongPressDirective } from './directives/long-press.directive';
+import { FoSwipeDirective } from './directives/swipe.directive';
 import { FoTagListDirective } from './components/tag-list/tag-list.directive';
 import { InfoIconElement } from './components/info-icon/info-icon.element';
 import { PrettyPrintElement } from './components/pretty-print/pretty-print.element';
@@ -39,7 +40,8 @@ jModule({
     selectors: [
         FoAceEditorDirective,
         FoMaskDirective,
-        LongPressDirective
+        LongPressDirective,
+        FoSwipeDirective
     ]
 })
 export function FoCommonDirectivesModule() {}
