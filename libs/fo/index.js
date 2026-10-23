@@ -2,6 +2,7 @@
  * This is the entry file for jeli
  */
 export * from './src/google-map/google-map.module';
+export * from './src/maplibre/maplibre.module';
 export * from './src/fo-auth/fo-auth.module';
 export * from './src/image-theatre/image-theatre.module';
 export * from './src/modal/modal.module';

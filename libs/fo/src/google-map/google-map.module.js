@@ -9,6 +9,7 @@ import {
 import { NearbyPlacesElement } from './nearby-places/nearby-places.element';
 import { StaticMapDirective } from './directives/static-map.directive';
 import { GoogleMapsIframeDirective } from './directives/frame-map.directive';
+import { GoogleMarkersElement } from './google-markers/google-markers.element';
 
 
 jModule({
@@ -22,7 +23,8 @@ jModule({
         StaticMapDirective,
         NearbyPlacesElement,
         GoogleMapsIframeDirective,
-        PlaceElasticSearchV2Element
+        PlaceElasticSearchV2Element,
+        GoogleMarkersElement
     ],
     services: [
         GoogleMapService
